@@ -1,364 +1,362 @@
 """
-Conversation Management Module for AI Chatbot Assistance for Students (FAIX).
+Conversation Management Module for FAIX AI Chatbot
 
-This module handles conversation context, topic tracking, and user intent detection
-using a rule-based approach. It manages conversation flow and provides appropriate
-responses based on detected topics and fallback mechanisms.
+This module manages conversation context, detects user intent through rule-based
+topic detection, and maintains conversation continuity for follow-up questions.
+It uses a simple rule-based approach with placeholder comments for future NLP
+integration (e.g., from the NLP module).
 
-Features:
-- Conversation context and history management
-- Topic detection (registration, contact, farewell)
-- Fallback responses for unclear inputs
-- Follow-up question handling within the same context
-- Integration-ready for NLP and Knowledge Base modules
+Author: FAIX Chatbot Team
+Date: November 2025
 """
 
 from typing import Optional
 
 
-def detect_intent(user_message: str) -> Optional[str]:
+class ConversationContext:
     """
-    Detects user intent from the message content using keyword matching.
-    
+    Manages conversation context including topic, history, and conversation state.
+    """
+
+    def __init__(self):
+        """Initialize conversation context with default values."""
+        self.current_topic: Optional[str] = None
+        self.last_question: Optional[str] = None
+        self.conversation_history: list[dict] = []
+        self.session_active: bool = True
+
+    def update_topic(self, new_topic: str) -> None:
+        """Update the current conversation topic."""
+        self.current_topic = new_topic
+
+    def update_last_question(self, question: str) -> None:
+        """Store the last user question for context continuity."""
+        self.last_question = question
+
+    def add_to_history(self, user_msg: str, bot_response: str) -> None:
+        """Add exchange to conversation history."""
+        self.conversation_history.append({
+            "user": user_msg,
+            "bot": bot_response
+        })
+
+    def clear_context(self) -> None:
+        """Clear conversation context (used for goodbye or session end)."""
+        self.current_topic = None
+        self.last_question = None
+        self.conversation_history = []
+        self.session_active = False
+
+    def to_dict(self) -> dict:
+        """Convert context to dictionary for serialization or Django integration."""
+        return {
+            "current_topic": self.current_topic,
+            "last_question": self.last_question,
+            "conversation_history": self.conversation_history,
+            "session_active": self.session_active
+        }
+
+    @classmethod
+    def from_dict(cls, data: dict) -> "ConversationContext":
+        """Create ConversationContext from dictionary (e.g., from Django session)."""
+        context = cls()
+        context.current_topic = data.get("current_topic")
+        context.last_question = data.get("last_question")
+        context.conversation_history = data.get("conversation_history", [])
+        context.session_active = data.get("session_active", True)
+        return context
+
+
+def detect_topic(user_message: str) -> Optional[str]:
+    """
+    Detect user intent/topic from message using rule-based keyword matching.
+
     This is a simple rule-based approach. In the future, this can be replaced
-    with an NLP module (e.g., intent classification from Nex's NLP module).
-    
+    with NLP intent detection (e.g., from an NLP module with intent classifiers).
+
     Args:
         user_message: The user's input text.
-        
+
     Returns:
-        The detected topic/intent as a string, or None if no clear intent is found.
+        Detected topic (e.g., "registration", "contact") or None if unclear.
     """
-    user_message_lower = user_message.lower().strip()
-    
-    # Keywords for different intents
-    registration_keywords = ["register", "registration", "course", "subject", "enroll", "enrollment"]
-    contact_keywords = ["contact", "office", "email", "phone", "staff", "reach", "address"]
-    farewell_keywords = ["thanks", "thank", "bye", "goodbye", "see you", "quit", "exit"]
-    
-    # Check for registration-related intent
-    if any(keyword in user_message_lower for keyword in registration_keywords):
+    # Normalize message to lowercase for case-insensitive matching
+    message_lower = user_message.lower()
+
+    # Define keyword patterns for each topic
+    registration_keywords = ["register", "course", "subject", "enrollment", "registration"]
+    contact_keywords = ["contact", "office", "email", "phone", "address", "staff"]
+    general_keywords = ["hi", "hello", "hey", "help"]
+
+    # Topic detection logic
+    # TODO: Replace with NLP intent classification when NLP module is integrated
+    if any(keyword in message_lower for keyword in registration_keywords):
         return "registration"
-    
-    # Check for contact-related intent
-    if any(keyword in user_message_lower for keyword in contact_keywords):
+
+    if any(keyword in message_lower for keyword in contact_keywords):
         return "contact"
-    
-    # Check for farewell intent
-    if any(keyword in user_message_lower for keyword in farewell_keywords):
-        return "farewell"
-    
-    # No clear intent detected
+
+    if any(keyword in message_lower for keyword in general_keywords):
+        return "general"
+
     return None
 
 
-def handle_registration_query(user_message: str, context: dict) -> str:
+def is_closing_message(user_message: str) -> bool:
     """
-    Handles queries related to course registration and enrollment.
-    
+    Check if the user message indicates end of conversation.
+
     Args:
         user_message: The user's input text.
-        context: The conversation context dictionary.
-        
+
     Returns:
-        An appropriate response about registration.
+        True if message contains closing keywords, False otherwise.
     """
-    user_message_lower = user_message.lower()
-    
-    # Check for specific sub-questions within registration topic
-    if any(word in user_message_lower for word in ["when", "date", "time", "deadline"]):
-        return (
-            "📅 Registration typically opens at the beginning of each semester. "
-            "For specific dates, please check the official FAIX schedule at our website "
-            "or contact the registrar's office. Is there anything else about registration?"
-        )
-    elif any(word in user_message_lower for word in ["how", "form", "process", "step"]):
-        return (
-            "📝 To register for courses, you'll need to:\n"
-            "1. Log into your student portal\n"
-            "2. Navigate to 'Course Registration'\n"
-            "3. Select your desired courses\n"
-            "4. Confirm and submit your registration\n\n"
-            "For detailed instructions, please contact the registration office. Need help?"
-        )
-    elif any(word in user_message_lower for word in ["requirement", "prerequisite", "condition"]):
-        return (
-            "✅ Course requirements vary by program. Please refer to your course catalog "
-            "or speak with your academic advisor for prerequisite information."
-        )
-    else:
-        return (
-            "💡 I can help you with registration questions. "
-            "Would you like to know about registration dates, the registration process, or course requirements?"
-        )
+    closing_keywords = ["thanks", "thank you", "bye", "goodbye", "see you"]
+    message_lower = user_message.lower()
+    return any(keyword in message_lower for keyword in closing_keywords)
 
 
-def handle_contact_query(user_message: str, context: dict) -> str:
+def get_response_for_topic(topic: str, user_message: str) -> str:
     """
-    Handles queries related to contacting FAIX staff and services.
-    
+    Generate a contextual response based on detected topic.
+
+    This function can be extended to integrate with the Knowledge Base module
+    for retrieving dynamic responses.
+
     Args:
-        user_message: The user's input text.
-        context: The conversation context dictionary.
-        
+        topic: The detected conversation topic.
+        user_message: The original user message (for context).
+
     Returns:
-        Contact information or appropriate guidance.
+        A relevant response string.
     """
-    user_message_lower = user_message.lower()
-    
-    # Check for specific contact-related sub-questions
-    if any(word in user_message_lower for word in ["email", "mail"]):
+    # TODO: Integrate with Knowledge Base module (knowledge_base.py)
+    # to fetch dynamic responses based on topic and context
+
+    if topic == "registration":
+        # Check if it's a follow-up or initial question
+        if any(word in user_message.lower() for word in ["when", "time", "date", "open"]):
+            return (
+                "📅 Registration details vary by semester. "
+                "Please check the course information or contact the Student Affairs Office for exact dates. "
+                "Is there a specific course or deadline you're asking about?"
+            )
+        else:
+            return (
+                "🎓 For course registration, you'll need to access the student portal with your credentials. "
+                "Do you have questions about specific courses or registration procedures?"
+            )
+
+    elif topic == "contact":
+        # Provide contact information (can be integrated with staff_contacts.json)
         return (
-            "📧 For email inquiries, please contact the FAIX administrative office. "
-            "You can find staff email addresses in our directory on the FAIX website."
-        )
-    elif any(word in user_message_lower for word in ["phone", "call", "number"]):
-        return (
-            "☎️ For phone inquiries, please call the FAIX main office. "
-            "The contact number is available on our website."
-        )
-    elif any(word in user_message_lower for word in ["office", "location", "address", "visit"]):
-        return (
-            "🏢 The FAIX offices are located on the UTeM campus. "
-            "For specific office locations and visiting hours, please visit the FAIX website."
-        )
-    else:
-        return (
-            "📞 I can help you find contact information for FAIX staff. "
-            "Would you like email addresses, phone numbers, or office locations?"
+            "📞 You can reach FAIX administration:\n"
+            "• Email: contact@faix.utem.edu.my\n"
+            "• Office: Building A, Room 305\n"
+            "• Phone: +60-3-8312-5250 ext. 305\n"
+            "What specific information do you need?"
         )
 
+    elif topic == "general":
+        return (
+            "👋 Hello! I'm the FAIX Chatbot Assistant. "
+            "I can help you with course registration, contact information, FAQs, and schedules. "
+            "What would you like to know?"
+        )
 
-def handle_greeting(user_message: str) -> str:
+    return None
+
+
+def get_fallback_response() -> str:
     """
-    Handles greeting messages from the user.
-    
-    Args:
-        user_message: The user's input text.
-        
+    Generate a polite fallback response for unclear inputs.
+
     Returns:
-        A friendly greeting response.
+        A helpful fallback message prompting for clarification.
     """
     return (
-        "👋 Hello! Welcome to FAIX AI Chatbot. I'm here to help you with questions about "
-        "course registration, staff contacts, schedules, and other student inquiries. "
-        "How can I assist you today?"
+        "I'm sorry, I didn't quite understand your question. 🤔\n"
+        "Could you please clarify what you need help with? "
+        "I can assist with:\n"
+        "• Course registration\n"
+        "• Contact information\n"
+        "• FAQs and schedules\n"
+        "• General information"
     )
 
 
-def handle_fallback() -> str:
+def get_closing_response() -> str:
     """
-    Provides a polite fallback response when intent cannot be determined.
-    
+    Generate a polite closing message.
+
     Returns:
-        A fallback message requesting clarification.
+        A friendly goodbye message.
     """
     return (
-        "🤔 I'm sorry, I didn't quite understand your question. "
-        "Could you please clarify what you'd like to know? "
-        "I can help with registration, contact information, schedules, and more."
+        "Thank you for using the FAIX Chatbot! 😊\n"
+        "If you have more questions later, feel free to reach out. Have a great day!"
     )
 
 
-def update_context(user_message: str, context: dict, detected_intent: Optional[str]) -> dict:
+def process_conversation(
+    user_message: str,
+    context: Optional[dict] = None
+) -> tuple[str, dict]:
     """
-    Updates the conversation context based on the detected intent and user message.
-    
-    This maintains conversation continuity by tracking:
-    - Current topic
-    - Previous messages
-    - Last interaction timestamp information
-    
-    Args:
-        user_message: The user's input text.
-        context: The existing conversation context.
-        detected_intent: The detected intent from the user message.
-        
-    Returns:
-        Updated context dictionary.
-    """
-    updated_context = context.copy()
-    
-    # Track conversation history (limit to last 5 messages for memory efficiency)
-    if "history" not in updated_context:
-        updated_context["history"] = []
-    
-    updated_context["history"].append({"user": user_message})
-    
-    if len(updated_context["history"]) > 10:  # Keep last 10 exchanges
-        updated_context["history"] = updated_context["history"][-10:]
-    
-    # Update current topic if intent is detected
-    if detected_intent and detected_intent != "farewell":
-        updated_context["current_topic"] = detected_intent
-        updated_context["last_question"] = user_message
-    elif detected_intent == "farewell":
-        # Clear context on farewell
-        updated_context = {}
-    
-    return updated_context
+    Process user input, detect intent, maintain context, and generate response.
 
+    This is the main entry point for conversation processing. It handles:
+    1. Topic detection from user message
+    2. Context maintenance for follow-up questions
+    3. Fallback handling for unclear inputs
+    4. Conversation closure
 
-def process_conversation(user_message: str, context: dict) -> tuple[str, dict]:
-    """
-    Processes the user input, updates context, and returns chatbot response + updated context.
-    
-    This is the main function that orchestrates the conversation management module.
-    
     Args:
         user_message: The latest text entered by the user.
-        context: A dictionary that keeps track of current topic, last question, etc.
-        
+        context: A dictionary with conversation state (topic, history, etc.).
+                If None, a new context is created.
+
     Returns:
-        A tuple containing:
-        - response: The chatbot's response string.
-        - updated_context: The updated conversation context dictionary.
-        
-    Logic Flow:
-        1. Detect user intent from keywords
-        2. Route to appropriate handler based on intent
-        3. Update conversation context
-        4. Return response and updated context
-        
-    Integration Notes:
-        - Currently uses keyword-based intent detection
-        - Can be extended with NLP intent classifier (e.g., from transformer models)
-        - Can integrate with Knowledge Base module for retrieving specific information
-        - Ready to be called from Django views in the web application
+        tuple: (chatbot_response, updated_context_dict)
+               - response: String containing the chatbot's reply
+               - updated_context: Dictionary with updated conversation state
+
+    Example:
+        >>> context = {}
+        >>> response, context = process_conversation("Hi", context)
+        >>> response, context = process_conversation("I want to register", context)
+        >>> print(response)
     """
-    # Handle empty input
-    if not user_message or not user_message.strip():
-        return handle_fallback(), context
-    
-    # Detect user intent from the message
-    detected_intent = detect_intent(user_message)
-    
-    # Route to appropriate handler based on detected intent
-    if detected_intent == "registration":
-        response = handle_registration_query(user_message, context)
-    
-    elif detected_intent == "contact":
-        response = handle_contact_query(user_message, context)
-    
-    elif detected_intent == "farewell":
-        response = (
-            "👋 Thank you for using FAIX AI Chatbot! "
-            "Have a great day, and feel free to reach out anytime you need help!"
-        )
-    
-    elif detected_intent is None:
-        # Check if this is a greeting-like message
-        greeting_keywords = ["hi", "hello", "hey", "greetings", "help"]
-        if any(keyword in user_message.lower() for keyword in greeting_keywords) and len(user_message) < 20:
-            response = handle_greeting(user_message)
+    # Initialize or convert context to ConversationContext object
+    if isinstance(context, dict):
+        if not context:
+            conversation_context = ConversationContext()
         else:
-            # If there's a previous context and current topic, try to maintain continuity
-            if context.get("current_topic"):
-                if context["current_topic"] == "registration":
-                    response = handle_registration_query(user_message, context)
-                elif context["current_topic"] == "contact":
-                    response = handle_contact_query(user_message, context)
-                else:
-                    response = handle_fallback()
-            else:
-                response = handle_fallback()
-    
+            conversation_context = ConversationContext.from_dict(context)
     else:
-        # Fallback for any unhandled intent
-        response = handle_fallback()
-    
-    # Update context with the new interaction
-    updated_context = update_context(user_message, context, detected_intent)
-    
-    # Add response to history for reference
-    if "history" not in updated_context:
-        updated_context["history"] = []
-    updated_context["history"][-1]["bot"] = response
-    
-    return response, updated_context
+        conversation_context = ConversationContext()
+
+    # Validate input
+    if not user_message or not user_message.strip():
+        response = "I didn't receive your message. Could you please try again?"
+        return response, conversation_context.to_dict()
+
+    # Store the current question for context continuity
+    conversation_context.update_last_question(user_message)
+
+    # Check if user is closing the conversation
+    if is_closing_message(user_message):
+        response = get_closing_response()
+        conversation_context.clear_context()
+        conversation_context.add_to_history(user_message, response)
+        return response, conversation_context.to_dict()
+
+    # Detect topic from current message
+    detected_topic = detect_topic(user_message)
+
+    # Handle topic detection and context management
+    if detected_topic:
+        # Update or maintain conversation topic
+        conversation_context.update_topic(detected_topic)
+        response = get_response_for_topic(detected_topic, user_message)
+    else:
+        # If no topic detected, check if we're in an active conversation
+        if conversation_context.current_topic:
+            # User might be asking a follow-up within the same topic
+            response = get_response_for_topic(
+                conversation_context.current_topic,
+                user_message
+            )
+        else:
+            # No context and no clear intent → use fallback
+            response = get_fallback_response()
+
+    # Add exchange to conversation history
+    conversation_context.add_to_history(user_message, response)
+
+    # Return response and updated context
+    return response, conversation_context.to_dict()
 
 
 # ============================================================================
-# Test Section - Example Conversation Flow
+# Test Section: Example Conversation Flow
 # ============================================================================
 
 if __name__ == "__main__":
-    """
-    Demonstrates the conversation manager with example conversation flows.
-    """
     print("=" * 70)
     print("FAIX AI Chatbot - Conversation Manager Test")
     print("=" * 70)
-    
-    # Test Case 1: Registration flow
-    print("\n📌 Test Case 1: Registration Topic Flow")
+    print()
+
+    # Test Case 1: Basic conversation flow
+    print("📝 Test Case 1: Basic Conversation Flow")
     print("-" * 70)
     context = {}
-    messages_1 = [
+    test_messages = [
         "Hi",
-        "I want to register",
+        "I want to register for a course",
         "When is registration open?",
-        "How about the form?",
-        "Thank you"
+        "Thank you so much"
     ]
-    
-    for msg in messages_1:
+
+    for msg in test_messages:
         reply, context = process_conversation(msg, context)
         print(f"User: {msg}")
         print(f"Bot: {reply}")
         print()
-    
-    # Test Case 2: Contact information flow
-    print("\n📌 Test Case 2: Contact Information Flow")
+
+    # Test Case 2: Contact inquiry
+    print("\n📝 Test Case 2: Contact Inquiry")
     print("-" * 70)
     context = {}
-    messages_2 = [
-        "Hello",
-        "Can I contact the registration office?",
-        "What's their email?",
+    test_messages = [
+        "Can I get contact information?",
+        "What's the phone number?",
         "Bye"
     ]
-    
-    for msg in messages_2:
+
+    for msg in test_messages:
         reply, context = process_conversation(msg, context)
         print(f"User: {msg}")
         print(f"Bot: {reply}")
         print()
-    
-    # Test Case 3: Unclear input handling
-    print("\n📌 Test Case 3: Fallback Response for Unclear Input")
+
+    # Test Case 3: Unclear input with fallback
+    print("\n📝 Test Case 3: Unclear Input (Fallback)")
     print("-" * 70)
     context = {}
-    messages_3 = [
-        "What about the weather?",
-        "Tell me something random",
-        "How do courses work?",  # Relates to registration topic
+    test_messages = [
+        "xyz123abc",
+        "Um... I'm not sure",
+        "Actually, I need to register"
     ]
-    
-    for msg in messages_3:
+
+    for msg in test_messages:
         reply, context = process_conversation(msg, context)
         print(f"User: {msg}")
         print(f"Bot: {reply}")
         print()
-    
+
     # Test Case 4: Context continuity
-    print("\n📌 Test Case 4: Context Continuity Within Same Topic")
+    print("\n📝 Test Case 4: Context Continuity (Follow-up Questions)")
     print("-" * 70)
     context = {}
-    messages_4 = [
-        "I need help with registration",
-        "How do I do it?",
-        "What are the requirements?"
+    test_messages = [
+        "What courses are available?",
+        "What about the deadlines?",
+        "And the registration form?",
+        "Thanks!"
     ]
-    
-    for msg in messages_4:
+
+    for msg in test_messages:
         reply, context = process_conversation(msg, context)
+        current_topic = context.get("current_topic", "None")
         print(f"User: {msg}")
         print(f"Bot: {reply}")
-        if "current_topic" in context:
-            print(f"[Context - Current Topic: {context['current_topic']}]")
+        print(f"[Current Topic: {current_topic}]")
         print()
-    
+
     print("=" * 70)
-    print("Test completed!")
+    print("✅ All test cases completed!")
     print("=" * 70)
