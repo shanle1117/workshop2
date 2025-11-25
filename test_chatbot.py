@@ -5,7 +5,7 @@ kb = KnowledgeBase("faix_data.csv")
 
 # Example: test question + intent
 intent = "programs"   # example category
-user_question = "What course does FAIX offer?"
+user_question = "What program does FAIX offer?"
 
 answer = kb.get_answer(intent, user_question)
 
