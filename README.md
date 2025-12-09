@@ -55,40 +55,60 @@ The FAIX AI Chatbot is a multi-module system that provides intelligent student a
 
 ```
 workshop2/
-├── README.md                          # 📖 Project documentation (this file)
-├── conversation_manager.py            # 💬 Conversation Management Module
-├── knowledge_base.py                  # 🧠 Knowledge Base Module
-├── test_chatbot.py                    # ✅ Test Suite
+├── README.md                          # 📖 Project documentation
+├── requirements.txt                   # 📦 Dependencies
+├── .gitignore                        # 🚫 Git ignore rules
 │
-├── main.html                          # 🌐 Frontend UI
-├── style.css                          # 🎨 Styling
+├── src/                              # 💻 Source code
+│   ├── __init__.py
+│   ├── chatbot_cli.py                # 💬 CLI interface
+│   ├── conversation_manager.py       # 💬 Conversation Management Module
+│   ├── knowledge_base.py             # 🧠 Knowledge Base Module
+│   ├── query_preprocessing.py        # 🔤 NLP preprocessing
+│   └── kbstest.py                    # 🧪 Knowledge base test
 │
-├── course_info.json                   # 📚 Course Information Data
-├── schedule.json                      # 📅 Schedule Data
-├── faqs.json                          # ❓ FAQ Data
-├── staff_contacts.json                # 📇 Staff Contact Data
-├── faix_data.csv                      # 📊 FAIX General Data
+├── data/                             # 📊 Data files
+│   ├── course_info.json              # 📚 Course Information Data
+│   ├── schedule.json                 # 📅 Schedule Data
+│   ├── faqs.json                     # ❓ FAQ Data
+│   ├── staff_contacts.json           # 📇 Staff Contact Data
+│   └── faix_data.csv                 # 📊 FAIX General Data
 │
-└── [Django App Structure - To be added]
-    ├── views.py                       # Django views
-    ├── urls.py                        # URL routing
-    └── settings.py                    # Configuration
+├── frontend/                         # 🌐 Frontend files
+│   ├── main.html                     # 🌐 Frontend UI
+│   └── style.css                     # 🎨 Styling
+│
+├── tests/                            # ✅ Test files
+│   ├── __init__.py
+│   └── test_chatbot.py               # ✅ Test Suite
+│
+├── django_app/                       # 🐍 Django app
+│   ├── __init__.py
+│   ├── views.py                      # Django views
+│   ├── urls.py                       # URL routing
+│   └── settings.py                   # Configuration
+│
+├── docs/                             # 📚 Documentation
+│   └── README_BRIEF.md
+│
+└── archive/                          # 📦 Old structure (archived)
+    └── FAIX FACULTY CHATBOT/
 ```
 
 ### File Descriptions:
 
 | File | Purpose |
 |------|---------|
-| `conversation_manager.py` | Manages conversation flow, context, and intent detection |
-| `knowledge_base.py` | Stores and retrieves information from JSON/CSV data files |
-| `test_chatbot.py` | Unit tests for chatbot functionality |
-| `main.html` | Web interface for the chatbot |
-| `style.css` | CSS styling for the web interface |
-| `course_info.json` | Course details and information |
-| `schedule.json` | Academic schedules and deadlines |
-| `faqs.json` | Frequently asked questions and answers |
-| `staff_contacts.json` | Staff directory and contact information |
-| `faix_data.csv` | General FAIX faculty information |
+| `src/conversation_manager.py` | Manages conversation flow, context, and intent detection |
+| `src/knowledge_base.py` | Stores and retrieves information from JSON/CSV data files |
+| `tests/test_chatbot.py` | Unit tests for chatbot functionality |
+| `frontend/main.html` | Web interface for the chatbot |
+| `frontend/style.css` | CSS styling for the web interface |
+| `data/course_info.json` | Course details and information |
+| `data/schedule.json` | Academic schedules and deadlines |
+| `data/faqs.json` | Frequently asked questions and answers |
+| `data/staff_contacts.json` | Staff directory and contact information |
+| `data/faix_data.csv` | General FAIX faculty information |
 
 ---
 
@@ -115,14 +135,13 @@ workshop2/
 
 3. **Install dependencies:**
    ```bash
-   pip install django
-   pip install requests    # For API calls if needed
+   pip install -r requirements.txt
    ```
 
 4. **Run tests:**
    ```bash
-   python test_chatbot.py
-   python conversation_manager.py
+   python tests/test_chatbot.py
+   python src/conversation_manager.py
    ```
 
 5. **Start Django development server (when ready):**
@@ -134,7 +153,7 @@ workshop2/
 
 ## 📚 Module Documentation
 
-### 1. Conversation Manager (`conversation_manager.py`)
+### 1. Conversation Manager (`src/conversation_manager.py`)
 
 The core module that handles conversation flow and user intent detection.
 
@@ -167,11 +186,11 @@ def process_conversation(user_message: str, context: dict) -> tuple[str, dict]
 | greeting | hi, hello, hey | Welcome message |
 | unclear | (other) | Request for clarification |
 
-### 2. Knowledge Base (`knowledge_base.py`)
+### 2. Knowledge Base (`src/knowledge_base.py`)
 
 Manages data retrieval from JSON and CSV files (existing module).
 
-### 3. Test Suite (`test_chatbot.py`)
+### 3. Test Suite (`tests/test_chatbot.py`)
 
 Unit tests for validating chatbot functionality (existing module).
 
@@ -182,7 +201,7 @@ Unit tests for validating chatbot functionality (existing module).
 ### Basic Usage:
 
 ```python
-from conversation_manager import process_conversation
+from src.conversation_manager import process_conversation
 
 # Initialize context
 context = {}
@@ -218,7 +237,7 @@ for msg in messages:
 ```python
 # In Django views.py
 from django.http import JsonResponse
-from conversation_manager import process_conversation
+from src.conversation_manager import process_conversation
 
 def chat(request):
     user_message = request.POST.get('message')
@@ -239,7 +258,7 @@ def chat(request):
 
 ```
 ┌─────────────────────────────────────────────────────────┐
-│            Web Interface (main.html + style.css)        │
+│            Web Interface (frontend/main.html + frontend/style.css)│
 └────────────────────┬────────────────────────────────────┘
                      │
 ┌────────────────────▼────────────────────────────────────┐
@@ -249,7 +268,7 @@ def chat(request):
 └────────────────────┬────────────────────────────────────┘
                      │
 ┌────────────────────▼────────────────────────────────────┐
-│        Conversation Manager (conversation_manager.py)   │
+│        Conversation Manager (src/conversation_manager.py)│
 │  - Intent Detection                                     │
 │  - Context Management                                   │
 │  - Response Routing                                     │
@@ -257,14 +276,14 @@ def chat(request):
       │                                             │
 ┌─────▼──────────────────────┐    ┌────────────────▼─────┐
 │   Handler Functions        │    │ Knowledge Base Module  │
-│ - Registration             │    │ (knowledge_base.py)    │
+│ - Registration             │    │ (src/knowledge_base.py)│
 │ - Contact                  │    │                        │
 │ - Greeting/Fallback        │    │ Data Sources:          │
-└────────────────────────────┘    │ - course_info.json     │
-                                  │ - schedule.json        │
-                                  │ - faqs.json            │
-                                  │ - staff_contacts.json  │
-                                  │ - faix_data.csv        │
+└────────────────────────────┘    │ - data/course_info.json│
+                                  │ - data/schedule.json   │
+                                  │ - data/faqs.json       │
+                                  │ - data/staff_contacts.json│
+                                  │ - data/faix_data.csv   │
                                   └────────────────────────┘
 ```
 
@@ -296,7 +315,7 @@ urlpatterns = [
 ```python
 from django.http import JsonResponse
 from django.views.decorators.http import require_POST
-from conversation_manager import process_conversation
+from src.conversation_manager import process_conversation
 
 @require_POST
 def chat_api(request):
@@ -327,12 +346,17 @@ def detect_intent(user_message: str) -> Optional[str]:
 
 ### Run All Tests:
 ```bash
-python conversation_manager.py
+python src/conversation_manager.py
 ```
 
 ### Run Specific Tests:
 ```bash
-python test_chatbot.py
+python tests/test_chatbot.py
+```
+
+### Run CLI Interface:
+```bash
+python -X utf8 src/chatbot_cli.py
 ```
 
 ### Test Cases Included:
