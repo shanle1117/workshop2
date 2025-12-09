@@ -1,6 +1,6 @@
-from knowledge_base import KnowledgeBase
+from src.knowledge_base import KnowledgeBase
 
-# Replace this with your actual CSV filename
+# Replace this with your actual CSV filename (path relative to project root)
 kb = KnowledgeBase("faix_data.csv")
 
 # Example: test question + intent
