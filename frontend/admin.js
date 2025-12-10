@@ -9,6 +9,17 @@ class AdminDashboard {
         this.attachEventListeners();
     }
     
+    /**
+     * Escape HTML entities to prevent XSS attacks
+     * @param {string} text - Text to escape
+     * @returns {string} - Escaped HTML string
+     */
+    escapeHtml(text) {
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+    }
+    
     attachEventListeners() {
         document.getElementById('refresh-kb')?.addEventListener('click', () => {
             this.loadKnowledgeBase();
@@ -26,7 +37,23 @@ class AdminDashboard {
     async loadDashboardData() {
         try {
             const response = await fetch('/api/admin/dashboard/');
-            const data = await response.json();
+            
+            if (!response.ok) {
+                if (response.status === 404) {
+                    throw new Error('Dashboard API endpoint not found');
+                } else if (response.status >= 500) {
+                    throw new Error('Server error occurred');
+                } else {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+            }
+            
+            let data;
+            try {
+                data = await response.json();
+            } catch (jsonError) {
+                throw new Error('Invalid JSON response from server');
+            }
             
             // Update stats
             document.getElementById('total-conversations').textContent = data.total_conversations || 0;
@@ -40,6 +67,10 @@ class AdminDashboard {
             this.renderPopularQueries(data.popular_queries || []);
         } catch (error) {
             console.error('Error loading dashboard data:', error);
+            const container = document.getElementById('intent-chart');
+            if (container) {
+                container.innerHTML = '<p style="color: #ef4444;">Error loading dashboard data. Please refresh the page.</p>';
+            }
         }
     }
     
@@ -55,10 +86,12 @@ class AdminDashboard {
         const items = Object.entries(distribution)
             .sort((a, b) => b[1] - a[1])
             .map(([intent, count]) => {
+                const escapedIntent = this.escapeHtml(intent);
+                const escapedCount = this.escapeHtml(String(count));
                 return `
                     <div class="list-item">
-                        <span><strong>${intent}</strong></span>
-                        <span>${count}</span>
+                        <span><strong>${escapedIntent}</strong></span>
+                        <span>${escapedCount}</span>
                     </div>
                 `;
             }).join('');
@@ -76,10 +109,12 @@ class AdminDashboard {
         }
         
         const items = queries.map(query => {
+            const escapedQuery = this.escapeHtml(query.query);
+            const escapedCount = this.escapeHtml(String(query.count));
             return `
                 <div class="list-item">
-                    <span>${query.query}</span>
-                    <span>${query.count}</span>
+                    <span>${escapedQuery}</span>
+                    <span>${escapedCount}</span>
                 </div>
             `;
         }).join('');
@@ -88,15 +123,39 @@ class AdminDashboard {
     }
     
     async loadKnowledgeBase() {
+        const container = document.getElementById('kb-entries');
+        if (!container) return;
+        
         try {
             const response = await fetch('/api/admin/kb/');
-            const data = await response.json();
+            
+            if (!response.ok) {
+                if (response.status === 404) {
+                    throw new Error('Knowledge base API endpoint not found');
+                } else if (response.status >= 500) {
+                    throw new Error('Server error occurred');
+                } else {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+            }
+            
+            let data;
+            try {
+                data = await response.json();
+            } catch (jsonError) {
+                throw new Error('Invalid JSON response from server');
+            }
+            
+            if (!data || !data.entries) {
+                throw new Error('Invalid response format');
+            }
             
             this.renderKBEntries(data.entries || []);
             this.updateCategoryFilter(data.entries || []);
         } catch (error) {
             console.error('Error loading knowledge base:', error);
-            document.getElementById('kb-entries').innerHTML = '<p>Error loading knowledge base</p>';
+            const errorMessage = error.message || 'Error loading knowledge base';
+            container.innerHTML = `<p style="color: #ef4444;">${this.escapeHtml(errorMessage)}. Please try again later.</p>`;
         }
     }
     
@@ -110,14 +169,20 @@ class AdminDashboard {
         }
         
         const items = entries.map(entry => {
+            const escapedCategory = this.escapeHtml(entry.category);
+            const escapedQuestion = this.escapeHtml(entry.question);
+            const answerPreview = entry.answer.substring(0, 150);
+            const escapedAnswer = this.escapeHtml(answerPreview) + (entry.answer.length > 150 ? '...' : '');
+            const escapedViewCount = this.escapeHtml(String(entry.view_count || 0));
+            const escapedHelpfulCount = this.escapeHtml(String(entry.helpful_count || 0));
             return `
                 <div class="kb-entry">
-                    <span class="category">${entry.category}</span>
-                    <h4>${entry.question}</h4>
-                    <p>${entry.answer.substring(0, 150)}${entry.answer.length > 150 ? '...' : ''}</p>
+                    <span class="category">${escapedCategory}</span>
+                    <h4>${escapedQuestion}</h4>
+                    <p>${escapedAnswer}</p>
                     <div class="stats">
-                        <span>Views: ${entry.view_count || 0}</span>
-                        <span>Helpful: ${entry.helpful_count || 0}</span>
+                        <span>Views: ${escapedViewCount}</span>
+                        <span>Helpful: ${escapedHelpfulCount}</span>
                     </div>
                 </div>
             `;
@@ -134,7 +199,10 @@ class AdminDashboard {
         const currentValue = filter.value;
         
         filter.innerHTML = '<option value="">All Categories</option>' +
-            categories.map(cat => `<option value="${cat}">${cat}</option>`).join('');
+            categories.map(cat => {
+                const escapedCat = this.escapeHtml(cat);
+                return `<option value="${escapedCat}">${escapedCat}</option>`;
+            }).join('');
         
         if (currentValue) {
             filter.value = currentValue;

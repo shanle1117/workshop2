@@ -39,11 +39,11 @@ class IntentClassifier:
         'academic_schedule': 'Questions about academic calendar, semester dates, class schedules, or timetable',
         'staff_contact': 'Questions about contacting staff members, faculty, professors, or getting contact information',
         'facility_info': 'Questions about campus facilities, laboratories, buildings, or equipment',
-        'program_info': 'Questions about academic programs, degrees, requirements, or program details',
+        'program_info': 'Questions about academic programs, degrees, requirements, program details, academic handbook, or student handbook',
         'general_query': 'General questions, greetings, or unclear queries that don\'t fit other categories',
     }
     
-    def __init__(self, model_name: str = 'distilbert-base-uncased', use_zero_shot: bool = True):
+    def __init__(self, model_name: str = 'facebook/bart-large-mnli', use_zero_shot: bool = True):
         """
         Initialize intent classifier.
         
@@ -214,7 +214,7 @@ _intent_classifier_instance = None
 
 
 def get_intent_classifier(
-    model_name: str = 'distilbert-base-uncased',
+    model_name: str = 'facebook/bart-large-mnli',  # Changed from 'distilbert-base-uncased'
     use_zero_shot: bool = True
 ) -> IntentClassifier:
     """Get or create global intent classifier instance"""
