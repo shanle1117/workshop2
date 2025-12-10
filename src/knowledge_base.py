@@ -356,6 +356,12 @@ class KnowledgeBase:
                 "I couldn't find the exact information. "
                 "Try asking about course info, registration, or staff contacts."
             )
+        
+        # Add handbook note for program_info queries
+        user_text_lower = user_text.lower()
+        if intent == 'program_info' or 'handbook' in user_text_lower:
+            answer += "\n\n📚 The complete Academic Handbook PDF is available below with detailed program information."
+        
         return answer
     
     def refresh(self):

@@ -120,7 +120,12 @@ class Chatbot {
             });
             
             if (response.ok) {
-                const data = await response.json();
+                let data;
+                try {
+                    data = await response.json();
+                } catch (jsonError) {
+                    throw new Error('Invalid response format from server');
+                }
                 
                 // Update session and conversation IDs
                 if (data.session_id) {
@@ -133,24 +138,56 @@ class Chatbot {
                 
                 // Add bot response to UI
                 this.hideTyping();
-                this.addMessage('bot', data.response);
+                if (data.response) {
+                    this.addMessage('bot', data.response, data.pdf_url);  // Pass PDF URL
+                } else {
+                    this.addMessage('bot', 'Sorry, I received an empty response. Please try again.');
+                }
                 
             } else {
-                const error = await response.json();
+                let errorMessage = 'Sorry, I encountered an error. Please try again.';
+                
+                if (response.status === 404) {
+                    errorMessage = 'Chat service not found. Please contact support.';
+                } else if (response.status === 400) {
+                    errorMessage = 'Invalid request. Please check your message and try again.';
+                } else if (response.status >= 500) {
+                    errorMessage = 'Server error occurred. Please try again in a moment.';
+                }
+                
+                try {
+                    const error = await response.json();
+                    console.error('Chat API error:', error);
+                    if (error.detail || error.message) {
+                        errorMessage = `Error: ${error.detail || error.message}`;
+                    }
+                } catch (jsonError) {
+                    console.error('Chat API error (non-JSON):', response.status, response.statusText);
+                }
+                
                 this.hideTyping();
-                this.addMessage('bot', 'Sorry, I encountered an error. Please try again.');
-                console.error('Chat API error:', error);
+                this.addMessage('bot', errorMessage);
             }
         } catch (error) {
             this.hideTyping();
-            this.addMessage('bot', 'Sorry, I couldn\'t connect to the server. Please check your connection.');
+            let errorMessage = 'Sorry, I couldn\'t connect to the server. Please check your connection.';
+            
+            if (error.message) {
+                if (error.message.includes('Failed to fetch') || error.message.includes('NetworkError')) {
+                    errorMessage = 'Network error. Please check your internet connection and try again.';
+                } else if (error.message.includes('Invalid response')) {
+                    errorMessage = 'Server returned an invalid response. Please try again.';
+                }
+            }
+            
+            this.addMessage('bot', errorMessage);
             console.error('Network error:', error);
         } finally {
             this.setLoading(false);
         }
     }
     
-    addMessage(role, content) {
+    addMessage(role, content, pdfUrl = null) {
         const messageDiv = document.createElement('div');
         messageDiv.className = `message ${role}-message`;
         
@@ -164,6 +201,40 @@ class Chatbot {
         const text = document.createElement('p');
         text.textContent = content;
         messageContent.appendChild(text);
+        
+        // Add PDF link/embed if provided
+        if (pdfUrl) {
+            const pdfContainer = document.createElement('div');
+            pdfContainer.className = 'pdf-container';
+            pdfContainer.style.marginTop = '12px';
+            pdfContainer.style.padding = '12px';
+            pdfContainer.style.backgroundColor = '#f8f9fa';
+            pdfContainer.style.borderRadius = '8px';
+            pdfContainer.style.border = '1px solid #e0e0e0';
+            
+            // PDF Download/View Link
+            const pdfLink = document.createElement('a');
+            pdfLink.href = pdfUrl;
+            pdfLink.target = '_blank';
+            pdfLink.rel = 'noopener noreferrer';
+            pdfLink.className = 'pdf-link';
+            pdfLink.style.cssText = 'display: inline-flex; align-items: center; gap: 8px; padding: 10px 16px; background: #007bff; color: white; border-radius: 6px; text-decoration: none; font-weight: 500; transition: background 0.2s;';
+            pdfLink.innerHTML = '📚 View Academic Handbook PDF';
+            pdfLink.onmouseover = function() { this.style.background = '#0056b3'; };
+            pdfLink.onmouseout = function() { this.style.background = '#007bff'; };
+            pdfContainer.appendChild(pdfLink);
+            
+            // Optional: Add embedded PDF viewer (uncomment to enable)
+            /*
+            const pdfEmbed = document.createElement('iframe');
+            pdfEmbed.src = pdfUrl + '#toolbar=1';
+            pdfEmbed.style.cssText = 'width: 100%; height: 600px; border: 1px solid #ddd; margin-top: 12px; border-radius: 4px;';
+            pdfEmbed.title = 'Academic Handbook PDF';
+            pdfContainer.appendChild(pdfEmbed);
+            */
+            
+            messageContent.appendChild(pdfContainer);
+        }
         
         const time = document.createElement('span');
         time.className = 'message-time';
@@ -207,7 +278,13 @@ class Chatbot {
             );
             
             if (response.ok) {
-                const data = await response.json();
+                let data;
+                try {
+                    data = await response.json();
+                } catch (jsonError) {
+                    console.error('Error parsing conversation history JSON:', jsonError);
+                    return;
+                }
                 
                 // Clear existing messages (except welcome)
                 const welcomeMessage = this.messagesContainer.querySelector('.message');
@@ -217,16 +294,21 @@ class Chatbot {
                 }
                 
                 // Load messages
-                if (data.messages && data.messages.length > 0) {
+                if (data.messages && Array.isArray(data.messages) && data.messages.length > 0) {
                     data.messages.forEach(msg => {
-                        if (msg.role !== 'system') {
+                        if (msg.role !== 'system' && msg.content) {
                             this.addMessage(msg.role, msg.content);
                         }
                     });
                 }
+            } else if (response.status === 404) {
+                console.warn('Conversation not found:', this.conversationId);
+            } else {
+                console.error('Error loading conversation history:', response.status, response.statusText);
             }
         } catch (error) {
             console.error('Error loading conversation history:', error);
+            // Don't show error to user for history loading failures
         }
     }
     

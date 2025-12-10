@@ -111,11 +111,46 @@ def chat_api(request):
         context = session.context if session.context else {}
         
         # Get answer from knowledge base
+        pdf_url = None
+        user_message_lower = user_message.lower()
+        is_handbook_query = (
+            'handbook' in user_message_lower or
+            'academic handbook' in user_message_lower
+        )
+        
         if intent and intent != 'general_query':
             answer = knowledge_base.get_answer(intent, user_message)
+            
+            # Check if user is asking about academic handbook
+            if intent == 'program_info' or is_handbook_query:
+                # Check if Academic_Handbook.pdf exists
+                import os
+                from django.conf import settings
+                pdf_path = os.path.join(settings.MEDIA_ROOT, 'Academic_Handbook.pdf')
+                if os.path.exists(pdf_path):
+                    pdf_url = settings.MEDIA_URL + 'Academic_Handbook.pdf'
         else:
             # Use conversation manager for general queries
-            answer, context = process_conversation(user_message, context)
+            # BUT check for handbook first
+            if is_handbook_query:
+                import os
+                from django.conf import settings
+                answer = (
+                    "📚 The Academic Handbook contains comprehensive information about "
+                    "programs, courses, academic policies, graduation requirements, and more. "
+                    "You can view the complete handbook PDF below."
+                )
+                pdf_path = os.path.join(settings.MEDIA_ROOT, 'Academic_Handbook.pdf')
+                if os.path.exists(pdf_path):
+                    pdf_url = settings.MEDIA_URL + 'Academic_Handbook.pdf'
+                else:
+                    answer = (
+                        "📚 The Academic Handbook contains comprehensive information about "
+                        "programs, courses, academic policies, and graduation requirements. "
+                        "Please contact the FAIX office for access to the handbook."
+                    )
+            else:
+                answer, context = process_conversation(user_message, context)
         
         # Update session context
         session.context = context
@@ -157,6 +192,7 @@ def chat_api(request):
             'confidence': confidence,
             'entities': entities,
             'timestamp': timezone.now().isoformat(),
+            'pdf_url': pdf_url,  # Add PDF URL to response
         })
     
     except json.JSONDecodeError:
