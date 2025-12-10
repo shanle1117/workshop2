@@ -1,0 +1,24 @@
+name: Code Quality
+
+on: [push, pull_request]
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+    
+    - name: Install linting tools
+      run: |
+        pip install flake8 black pylint
+    
+    - name: Check code formatting with Black
+      run: black --check src/ tests/
+    
+    - name: Lint with flake8
+      run: flake8 src/ tests/ --count --select=E9,F63,F7,F82 --show-source --statistics
