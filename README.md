@@ -435,7 +435,7 @@ This project is developed for FAIX, UTeM. All rights reserved.
 
 ## 📞 Contact & Support
 
-- **Project Owner**: Le (shanle1117)
+- **Project Owner**:
 - **Faculty**: Faculty of Artificial Intelligence and Cyber Security (FAIX), UTeM
 - **Repository**: https://github.com/shanle1117/workshop2
 
