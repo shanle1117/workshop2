@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FAIX Chatbot - Admin Dashboard</title>
+    <link rel="stylesheet" href="admin.css">
+</head>
+<body>
+    <div class="admin-container">
+        <header class="admin-header">
+            <h1>FAIX Chatbot Admin Dashboard</h1>
+            <nav>
+                <a href="/">Back to Site</a>
+                <a href="/admin/">Django Admin</a>
+            </nav>
+        </header>
+
+        <div class="dashboard-grid">
+            <!-- Overview Cards -->
+            <div class="dashboard-section">
+                <h2>Overview</h2>
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <h3 id="total-conversations">-</h3>
+                        <p>Total Conversations</p>
+                    </div>
+                    <div class="stat-card">
+                        <h3 id="total-messages">-</h3>
+                        <p>Total Messages</p>
+                    </div>
+                    <div class="stat-card">
+                        <h3 id="active-users">-</h3>
+                        <p>Active Users (7 days)</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Intent Distribution -->
+            <div class="dashboard-section">
+                <h2>Intent Distribution</h2>
+                <div id="intent-chart" class="chart-container">
+                    <p>Loading...</p>
+                </div>
+            </div>
+
+            <!-- Popular Queries -->
+            <div class="dashboard-section">
+                <h2>Popular Queries</h2>
+                <div id="popular-queries" class="list-container">
+                    <p>Loading...</p>
+                </div>
+            </div>
+
+            <!-- Knowledge Base Management -->
+            <div class="dashboard-section full-width">
+                <h2>Knowledge Base Management</h2>
+                <div class="kb-controls">
+                    <button id="refresh-kb" class="btn-primary">Refresh KB</button>
+                    <input type="text" id="kb-search" placeholder="Search KB entries..." class="search-input">
+                    <select id="kb-category-filter" class="filter-select">
+                        <option value="">All Categories</option>
+                    </select>
+                </div>
+                <div id="kb-entries" class="kb-entries">
+                    <p>Loading...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="admin.js"></script>
+</body>
+</html>
+
