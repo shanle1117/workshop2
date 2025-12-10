@@ -1,6 +1,18 @@
 import re
 import json
-from typing import Dict, List, Any
+from typing import Dict, List, Any, Optional
+
+# Import NLP modules
+try:
+    from .nlp_intent_classifier import get_intent_classifier
+    NLP_AVAILABLE = True
+except ImportError:
+    try:
+        from nlp_intent_classifier import get_intent_classifier
+        NLP_AVAILABLE = True
+    except ImportError:
+        NLP_AVAILABLE = False
+        print("Warning: NLP modules not available. Using keyword-based intent detection.")
 
 class QueryProcessor:
     """
@@ -8,8 +20,26 @@ class QueryProcessor:
     Processes user input to identify the main intention of the question
     """
 
-    def __init__(self):
+    def __init__(self, use_nlp: bool = True):
+        """
+        Initialize Query Processor.
+        
+        Args:
+            use_nlp: Whether to use NLP models for intent classification (default: True)
+        """
         print("Initializing Query Processor...")
+        
+        # Initialize NLP classifier if available
+        self.use_nlp = use_nlp and NLP_AVAILABLE
+        self.intent_classifier = None
+        
+        if self.use_nlp:
+            try:
+                self.intent_classifier = get_intent_classifier(use_zero_shot=True)
+                print("✓ NLP intent classifier initialized")
+            except Exception as e:
+                print(f"Warning: Could not initialize NLP classifier: {e}")
+                self.use_nlp = False
         
         # NLP preprocessing
         self.stop_words = set([
@@ -99,8 +129,22 @@ class QueryProcessor:
         return entities
     
     def detect_intent(self, text: str) -> tuple:
-        """Detect the main intent of the user query"""
+        """
+        Detect the main intent of the user query.
+        Uses NLP model if available, otherwise falls back to keyword matching.
+        """
+        # Try NLP-based classification first
+        if self.use_nlp and self.intent_classifier and self.intent_classifier.is_available():
+            try:
+                intent, confidence, all_scores = self.intent_classifier.classify(text)
+                # Use NLP result if confidence is reasonable
+                if confidence >= 0.3:
+                    return intent, confidence
+                # Otherwise fall through to keyword-based
+            except Exception as e:
+                print(f"Warning: NLP classification failed, using fallback: {e}")
         
+        # Fallback to keyword-based detection
         tokens = self.tokenize_text(text)
         
         intent_scores = {}
