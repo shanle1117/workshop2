@@ -307,6 +307,7 @@ class Chatbot {
             pdfLink.className = 'pdf-link';
             pdfLink.style.cssText = 'display: inline-flex; align-items: center; gap: 8px; padding: 10px 16px; background: #007bff; color: white; border-radius: 6px; text-decoration: none; font-weight: 500; transition: background 0.2s;';
             pdfLink.innerHTML = '📚 View Academic Handbook PDF';
+            // Hover effect: darker blue on hover, return to original on mouseout
             pdfLink.onmouseover = function() { this.style.background = '#0056b3'; };
             pdfLink.onmouseout = function() { this.style.background = '#007bff'; };
             pdfContainer.appendChild(pdfLink);
