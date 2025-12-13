@@ -121,8 +121,8 @@ def chat_api(request):
         if intent and intent != 'general_query':
             answer = knowledge_base.get_answer(intent, user_message)
             
-            # Validate answer is not None or empty
-            if not answer or not isinstance(answer, str):
+            # Validate answer is not None, empty, or invalid type
+            if not answer or not isinstance(answer, str) or not answer.strip():
                 answer = (
                     "I couldn't find the exact information for your query. "
                     "Try asking about course info, registration, staff contacts, or program information."
@@ -159,14 +159,14 @@ def chat_api(request):
             else:
                 answer, context = process_conversation(user_message, context)
                 # Validate answer from conversation manager
-                if not answer or not isinstance(answer, str):
+                if not answer or not isinstance(answer, str) or not answer.strip():
                     answer = (
                         "I'm sorry, I couldn't process your query. "
                         "Could you please rephrase your question?"
                     )
         
-        # Final safety check: ensure answer is never None before saving
-        if not answer or not isinstance(answer, str):
+        # Final safety check: ensure answer is never None or empty before saving
+        if not answer or not isinstance(answer, str) or not answer.strip():
             answer = (
                 "I apologize, but I'm having trouble processing your request. "
                 "Please try rephrasing your question or contact the FAIX office for assistance."

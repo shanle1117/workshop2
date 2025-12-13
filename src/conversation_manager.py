@@ -193,8 +193,11 @@ def update_context(user_message: str, context: dict, detected_intent: Optional[s
         updated_context["current_topic"] = detected_intent
         updated_context["last_question"] = user_message
     elif detected_intent == "farewell":
-        # Clear context on farewell
-        updated_context = {}
+        # Clear context on farewell, but preserve the history entry we just added
+        # so the bot response can be added to it
+        updated_context = {
+            "history": updated_context["history"][-1:] if updated_context.get("history") else []
+        }
     
     return updated_context
 
@@ -273,7 +276,13 @@ def process_conversation(user_message: str, context: dict) -> tuple[str, dict]:
     # Add response to history for reference
     if "history" not in updated_context:
         updated_context["history"] = []
-    updated_context["history"][-1]["bot"] = response
+    
+    # Ensure history has at least one entry before accessing [-1]
+    if len(updated_context["history"]) > 0:
+        updated_context["history"][-1]["bot"] = response
+    else:
+        # If history is empty, append a new entry with the bot response
+        updated_context["history"].append({"bot": response})
     
     return response, updated_context
 
