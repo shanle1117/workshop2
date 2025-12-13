@@ -1,0 +1,91 @@
+{
+  "intent_categories": [
+    "course_info",
+    "registration",
+    "academic_schedule",
+    "staff_contact",
+    "facility_info",
+    "program_info",
+    "general_query",
+    "admission"
+  ],
+  "intent_descriptions": {
+    "course_info": "Questions about specific courses, course content, course requirements, or course details",
+    "registration": "Questions about course registration, enrollment, application process, or registration deadlines",
+    "academic_schedule": "Questions about academic calendar, semester dates, class schedules, or timetable",
+    "staff_contact": "Questions about contacting staff members, faculty, professors, or getting contact information",
+    "facility_info": "Questions about campus facilities, laboratories, buildings, or equipment",
+    "program_info": "Questions about academic programs, degrees, requirements, program details, academic handbook, or student handbook",
+    "general_query": "General questions, greetings, or unclear queries that don't fit other categories",
+    "admission": "Questions about admission requirements, entry criteria, or application process"
+  },
+  "keyword_patterns": {
+    "course_info": [
+      "course",
+      "subject",
+      "module",
+      "curriculum",
+      "class",
+      "lecture"
+    ],
+    "registration": [
+      "register",
+      "enroll",
+      "enrollment",
+      "admission",
+      "apply",
+      "sign up",
+      "deadline"
+    ],
+    "academic_schedule": [
+      "schedule",
+      "timetable",
+      "calendar",
+      "when",
+      "time",
+      "date",
+      "semester"
+    ],
+    "staff_contact": [
+      "contact",
+      "email",
+      "phone",
+      "number",
+      "professor",
+      "lecturer",
+      "staff",
+      "faculty"
+    ],
+    "facility_info": [
+      "lab",
+      "laboratory",
+      "facility",
+      "equipment",
+      "room",
+      "building",
+      "campus"
+    ],
+    "program_info": [
+      "program",
+      "degree",
+      "bachelor",
+      "master",
+      "requirement",
+      "eligibility",
+      "duration"
+    ],
+    "admission": [
+      "admission",
+      "entry",
+      "apply",
+      "application",
+      "requirements",
+      "criteria"
+    ]
+  },
+  "model_config": {
+    "default_model": "facebook/bart-large-mnli",
+    "use_zero_shot": true,
+    "confidence_threshold": 0.3
+  }
+}
