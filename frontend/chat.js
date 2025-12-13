@@ -9,8 +9,12 @@ class Chatbot {
         this.conversationId = null;
         this.isOpen = false;
         this.isLoading = false;
+        this.isRecording = false;
+        this.recognition = null;
+        this.speechSupported = false;
         
         this.initializeElements();
+        this.initializeSpeechRecognition();
         this.attachEventListeners();
         this.loadConversationHistory();
         
@@ -25,9 +29,87 @@ class Chatbot {
         this.messagesContainer = document.getElementById('chatbot-messages');
         this.input = document.getElementById('chatbot-input');
         this.sendButton = document.getElementById('chatbot-send');
+        this.micButton = document.getElementById('chatbot-mic');
         this.typingIndicator = document.getElementById('chatbot-typing');
         this.status = document.getElementById('chatbot-status');
         this.badge = document.getElementById('chatbot-badge');
+    }
+    
+    initializeSpeechRecognition() {
+        // Check for browser support
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        
+        if (!SpeechRecognition) {
+            this.speechSupported = false;
+            if (this.micButton) {
+                this.micButton.style.display = 'none';
+            }
+            return;
+        }
+        
+        this.speechSupported = true;
+        this.recognition = new SpeechRecognition();
+        this.recognition.continuous = false;
+        this.recognition.interimResults = true;
+        this.recognition.lang = 'en-US';
+        
+        // Track transcribed text to avoid duplicate sends
+        this.pendingTranscript = '';
+        
+        // Set up recognition event handlers
+        this.recognition.onstart = () => {
+            this.isRecording = true;
+            this.pendingTranscript = '';
+            this.updateMicButtonState('recording');
+            this.updateStatus('Listening...');
+        };
+        
+        this.recognition.onresult = (event) => {
+            let interimTranscript = '';
+            let finalTranscript = '';
+            
+            for (let i = event.resultIndex; i < event.results.length; i++) {
+                const transcript = event.results[i][0].transcript;
+                if (event.results[i].isFinal) {
+                    finalTranscript += transcript + ' ';
+                } else {
+                    interimTranscript += transcript;
+                }
+            }
+            
+            // Accumulate final transcript
+            if (finalTranscript.trim()) {
+                this.pendingTranscript += finalTranscript;
+            }
+            
+            // Update input field with combined final and interim results
+            const displayText = this.pendingTranscript + interimTranscript;
+            if (displayText.trim()) {
+                this.input.value = displayText.trim();
+            }
+        };
+        
+        this.recognition.onerror = (event) => {
+            this.handleSpeechError(event.error);
+        };
+        
+        this.recognition.onend = () => {
+            this.isRecording = false;
+            this.updateMicButtonState('inactive');
+            this.updateStatus('Online');
+            
+            // Process final transcript when recognition ends
+            if (this.pendingTranscript.trim()) {
+                const finalText = this.pendingTranscript.trim();
+                this.pendingTranscript = '';
+                this.handleSpeechResult(finalText);
+            } else if (this.input.value.trim()) {
+                // If we have text in input but no final transcript, use input value
+                const inputText = this.input.value.trim();
+                this.input.value = '';
+                this.handleSpeechResult(inputText);
+            }
+        };
     }
     
     attachEventListeners() {
@@ -49,6 +131,11 @@ class Chatbot {
             this.input.style.height = 'auto';
             this.input.style.height = this.input.scrollHeight + 'px';
         });
+        
+        // Microphone button
+        if (this.micButton) {
+            this.micButton.addEventListener('click', () => this.toggleSpeechRecognition());
+        }
     }
     
     getOrCreateSessionId() {
@@ -349,6 +436,121 @@ class Chatbot {
             }
         }
         return cookieValue;
+    }
+    
+    toggleSpeechRecognition() {
+        if (!this.speechSupported || !this.recognition) {
+            this.addMessage('bot', 'Speech recognition is not supported in your browser. Please use Chrome or Edge for voice input.');
+            return;
+        }
+        
+        if (this.isRecording) {
+            this.stopSpeechRecognition();
+        } else {
+            this.startSpeechRecognition();
+        }
+    }
+    
+    startSpeechRecognition() {
+        if (!this.recognition || this.isRecording || this.isLoading) {
+            return;
+        }
+        
+        try {
+            // Clear input field
+            this.input.value = '';
+            this.recognition.start();
+        } catch (error) {
+            console.error('Error starting speech recognition:', error);
+            this.handleSpeechError('start-failed');
+        }
+    }
+    
+    stopSpeechRecognition() {
+        if (this.recognition && this.isRecording) {
+            this.recognition.stop();
+        }
+    }
+    
+    handleSpeechResult(transcript) {
+        if (!transcript || !transcript.trim()) {
+            return;
+        }
+        
+        // Set the input value with the transcribed text
+        this.input.value = transcript;
+        
+        // Automatically send the message
+        this.sendMessage();
+    }
+    
+    handleSpeechError(error) {
+        this.isRecording = false;
+        this.updateMicButtonState('error');
+        this.updateStatus('Online');
+        
+        let errorMessage = 'Speech recognition error occurred.';
+        
+        switch (error) {
+            case 'no-speech':
+                errorMessage = 'No speech detected. Please try again.';
+                break;
+            case 'audio-capture':
+                errorMessage = 'No microphone found. Please check your microphone settings.';
+                break;
+            case 'not-allowed':
+                errorMessage = 'Microphone permission denied. Please allow microphone access and try again.';
+                break;
+            case 'network':
+                errorMessage = 'Network error occurred during speech recognition.';
+                break;
+            case 'aborted':
+                // User stopped recording, no error message needed
+                return;
+            case 'start-failed':
+                errorMessage = 'Failed to start speech recognition. Please try again.';
+                break;
+            default:
+                console.error('Speech recognition error:', error);
+        }
+        
+        // Show error message after a brief delay to avoid interrupting UI
+        setTimeout(() => {
+            this.updateMicButtonState('inactive');
+            if (error !== 'aborted') {
+                this.addMessage('bot', errorMessage);
+            }
+        }, 100);
+    }
+    
+    updateMicButtonState(state) {
+        if (!this.micButton) return;
+        
+        // Remove all state classes
+        this.micButton.classList.remove('mic-inactive', 'mic-recording', 'mic-error');
+        
+        // Add appropriate state class
+        switch (state) {
+            case 'recording':
+                this.micButton.classList.add('mic-recording');
+                this.micButton.title = 'Stop recording';
+                break;
+            case 'error':
+                this.micButton.classList.add('mic-error');
+                this.micButton.title = 'Error - Click to try again';
+                break;
+            case 'inactive':
+            default:
+                this.micButton.classList.add('mic-inactive');
+                this.micButton.title = 'Voice input';
+                break;
+        }
+    }
+    
+    updateStatus(text) {
+        if (this.status) {
+            this.status.textContent = text;
+        }
     }
 }
 

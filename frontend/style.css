@@ -483,6 +483,62 @@ footer {
     cursor: not-allowed;
 }
 
+/* Microphone Button */
+.chatbot-mic {
+    width: 44px;
+    height: 44px;
+    background: #f1f5f9;
+    border: 2px solid #e2e8f0;
+    border-radius: 50%;
+    color: #64748b;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s;
+}
+
+.chatbot-mic:hover {
+    background: #e2e8f0;
+    border-color: #cbd5e0;
+    transform: scale(1.05);
+}
+
+/* Microphone Button States */
+.chatbot-mic.mic-inactive {
+    background: #f1f5f9;
+    border-color: #e2e8f0;
+    color: #64748b;
+}
+
+.chatbot-mic.mic-recording {
+    background: #ef4444;
+    border-color: #dc2626;
+    color: white;
+    animation: pulse-recording 1.5s ease-in-out infinite;
+}
+
+.chatbot-mic.mic-error {
+    background: #fef2f2;
+    border-color: #fca5a5;
+    color: #dc2626;
+}
+
+.chatbot-mic:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+/* Pulse animation for recording state */
+@keyframes pulse-recording {
+    0%, 100% {
+        box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7);
+    }
+    50% {
+        box-shadow: 0 0 0 10px rgba(239, 68, 68, 0);
+    }
+}
+
 /* Responsive Design */
 @media (max-width: 480px) {
     .chatbot-container {
