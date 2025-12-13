@@ -38,7 +38,12 @@ The FAIX AI Chatbot is a multi-module system that provides intelligent student a
 
 ### Core Features:
 - **Conversation Management**: Maintains context and topic tracking across multiple turns
-- **Intent Detection**: Rule-based keyword detection (easily replaceable with NLP)
+- **Advanced Intent Detection**: 
+  - Rule-based keyword detection (fallback)
+  - Transformer-based NLP intent classification (DistilBERT/RoBERTa)
+  - Dynamic configuration via JSON files
+- **Speech-to-Text**: Web Speech API integration for voice input
+- **Semantic Search**: Sentence-transformers for improved query matching
 - **Multi-Topic Support**: 
   - 📚 Course Registration
   - 📞 Staff Contacts
@@ -46,8 +51,10 @@ The FAIX AI Chatbot is a multi-module system that provides intelligent student a
   - 👋 Polite Farewells
 - **Fallback Handling**: Gracefully handles unclear or ambiguous inputs
 - **Context Continuity**: Remembers previous topics and questions
-- **Django Integration**: Ready-to-use with Django web framework
-- **Extensible Architecture**: Easy to integrate NLP modules and knowledge base systems
+- **Database Integration**: Django models for sessions, conversations, and message history
+- **Firebase Support**: Optional Firebase integration for cloud data storage
+- **Django Integration**: Production-ready Django web framework integration
+- **Extensible Architecture**: Easy to integrate additional NLP modules and knowledge base systems
 
 ---
 
@@ -64,7 +71,11 @@ workshop2/
 │   ├── chatbot_cli.py                # 💬 CLI interface
 │   ├── conversation_manager.py       # 💬 Conversation Management Module
 │   ├── knowledge_base.py             # 🧠 Knowledge Base Module
+│   ├── nlp_intent_classifier.py      # 🤖 Transformer-based Intent Classification
+│   ├── nlp_semantic_search.py        # 🔍 Semantic Search using Sentence Transformers
 │   ├── query_preprocessing.py        # 🔤 NLP preprocessing
+│   ├── query_preprocessing_v2.py     # 🔤 Enhanced NLP preprocessing
+│   ├── firebase_service.py           # 🔥 Firebase integration
 │   └── kbstest.py                    # 🧪 Knowledge base test
 │
 ├── data/                             # 📊 Data files
@@ -72,21 +83,34 @@ workshop2/
 │   ├── schedule.json                 # 📅 Schedule Data
 │   ├── faqs.json                     # ❓ FAQ Data
 │   ├── staff_contacts.json           # 📇 Staff Contact Data
-│   └── faix_data.csv                 # 📊 FAIX General Data
+│   ├── faix_data.csv                 # 📊 FAIX General Data
+│   └── intent_config.json            # ⚙️ Intent classification configuration
 │
 ├── frontend/                         # 🌐 Frontend files
 │   ├── main.html                     # 🌐 Frontend UI
-│   └── style.css                     # 🎨 Styling
+│   ├── chat.js                       # 💬 Chat functionality & Speech-to-Text
+│   ├── style.css                     # 🎨 Styling
+│   ├── admin.html                    # 👤 Admin interface
+│   ├── admin.js                      # 👤 Admin functionality
+│   └── admin.css                     # 🎨 Admin styling
 │
 ├── tests/                            # ✅ Test files
 │   ├── __init__.py
-│   └── test_chatbot.py               # ✅ Test Suite
+│   ├── test_chatbot.py               # ✅ Core chatbot tests
+│   ├── test_speech_to_text.py        # 🎤 Speech-to-Text tests
+│   ├── test_dynamic_features.py      # 🔄 Dynamic features tests
+│   ├── test_static_vs_dynamic.py     # ⚖️ Static vs Dynamic comparison
+│   ├── demo_static_vs_dynamic.py     # 📊 Demo script
+│   └── SPEECH_TO_TEXT_TESTING_GUIDE.md  # 📖 Testing guide
 │
 ├── django_app/                       # 🐍 Django app
 │   ├── __init__.py
-│   ├── views.py                      # Django views
+│   ├── views.py                      # Django views & API endpoints
 │   ├── urls.py                       # URL routing
-│   └── settings.py                   # Configuration
+│   ├── settings.py                   # Configuration
+│   ├── models.py                     # Database models (Session, Conversation, Message)
+│   ├── admin.py                      # Django admin configuration
+│   └── migrations/                   # Database migrations
 │
 ├── docs/                             # 📚 Documentation
 │   └── README_BRIEF.md
@@ -100,15 +124,25 @@ workshop2/
 | File | Purpose |
 |------|---------|
 | `src/conversation_manager.py` | Manages conversation flow, context, and intent detection |
-| `src/knowledge_base.py` | Stores and retrieves information from JSON/CSV data files |
-| `tests/test_chatbot.py` | Unit tests for chatbot functionality |
+| `src/nlp_intent_classifier.py` | Transformer-based intent classification using DistilBERT/RoBERTa |
+| `src/nlp_semantic_search.py` | Semantic search using sentence-transformers for better query matching |
+| `src/knowledge_base.py` | Stores and retrieves information from JSON/CSV data files and database |
+| `src/firebase_service.py` | Firebase integration for cloud data storage |
+| `src/query_preprocessing.py` | NLP preprocessing utilities |
 | `frontend/main.html` | Web interface for the chatbot |
+| `frontend/chat.js` | Chat functionality with Speech-to-Text support |
 | `frontend/style.css` | CSS styling for the web interface |
+| `django_app/views.py` | Django API endpoints for chat, sessions, and conversations |
+| `django_app/models.py` | Database models for sessions, conversations, and messages |
+| `tests/test_chatbot.py` | Core unit tests for chatbot functionality |
+| `tests/test_speech_to_text.py` | Tests for Speech-to-Text feature |
+| `tests/test_dynamic_features.py` | Tests for dynamic NLP features |
 | `data/course_info.json` | Course details and information |
 | `data/schedule.json` | Academic schedules and deadlines |
 | `data/faqs.json` | Frequently asked questions and answers |
 | `data/staff_contacts.json` | Staff directory and contact information |
 | `data/faix_data.csv` | General FAIX faculty information |
+| `data/intent_config.json` | Configuration for intent classification |
 
 ---
 
@@ -118,6 +152,9 @@ workshop2/
 - Python 3.10 or higher
 - pip (Python package manager)
 - Django 4.0+ (for web deployment)
+- Chrome or Edge browser (for Speech-to-Text feature)
+- PostgreSQL (optional, for production database)
+- Firebase account (optional, for cloud storage)
 
 ### Steps:
 
@@ -137,17 +174,37 @@ workshop2/
    ```bash
    pip install -r requirements.txt
    ```
+   
+   **Note**: For NLP features, you may need to download spaCy models:
+   ```bash
+   python -m spacy download en_core_web_sm
+   ```
 
-4. **Run tests:**
+4. **Set up environment variables (optional):**
+   Create a `.env` file in the root directory for Firebase credentials:
+   ```
+   FIREBASE_CREDENTIALS_PATH=path/to/firebase-credentials.json
+   ```
+
+5. **Run database migrations:**
+   ```bash
+   python manage.py migrate
+   ```
+
+6. **Run tests:**
    ```bash
    python tests/test_chatbot.py
+   python tests/test_speech_to_text.py
+   python tests/test_dynamic_features.py
    python src/conversation_manager.py
    ```
 
-5. **Start Django development server (when ready):**
+7. **Start Django development server:**
    ```bash
    python manage.py runserver
    ```
+   
+   The chatbot will be available at `http://localhost:8000`
 
 ---
 
@@ -186,13 +243,62 @@ def process_conversation(user_message: str, context: dict) -> tuple[str, dict]
 | greeting | hi, hello, hey | Welcome message |
 | unclear | (other) | Request for clarification |
 
-### 2. Knowledge Base (`src/knowledge_base.py`)
+### 2. NLP Intent Classifier (`src/nlp_intent_classifier.py`)
 
-Manages data retrieval from JSON and CSV files (existing module).
+Transformer-based intent classification using pre-trained models (DistilBERT/RoBERTa).
 
-### 3. Test Suite (`tests/test_chatbot.py`)
+#### Main Class:
+```python
+class IntentClassifier:
+    def __init__(self, model_name: str = None, use_zero_shot: bool = None, config_path: str = None)
+    def classify(self, text: str) -> Tuple[str, float]
+```
 
-Unit tests for validating chatbot functionality (existing module).
+**Features:**
+- Zero-shot classification support
+- Fine-tuned model support
+- Dynamic configuration loading from JSON
+- Keyword pattern matching fallback
+- Confidence scoring
+
+### 3. Semantic Search (`src/nlp_semantic_search.py`)
+
+Semantic search using sentence-transformers for improved query matching.
+
+#### Main Class:
+```python
+class SemanticSearch:
+    def __init__(self, model_name: str = 'all-MiniLM-L6-v2')
+    def search(self, query: str, documents: List[str], top_k: int = 5) -> List[Tuple[str, float]]
+```
+
+**Features:**
+- Dense vector embeddings
+- Similarity-based document retrieval
+- Caching for performance
+- Configurable model selection
+
+### 4. Knowledge Base (`src/knowledge_base.py`)
+
+Manages data retrieval from JSON/CSV files and database.
+
+**Features:**
+- JSON/CSV file support
+- Database integration
+- Multi-source data retrieval
+- Query preprocessing
+
+### 5. Firebase Service (`src/firebase_service.py`)
+
+Optional Firebase integration for cloud data storage.
+
+### 6. Test Suite
+
+Multiple test modules for comprehensive validation:
+- `tests/test_chatbot.py` - Core chatbot functionality
+- `tests/test_speech_to_text.py` - Speech-to-Text feature tests
+- `tests/test_dynamic_features.py` - Dynamic NLP features
+- `tests/test_static_vs_dynamic.py` - Performance comparison
 
 ---
 
@@ -257,34 +363,42 @@ def chat(request):
 ## 🏗️ Architecture
 
 ```
-┌─────────────────────────────────────────────────────────┐
-│            Web Interface (frontend/main.html + frontend/style.css)│
-└────────────────────┬────────────────────────────────────┘
+┌─────────────────────────────────────────────────────────────┐
+│  Web Interface (frontend/main.html + chat.js)              │
+│  - Speech-to-Text (Web Speech API)                         │
+│  - Real-time chat UI                                        │
+└────────────────────┬────────────────────────────────────────┘
                      │
-┌────────────────────▼────────────────────────────────────┐
-│            Django Views (Integration Layer)             │
-│  - Handle HTTP requests/responses                       │
-│  - Manage session context                               │
-└────────────────────┬────────────────────────────────────┘
+┌────────────────────▼────────────────────────────────────────┐
+│  Django Views (django_app/views.py)                        │
+│  - HTTP request/response handling                          │
+│  - Session & conversation management                       │
+│  - Database operations (UserSession, Conversation, Message)│
+└────────────────────┬────────────────────────────────────────┘
                      │
-┌────────────────────▼────────────────────────────────────┐
-│        Conversation Manager (src/conversation_manager.py)│
-│  - Intent Detection                                     │
-│  - Context Management                                   │
-│  - Response Routing                                     │
-└─────┬─────────────────────────────────────────────┬─────┘
-      │                                             │
-┌─────▼──────────────────────┐    ┌────────────────▼─────┐
-│   Handler Functions        │    │ Knowledge Base Module  │
-│ - Registration             │    │ (src/knowledge_base.py)│
-│ - Contact                  │    │                        │
-│ - Greeting/Fallback        │    │ Data Sources:          │
-└────────────────────────────┘    │ - data/course_info.json│
-                                  │ - data/schedule.json   │
-                                  │ - data/faqs.json       │
-                                  │ - data/staff_contacts.json│
-                                  │ - data/faix_data.csv   │
-                                  └────────────────────────┘
+┌────────────────────▼────────────────────────────────────────┐
+│  Conversation Manager (src/conversation_manager.py)        │
+│  - Context Management                                      │
+│  - Response Routing                                        │
+└─────┬───────────────────────────────────────────────┬──────┘
+      │                                               │
+┌─────▼──────────────────────┐    ┌───────────────────▼────────┐
+│  Intent Detection Layer    │    │  Knowledge Base Module     │
+│  ┌──────────────────────┐  │    │  (src/knowledge_base.py)  │
+│  │ NLP Intent Classifier│  │    │  - JSON/CSV files         │
+│  │ (Transformer-based)  │  │    │  - Database queries       │
+│  └──────────────────────┘  │    │  - Firebase (optional)    │
+│  ┌──────────────────────┐  │    └──────────────────────────┘
+│  │ Keyword Fallback     │  │
+│  └──────────────────────┘  │
+└─────┬──────────────────────┘
+      │
+┌─────▼──────────────────────┐    ┌───────────────────────────┐
+│  Handler Functions        │    │  Semantic Search          │
+│  - Registration            │    │  (src/nlp_semantic_search.py)│
+│  - Contact                 │    │  - Sentence transformers │
+│  - Greeting/Fallback       │    │  - Vector embeddings     │
+└────────────────────────────┘    └───────────────────────────┘
 ```
 
 ---
@@ -328,16 +442,35 @@ def chat_api(request):
     return JsonResponse({'response': response})
 ```
 
-### With NLP Module (Future Enhancement):
+### With NLP Intent Classifier:
 
 ```python
-# In conversation_manager.py, replace detect_intent() with:
-from npl_module import classify_intent  # When NLP module is ready
+# In conversation_manager.py or views.py:
+from src.nlp_intent_classifier import IntentClassifier
 
-def detect_intent(user_message: str) -> Optional[str]:
-    # Use NLP classifier instead of keyword matching
-    intent = classify_intent(user_message)
-    return intent
+# Initialize classifier
+classifier = IntentClassifier(
+    model_name='distilbert-base-uncased',
+    use_zero_shot=True,
+    config_path='data/intent_config.json'
+)
+
+# Classify intent
+intent, confidence = classifier.classify(user_message)
+```
+
+### With Semantic Search:
+
+```python
+# For improved query matching:
+from src.nlp_semantic_search import SemanticSearch
+
+search = SemanticSearch(model_name='all-MiniLM-L6-v2')
+results = search.search(
+    query="course registration",
+    documents=knowledge_base.get_all_documents(),
+    top_k=5
+)
 ```
 
 ---
@@ -346,17 +479,41 @@ def detect_intent(user_message: str) -> Optional[str]:
 
 ### Run All Tests:
 ```bash
+# Core functionality
 python src/conversation_manager.py
+
+# Speech-to-Text tests
+python tests/test_speech_to_text.py
+
+# Dynamic features
+python tests/test_dynamic_features.py
+
+# Static vs Dynamic comparison
+python tests/test_static_vs_dynamic.py
 ```
 
-### Run Specific Tests:
+### Run Specific Test Suites:
 ```bash
+# Core chatbot tests
 python tests/test_chatbot.py
+
+# Speech-to-Text feature
+python tests/test_speech_to_text.py
+
+# NLP features
+python tests/test_dynamic_features.py
 ```
 
 ### Run CLI Interface:
 ```bash
 python -X utf8 src/chatbot_cli.py
+```
+
+### Manual Testing:
+
+For Speech-to-Text, refer to the comprehensive guide:
+```bash
+# See tests/SPEECH_TO_TEXT_TESTING_GUIDE.md
 ```
 
 ### Test Cases Included:
@@ -365,6 +522,10 @@ python -X utf8 src/chatbot_cli.py
 2. **Contact Information Flow** - Tests contact-related queries
 3. **Fallback Response** - Tests unclear input handling
 4. **Context Continuity** - Tests topic memory across turns
+5. **Speech-to-Text** - Tests voice input functionality
+6. **NLP Intent Classification** - Tests transformer-based intent detection
+7. **Semantic Search** - Tests query matching with embeddings
+8. **Static vs Dynamic** - Performance and accuracy comparison
 
 ### Expected Output:
 ```
@@ -387,18 +548,23 @@ Bot: 💡 I can help you with registration questions...
 
 ## 🔮 Future Enhancements
 
-### Phase 2 (NLP Integration):
-- [ ] Integrate transformer-based intent classification (e.g., BERT, RoBERTa)
+### Phase 2 (NLP Enhancements):
+- [x] ✅ Integrate transformer-based intent classification (DistilBERT/RoBERTa)
+- [x] ✅ Implement semantic similarity for better query matching
 - [ ] Add entity recognition for extracting course names, dates, etc.
-- [ ] Implement semantic similarity for better query matching
 - [ ] Multi-language support (Malay, English)
+- [ ] Fine-tune models on domain-specific data
 
 ### Phase 3 (Advanced Features):
+- [x] ✅ Speech-to-Text integration
+- [x] ✅ Database integration for conversation history
+- [x] ✅ Firebase support (optional)
 - [ ] User authentication and personalization
 - [ ] Integration with university database systems
 - [ ] Email notification capabilities
 - [ ] Analytics dashboard for admin
 - [ ] Sentiment analysis for feedback
+- [ ] Multi-modal support (images, documents)
 
 ### Phase 4 (Deployment):
 - [ ] Docker containerization
@@ -406,6 +572,7 @@ Bot: 💡 I can help you with registration questions...
 - [ ] Performance optimization
 - [ ] Load balancing for high traffic
 - [ ] Mobile app integration
+- [ ] API rate limiting and security enhancements
 
 ---
 
@@ -452,5 +619,50 @@ For questions or issues, please open a GitHub issue or contact the project maint
 
 ---
 
-**Last Updated**: November 12, 2025  
+**Last Updated**: December 2024  
 **Project Status**: 🟢 Active Development
+
+---
+
+## 🎤 Speech-to-Text Feature
+
+The chatbot includes a Speech-to-Text feature using the Web Speech API for voice input.
+
+### Browser Support:
+- ✅ Chrome/Edge (full support)
+- ✅ Safari (limited support)
+- ❌ Firefox (not supported)
+
+### Usage:
+1. Click the microphone button in the chat interface
+2. Grant microphone permission when prompted
+3. Speak your question clearly
+4. The transcribed text will appear in the input field
+5. The message is automatically sent when you stop speaking
+
+### Testing:
+See `tests/SPEECH_TO_TEXT_TESTING_GUIDE.md` for comprehensive testing instructions.
+
+---
+
+## 🤖 NLP Features
+
+### Intent Classification
+The system supports both static (keyword-based) and dynamic (transformer-based) intent classification:
+
+- **Static Mode**: Fast keyword matching for basic intents
+- **Dynamic Mode**: Transformer-based classification using DistilBERT/RoBERTa
+- **Hybrid Mode**: Combines both approaches for optimal performance
+
+### Semantic Search
+Enhanced query matching using sentence-transformers:
+- Dense vector embeddings for semantic similarity
+- Improved retrieval of relevant information
+- Configurable model selection (all-MiniLM-L6-v2, all-mpnet-base-v2)
+
+### Configuration
+Intent classification can be configured via `data/intent_config.json`:
+- Custom intent categories
+- Keyword patterns
+- Model selection
+- Confidence thresholds
