@@ -1,6 +1,19 @@
+import os
 import re
 import json
-from typing import Dict, List, Any, Optional
+import logging
+import pandas as pd
+from typing import Dict, List, Tuple, Any, Optional
+from datetime import datetime
+from collections import defaultdict
+
+# Suppress warnings
+os.environ['TF_ENABLE_ONEDNN_OPTS'] = '0'
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
+os.environ['CUDA_VISIBLE_DEVICES'] = '-1'
+os.environ['HF_HUB_DISABLE_SYMLINKS_WARNING'] = '1'
+os.environ['TOKENIZERS_PARALLELISM'] = 'false'
+os.environ['PYTHONWARNINGS'] = 'ignore'
 
 # Import NLP modules
 try:
@@ -14,335 +27,1138 @@ except ImportError:
         NLP_AVAILABLE = False
         print("Warning: NLP modules not available. Using keyword-based intent detection.")
 
-class QueryProcessor:
-    """
-    Module 1: Query Processing
-    Processes user input to identify the main intention of the question
-    """
+class LanguageDetector:
+    """Enhanced language detection for English, Malay, Chinese"""
+    
+    def __init__(self):
+        # Language-specific keywords
+        self.language_patterns = {
+            'en': [
+                r'\bthe\b', r'\band\b', r'\bfor\b', r'\bwith\b', r'\bthis\b',
+                r'\bprogram\b', r'\bcourse\b', r'\bregister\b', r'\benroll\b',
+                r'\bsemester\b', r'\bfaculty\b', r'\bstudent\b', r'\bprofessor\b'
+            ],
+            'ms': [
+                r'\bdan\b', r'\bdengan\b', r'\buntuk\b', r'\bini\b', r'\bitu\b',
+                r'\bkursus\b', r'\bprogram\b', r'\bdaftar\b', r'\bmendaftar\b',
+                r'\bsemester\b', r'\bfakulti\b', r'\bpelajar\b', r'\bprofesor\b'
+            ],
+            'zh': [
+                r'[\u4e00-\u9fff]',  
+            ]
+        }
+    
+    def detect(self, text: str) -> str:
+        """Detect language of input text with confidence"""
+        text = text.strip()
+        
+        # Check for Chinese characters first (most reliable)
+        if self._has_chinese(text):
+            return 'zh'
+        
+        # Count pattern matches for each language
+        scores = {'en': 0, 'ms': 0, 'zh': 0}
+        
+        for lang, patterns in self.language_patterns.items():
+            for pattern in patterns:
+                if lang == 'zh':
+                    continue  # Already handled
+                matches = re.findall(pattern, text.lower())
+                scores[lang] += len(matches)
+        
+        # If no pattern matches, use fallback
+        if sum(scores.values()) == 0:
+            return self._fallback_detection(text)
+        
+        # Return language with highest score
+        return max(scores.items(), key=lambda x: x[1])[0]
+    
+    def _has_chinese(self, text: str) -> bool:
+        """Check if text contains Chinese characters"""
+        for char in text:
+            if '\u4e00' <= char <= '\u9fff':
+                return True
+        return False
+    
+    def _fallback_detection(self, text: str) -> str:
+        """Fallback detection using common phrases"""
+        text_lower = text.lower()
+        
+        malay_indicators = ['apa', 'bagaimana', 'kenapa', 'siapa', 'bila']
+        chinese_indicators = ['吗', '呢', '什么', '怎么', '为什么']
+        
+        for indicator in malay_indicators:
+            if indicator in text_lower:
+                return 'ms'
+        
+        for indicator in chinese_indicators:
+            if indicator in text:
+                return 'zh'
+        
+        # Default to English
+        return 'en'
 
-    def __init__(self, use_nlp: bool = True):
-        """
-        Initialize Query Processor.
-        
-        Args:
-            use_nlp: Whether to use NLP models for intent classification (default: True)
-        """
-        print("Initializing Query Processor...")
-        
-        # Initialize NLP classifier if available
-        self.use_nlp = use_nlp and NLP_AVAILABLE
-        self.intent_classifier = None
-        
-        if self.use_nlp:
-            try:
-                self.intent_classifier = get_intent_classifier(use_zero_shot=True)
-                print("✓ NLP intent classifier initialized")
-            except Exception as e:
-                print(f"Warning: Could not initialize NLP classifier: {e}")
-                self.use_nlp = False
-        
-        # NLP preprocessing
-        self.stop_words = set([
-            'a', 'an', 'the', 'and', 'or', 'but', 'is', 'are', 'was', 'were', 
-            'be', 'been', 'being', 'have', 'has', 'had', 'do', 'does', 'did',
-            'will', 'would', 'could', 'should', 'may', 'might', 'can',
-            'i', 'you', 'he', 'she', 'it', 'we', 'they', 'me', 'him', 'her',
-            'us', 'them', 'my', 'your', 'his', 'its', 'our', 'their',
-            'this', 'that', 'these', 'those', 'what', 'which', 'who', 'whom',
-            'where', 'when', 'why', 'how', 'please', 'thank', 'thanks', 'hello'
-        ])
-        
-        # Intent patterns
-        self.intent_patterns = {
-            'course_info': ['course', 'subject', 'module', 'kokurikulum', 'curriculum', 'class', 'lecture'],
-            'registration': ['register', 'enroll', 'enrollment', 'admission', 'apply', 'sign up', 'deadline'],
-            'academic_schedule': ['schedule', 'timetable', 'calendar', 'when', 'time', 'date', 'semester'],
-            'staff_contact': ['contact', 'email', 'phone', 'number', 'professor', 'lecturer', 'staff', 'faculty'],
-            'facility_info': ['lab', 'laboratory', 'facility', 'equipment', 'room', 'building', 'campus'],
-            'program_info': ['program', 'degree', 'bachelor', 'master', 'requirement', 'eligibility', 'duration']
+class ShortFormProcessor:
+    """Process short-form/slang language commonly used by students"""
+    
+    def __init__(self):
+        # Comprehensive dictionary of short forms and their expansions
+        self.short_forms = {
+            'en': {
+                # General abbreviations
+                'u': 'you',
+                'ur': 'your',
+                'r': 'are',
+                'pls': 'please',
+                'plz': 'please',
+                'thx': 'thanks',
+                'ty': 'thank you',
+                'np': 'no problem',
+                'idk': "i don't know",
+                'afaik': 'as far as i know',
+                'tbh': 'to be honest',
+                'brb': 'be right back',
+                'btw': 'by the way',
+                'fyi': 'for your information',
+                'imo': 'in my opinion',
+                'asap': 'as soon as possible',
+                'atm': 'at the moment',
+                'b4': 'before',
+                'bc': 'because',
+                'cuz': 'because',
+                'coz': 'because',
+                'w/': 'with',
+                'w/o': 'without',
+                'c': 'see',
+                'n': 'and',
+                '&': 'and',
+                'k': 'ok',
+                'ok': 'okay',
+                
+                # Academic-specific
+                'prof': 'professor',
+                'lect': 'lecturer',
+                'admin': 'administration',
+                'reg': 'registration',
+                'enrl': 'enrollment',
+                'enrol': 'enrollment',
+                'sem': 'semester',
+                'lab': 'laboratory',
+                'tut': 'tutorial',
+                'lec': 'lecture',
+                'asgmt': 'assignment',
+                'hw': 'homework',
+                'cw': 'coursework',
+                'exam': 'examination',
+                'uni': 'university',
+                'dept': 'department',
+                'fac': 'faculty',
+                'cs': 'computer science',
+                'ai': 'artificial intelligence',
+                'ds': 'data science',
+                'cyber': 'cybersecurity',
+                'it': 'information technology',
+                
+                # Question short forms
+                'wut': 'what',
+                'wat': 'what',
+                'wanna': 'want to',
+                'gonna': 'going to',
+                'gotta': 'got to',
+                'hafta': 'have to',
+                'needa': 'need to',
+                'howz': 'how is',
+                'whatz': 'what is',
+                'wherez': 'where is',
+                'whenz': 'when is',
+                'whoz': 'who is',
+                'whysz': 'why is',
+                
+                # Numbers as words
+                '2': 'to',
+                '4': 'for',
+                '2day': 'today',
+                '2moro': 'tomorrow',
+                '2nite': 'tonight',
+                '4ever': 'forever',
+                'b4': 'before',
+                'gr8': 'great',
+                'l8r': 'later',
+                'm8': 'mate',
+                'h8': 'hate',
+                'w8': 'wait',
+            },
+            'ms': {
+                # General Malay abbreviations
+                'n': 'dan',
+                'sbb': 'sebab',
+                'sbg': 'sebagai',
+                'spt': 'seperti',
+                'tp': 'tapi',
+                'tgk': 'tengok',
+                'nmpk': 'nampak',
+                'skrg': 'sekarang',
+                'skrng': 'sekarang',
+                'esok': 'esok',
+                'tdk': 'tidak',
+                'tak': 'tidak',
+                'x': 'tidak',
+                'lg': 'lagi',
+                'lgi': 'lagi',
+                'dlm': 'dalam',
+                'dgn': 'dengan',
+                'utk': 'untuk',
+                'stp': 'setiap',
+                'otw': 'on the way',
+                'ptg': 'petang',
+                'pg': 'pagi',
+                'mlm': 'malam',
+                'tggl': 'tinggal',
+                'kwn': 'kawan',
+                'kk': 'kakak',
+                'adk': 'adik',
+                'bkn': 'bukan',
+                'byk': 'banyak',
+                'sdkt': 'sedikit',
+                'yg': 'yang',
+                'utk': 'untuk',
+                'drpd': 'daripada',
+                'pd': 'pada',
+                'skit': 'sedikit',
+                'g': 'sangat',
+                'bg': 'bagi',
+                'bgmn': 'bagaimana',
+                'kpd': 'kepada',
+                
+                # Academic-specific Malay
+                'univ': 'universiti',
+                'uni': 'universiti',
+                'krs': 'kursus',
+                'prog': 'program',
+                'fak': 'fakulti',
+                'pns': 'pensyarah',
+                'pro': 'profesor',
+                'pela': 'pelajar',
+                'daftar': 'pendaftaran',
+                'sem': 'semester',
+                'kul': 'kuliah',
+                'tuto': 'tutorial',
+                'tugas': 'tugasan',
+                'pep': 'peperiksaan',
+                'exam': 'peperiksaan',
+                'lab': 'makmal',
+                'admin': 'pentadbiran',
+                'dekan': 'dekan',
+                
+                # Question short forms
+                'ape': 'apa',
+                'mne': 'mana',
+                'siape': 'siapa',
+                'knpe': 'kenapa',
+                'camne': 'bagaimana',
+                'bile': 'bila',
+                'dkat': 'di mana',
+                'kate': 'kata',
+                'bape': 'berapa',
+                
+                # Numbers as words
+                '1': 'satu',
+                '2': 'dua',
+                '3': 'tiga',
+                '4': 'empat',
+                '5': 'lima',
+                '10': 'sepuluh',
+            },
+            'zh': {
+                # Common Chinese internet slang and abbreviations
+                '课程': '课程',  # Keep original but handle variations
+                '课': '课程',
+                '程': '课程',
+                '专业': '专业',
+                '专': '专业',
+                '老师': '老师',
+                '师': '老师',
+                '教授': '教授',
+                '教': '教授',
+                '学生': '学生',
+                '学': '学生',
+                '注册': '注册',
+                '注': '注册',
+                '报名': '报名',
+                '报': '报名',
+                '学期': '学期',
+                '学费': '学费',
+                '费': '费用',
+                '多少钱': '多少钱',
+                '多少': '多少钱',
+                '钱': '钱',
+                '什么时候': '什么时候',
+                '何时': '什么时候',
+                '几点': '什么时候',
+                '时间': '时间',
+                '地点': '地点',
+                '哪里': '哪里',
+                '怎么': '怎么',
+                '如何': '如何',
+                '为什么': '为什么',
+                '为啥': '为什么',
+                
+                # Common internet abbreviations
+                '啥': '什么',
+                '咋': '怎么',
+                '嘛': '吗',
+                '呗': '吧',
+                '滴': '的',
+                '哒': '的',
+                '辣': '了',
+                '酱紫': '这样子',
+                '肿么': '怎么',
+                '为毛': '为什么',
+                '神马': '什么',
+                '木有': '没有',
+                '有木有': '有没有',
+                '灰常': '非常',
+                '炒鸡': '超级',
+                '造': '知道',
+                '造吗': '知道吗',
+                '不造': '不知道',
+                '好哒': '好的',
+                '好滴': '好的',
+                '嗯呐': '嗯',
+                '噢啦': '哦',
+                '阔以': '可以',
+                '行': '可以',
+                'OK': '可以',
+                'ok': '可以',
+                
+                # Academic-specific Chinese
+                '课': '课程',
+                '大课': '主修课程',
+                '必修': '必修课',
+                '选修': '选修课',
+                '学分': '学分',
+                '绩点': 'GPA',
+                'GPA': '绩点',
+                '挂科': '不及格',
+                '补考': '补考',
+                '重修': '重修',
+                '毕设': '毕业设计',
+                '论文': '毕业论文',
+                '导师': '指导老师',
+                '导员': '辅导员',
+                '班导': '班主任',
+                '同学': '同学',
+                '学长': '学长',
+                '学姐': '学姐',
+                '学弟': '学弟',
+                '学妹': '学妹',
+                '宿舍': '宿舍',
+                '食堂': '食堂',
+                '图书馆': '图书馆',
+                '教室': '教室',
+                '实验室': '实验室',
+                '机房': '计算机房',
+                'WiFi': '无线网络',
+                '网': '网络',
+                '电': '电力',
+                '水': '自来水',
+            }
         }
         
-        print("Query Processor ready!")
+        # Patterns for detecting short forms (case-insensitive for English/Malay)
+        self.patterns = {
+            'en': [
+                r'\b(u|ur|r|pls|plz|thx|ty|np|idk|afaik|tbh|brb|btw|fyi|imo|asap|atm|b4|bc|cuz|coz|w\/|w\/o|c|n|k|ok)\b',
+                r'\b(prof|lect|admin|reg|enrl|enrol|sem|lab|tut|lec|asgmt|hw|cw|exam|uni|dept|fac|cs|ai|ds|cyber|it)\b',
+                r'\b(wut|wat|wanna|gonna|gotta|hafta|needa|howz|whatz|wherez|whenz|whoz|whysz)\b',
+                r'\b(2day|2moro|2nite|4ever|gr8|l8r|m8|h8|w8)\b',
+            ],
+            'ms': [
+                r'\b(n|sbb|sbg|spt|tp|tgk|nmpk|skrg|skrng|esok|tdk|tak|x|lg|lgi|dlm|dgn|utk|stp|otw|ptg|pg|mlm|tggl|kwn|kk|adk|bkn|byk|sdkt|yg|drpd|pd|skit|g|bg|bgmn|kpd)\b',
+                r'\b(univ|uni|krs|prog|fak|pns|pro|pela|daftar|sem|kul|tuto|tugas|pep|exam|lab|admin|dekan)\b',
+                r'\b(ape|mne|siape|knpe|camne|bile|dkat|kate|bape)\b',
+            ],
+            'zh': [
+                # Chinese short forms are handled differently
+            ]
+        }
+    
+    def is_short_form(self, text: str, language: str) -> bool:
+        """Check if text contains short forms/slang"""
+        if language not in ['en', 'ms']:
+            # For Chinese, check if it contains common internet slang
+            if language == 'zh':
+                return any(slang in text for slang in self.short_forms['zh'].keys())
+            return False
+        
+        text_lower = text.lower()
+        for pattern in self.patterns[language]:
+            if re.search(pattern, text_lower):
+                return True
+        return False
+    
+    def expand_short_forms(self, text: str, language: str) -> str:
+        """
+        Expand short forms and slang in the text
+        Returns both original and expanded versions
+        """
+        if language not in self.short_forms:
+            return text
+        
+        # For Chinese, handle differently due to character-based language
+        if language == 'zh':
+            expanded = text
+            for short, long in self.short_forms['zh'].items():
+                if short in expanded:
+                    expanded = expanded.replace(short, long)
+            return expanded
+        
+        # For English and Malay
+        words = text.split()
+        expanded_words = []
+        
+        for word in words:
+            # Clean word for matching
+            clean_word = re.sub(r'[^\w]', '', word.lower())
+            
+            if clean_word in self.short_forms[language]:
+                # Preserve original capitalization/punctuation
+                expanded = self.short_forms[language][clean_word]
+                expanded_words.append(expanded)
+            else:
+                # Check for number substitutions (like 2day, 4ever)
+                expanded_word = word
+                for short, long in self.short_forms[language].items():
+                    if len(short) > 1 and short in expanded_word.lower():
+                        expanded_word = expanded_word.lower().replace(short, long)
+                expanded_words.append(expanded_word)
+        
+        return ' '.join(expanded_words)
+    
+    def normalize_slang(self, text: str, language: str) -> Dict[str, Any]:
+        """
+        Normalize slang/short forms and return analysis
+        """
+        contains_slang = self.is_short_form(text, language)
+        expanded_text = self.expand_short_forms(text, language)
+        
+        return {
+            'original': text,
+            'normalized': expanded_text,
+            'contains_slang': contains_slang,
+            'language': language
+        }
+    
+    def process_query_with_slang(self, query: str, language: str) -> Dict[str, Any]:
+        """
+        Process query with slang detection and normalization
+        """
+        # Detect if contains slang
+        slang_analysis = self.normalize_slang(query, language)
+        
+        # Also check for common student slang patterns
+        student_slang_patterns = {
+            'en': [
+                (r'wanna\s+(\w+)', r'want to \1'),
+                (r'gonna\s+(\w+)', r'going to \1'),
+                (r'gotta\s+(\w+)', r'got to \1'),
+                (r'lemme\s+(\w+)', r'let me \1'),
+                (r'gimme\s+(\w+)', r'give me \1'),
+                (r'whatcha\s+(\w+)', r'what are you \1'),
+                (r'how\'?bout', r'how about'),
+                (r'i\'?mma', r'i am going to'),
+                (r'ya\'?ll', r'you all'),
+                (r'dunno', r'don\'t know'),
+                (r'kinda', r'kind of'),
+                (r'sorta', r'sort of'),
+                (r'coulda', r'could have'),
+                (r'shoulda', r'should have'),
+                (r'woulda', r'would have'),
+                (r'musta', r'must have'),
+            ],
+            'ms': [
+                (r'tak\s+(\w+)', r'tidak \1'),
+                (r'x\s+(\w+)', r'tidak \1'),
+                (r'tgk\s+(\w+)', r'tengok \1'),
+                (r'nmpk\s+(\w+)', r'nampak \1'),
+                (r'camne\s+(\w+)', r'bagaimana \1'),
+                (r'skrz\s+(\w+)', r'sukar \1'),
+                (r'senrz\s+(\w+)', r'senang \1'),
+                (r'sgt\s+(\w+)', r'sangat \1'),
+                (r'g\s+(\w+)', r'sangat \1'),
+                (r'skit\s+(\w+)', r'sedikit \1'),
+            ],
+            'zh': [
+                (r'啥(\w+)', r'什么\1'),
+                (r'咋(\w+)', r'怎么\1'),
+                (r'为毛', r'为什么'),
+                (r'神马', r'什么'),
+                (r'木有', r'没有'),
+                (r'灰常', r'非常'),
+                (r'炒鸡', r'超级'),
+                (r'造吗', r'知道吗'),
+                (r'不造', r'不知道'),
+                (r'好哒', r'好的'),
+                (r'阔以', r'可以'),
+            ]
+        }
+        
+        # Apply additional pattern replacements
+        normalized_text = slang_analysis['normalized']
+        if language in student_slang_patterns:
+            for pattern, replacement in student_slang_patterns[language]:
+                normalized_text = re.sub(pattern, replacement, normalized_text, flags=re.IGNORECASE)
+        
+        return {
+            'original_query': query,
+            'normalized_query': normalized_text,
+            'had_slang': slang_analysis['contains_slang'],
+            'language': language,
+            'slang_detected': slang_analysis['contains_slang'] or (normalized_text != query)
+        }
 
-    def preprocess_text(self, text: str) -> str:
-        """Clean and normalize the input text"""
+class QueryProcessor:
+    def __init__(self, use_database: bool = True, data_path: str = "faix_data.csv", use_nlp: bool = True):
+        # Basic flags and paths
+        self.use_database = use_database
+        self.use_nlp = use_nlp
+        self.data_path = data_path
+
+        # Ensure logger exists early
+        self.setup_logging()
+
+        # Initialize NLP intent classifier if available and requested
+        self.intent_classifier = None
+        if self.use_nlp and NLP_AVAILABLE:
+            try:
+                self.intent_classifier = get_intent_classifier()
+                print("NLP intent classifier initialized")
+            except Exception as e:
+                self.logger.warning(f"Failed to initialize intent classifier: {e}")
+                self.intent_classifier = None
+
+        self.faq_model = None
+        self.faix_data = None
         
-        # Convert to lowercase
-        text = text.lower().strip()
+        if self.use_database:
+            try:
+                import django
+                os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'django_app.settings')
+                django.setup()
+                from django_app.models import FAQEntry
+                self.faq_model = FAQEntry
+                print("Django database connected successfully")
+                
+                entry_count = FAQEntry.objects.filter(is_active=True).count()
+                self.logger.info(f"Query Processor initialized with {entry_count} FAIX entries from database")
+                
+            except Exception as e:
+                self.logger.warning(f"Django not available or setup failed ({e}). Falling back to CSV.")
+                self.use_database = False
+                self.faix_data = self.load_faix_data(self.data_path)
+                self.logger.info(f"Query Processor initialized with {len(self.faix_data)} FAIX entries from CSV")
+        else:
+            self.faix_data = self.load_faix_data(self.data_path)
+            self.logger.info(f"Query Processor initialized with {len(self.faix_data)} FAIX entries from CSV")
+
+        # Language detector
+        self.language_detector = LanguageDetector()
         
-        # Remove extra whitespace
+        # Add ShortFormProcessor
+        self.slang_processor = ShortFormProcessor()
+
+        # Stop words for different languages
+        self.stop_words = {
+            'en': set([
+                'the', 'a', 'an', 'and', 'or', 'but', 'in', 'on', 'at', 'to', 
+                'for', 'of', 'with', 'by', 'is', 'are', 'was', 'were', 'be', 
+                'been', 'being', 'have', 'has', 'had', 'do', 'does', 'did',
+                'will', 'would', 'should', 'could', 'can', 'may', 'might',
+                'i', 'you', 'he', 'she', 'it', 'we', 'they', 'me', 'him',
+                'her', 'us', 'them', 'my', 'your', 'his', 'its', 'our', 'their'
+            ]),
+            'ms': set([
+                'yang', 'dan', 'atau', 'di', 'dalam', 'pada', 'ke', 'kepada',
+                'untuk', 'dari', 'daripada', 'dengan', 'oleh', 'adalah', 'ialah',
+                'akan', 'telah', 'sudah', 'belum', 'jangan', 'tidak', 'bukan',
+                'saya', 'kamu', 'anda', 'dia', 'kami', 'kita', 'mereka'
+            ]),
+            'zh': set([
+                '的', '了', '和', '在', '是', '我', '有', '就', '不', '人', '都',
+                '一', '一个', '也', '很', '吗', '呢', '吧', '啊', '呀', '哦',
+                '可以', '能', '会', '要', '想', '说', '看', '做', '去', '来'
+            ])
+        }
+
+        # Enhanced intent categories with Chinese translations
+        self.intent_categories = {
+            'course_info': {'en': 'Information about courses and subjects', 'zh': '课程和科目信息'},
+            'program_info': {'en': 'Information about programs and degrees', 'zh': '项目和学位信息'},
+            'registration': {'en': 'Registration and enrollment procedures', 'zh': '注册和报名程序'},
+            'academic_schedule': {'en': 'Academic calendar and timelines', 'zh': '学术日历和时间表'},
+            'staff_contact': {'en': 'Faculty and staff contacts', 'zh': '教职员工联系信息'},
+            'facility_info': {'en': 'Campus facilities and resources', 'zh': '校园设施和资源'},
+            'fees': {'en': 'Tuition and financial information', 'zh': '学费和财务信息'},
+            'academic_policy': {'en': 'Academic rules and requirements', 'zh': '学术规则和要求'},
+            'technical': {'en': 'IT and technical support', 'zh': 'IT和技术支持'},
+            'career': {'en': 'Career services and internships', 'zh': '职业服务和实习'},
+            'student_life': {'en': 'Clubs and student activities', 'zh': '俱乐部和学生活动'},
+            'housing': {'en': 'Accommodation and residence', 'zh': '住宿和宿舍'},
+            'international': {'en': 'International student matters', 'zh': '国际学生事务'},
+            'research': {'en': 'Research opportunities', 'zh': '研究机会'},
+            'wellness': {'en': 'Health and counseling services', 'zh': '健康和咨询服务'},
+            'financial_aid': {'en': 'Scholarships and financial assistance', 'zh': '奖学金和经济援助'},
+            'location': {'en': 'Campus location and directions', 'zh': '校园位置和方向'},
+            'curriculum': {'en': 'Course content and programming languages', 'zh': '课程内容和编程语言'},
+            'advising': {'en': 'Academic advising and counseling', 'zh': '学术咨询和辅导'},
+            'documents': {'en': 'Transcripts and official documents', 'zh': '成绩单和官方文件'},
+            'admin': {'en': 'Feedback and administrative matters', 'zh': '反馈和行政事务'},
+            'general_query': {'en': 'General inquiry', 'zh': '一般查询'}
+        }
+
+        # Language-specific patterns for intent detection
+        self.patterns = self._initialize_patterns()
+
+        print("Query Processor ready!")
+    
+    def setup_logging(self):
+        """Setup logging for debugging and monitoring"""
+        logging.basicConfig(
+            level=logging.INFO,
+            format='%(asctime)s | %(levelname)s | %(message)s',
+            datefmt='%H:%M:%S'
+        )
+        self.logger = logging.getLogger("FAIX_Query_Processor")
+    
+    def load_faix_data(self, csv_path: str) -> pd.DataFrame:
+        """Load FAIX knowledge base from CSV"""
+        try:
+            if not os.path.exists(csv_path):
+                if os.path.exists(f"data/{csv_path}"):
+                    csv_path = f"data/{csv_path}"
+                else:
+                    self.logger.warning(f"File not found: {csv_path}. Using sample data.")
+                    return self._create_sample_data()
+            
+            df = pd.read_csv(csv_path)
+            
+            # Validate required columns
+            required_columns = ['id', 'question', 'answer', 'category', 'keywords']
+            missing_columns = [col for col in required_columns if col not in df.columns]
+            
+            if missing_columns:
+                self.logger.error(f"Missing required columns: {missing_columns}")
+                raise ValueError(f"Missing columns: {missing_columns}")
+            
+            df['keywords'] = df['keywords'].fillna('').astype(str)
+            
+            self.logger.info(f"Successfully loaded {len(df)} entries from {csv_path}")
+            return df
+            
+        except Exception as e:
+            self.logger.error(f"Error loading CSV: {str(e)}")
+            return self._create_sample_data()
+    
+    def _create_sample_data(self) -> pd.DataFrame:
+        """Create sample FAIX data for testing"""
+        sample_data = {
+            'id': [1, 2, 3, 4, 5],
+            'question': [
+                'What programs does FAIX offer?',
+                'How do I register for the semester?',
+                'Who is the dean of FAIX?',
+                'When does the fall semester start?',
+                'What are the tuition fees?'
+            ],
+            'answer': [
+                'FAIX offers Bachelor\'s degrees in Computer Science, Data Science, AI, and Cybersecurity.',
+                'Register through the Student Portal at portal.faix.edu.',
+                'The dean of FAIX is Dr. Sarah Mitchell.',
+                'Fall 2025 semester starts on September 8, 2025.',
+                'Annual tuition for Malaysian students is RM 18,000 per year.'
+            ],
+            'category': ['program_info', 'registration', 'staff_contact', 'academic_schedule', 'fees'],
+            'keywords': [
+                'program,course,degree,bachelor,major',
+                'register,add subject,enroll,semester',
+                'dean,staff,contact,administration',
+                'semester,academic calendar,start date,fall',
+                'tuition,fees,cost,payment'
+            ]
+        }
+        return pd.DataFrame(sample_data)
+    
+    def _initialize_patterns(self) -> Dict[str, Dict[str, List[str]]]:
+        """Initialize comprehensive language-specific patterns"""
+        return {
+            'en': {
+                'course_info': ['course', 'subject', 'module', 'curriculum', 'class', 'lecture', 'tutorial', 'lab'],
+                'program_info': ['program', 'degree', 'bachelor', 'master', 'phd', 'major', 'study'],
+                'registration': ['register', 'enroll', 'enrollment', 'admission', 'apply', 'application', 'sign up'],
+                'academic_schedule': ['schedule', 'timetable', 'calendar', 'when', 'time', 'date', 'deadline', 'semester'],
+                'staff_contact': ['contact', 'email', 'phone', 'number', 'professor', 'lecturer', 'staff', 'faculty', 'dean'],
+                'facility_info': ['lab', 'laboratory', 'facility', 'equipment', 'room', 'building', 'campus', 'library'],
+                'fees': ['tuition', 'fee', 'cost', 'payment', 'price', 'financial', 'money', 'scholarship'],
+                'general_query': ['hello', 'hi', 'help', 'information', 'about', 'tell me', 'what is', 'how to']
+            },
+            'ms': {
+                'course_info': ['kursus', 'subjek', 'modul', 'kurikulum', 'kelas', 'kuliah', 'tutorial', 'makmal'],
+                'program_info': ['program', 'ijazah', 'sarjana', 'doktor', 'pengajian', 'bidang'],
+                'registration': ['daftar', 'mendaftar', 'pendaftaran', 'kemasukan', 'memohon', 'permohonan'],
+                'academic_schedule': ['jadual', 'kalendar', 'bila', 'masa', 'tarikh', 'had masa', 'semester'],
+                'staff_contact': ['hubungi', 'emel', 'telefon', 'nombor', 'profesor', 'pensyarah', 'kakitangan', 'fakulti', 'dekan'],
+                'facility_info': ['makmal', 'laboratori', 'kemudahan', 'peralatan', 'bilik', 'bangunan', 'kampus', 'perpustakaan'],
+                'fees': ['yuran', 'kos', 'bayaran', 'harga', 'kewangan', 'wang', 'biasiswa'],
+                'general_query': ['helo', 'hai', 'bantuan', 'maklumat', 'tentang', 'beritahu saya', 'apa itu', 'bagaimana']
+            },
+            'zh': {
+                'course_info': ['课程', '科目', '模块', '课程', '课堂', '讲座', '辅导', '实验室'],
+                'program_info': ['专业', '学位', '学士', '硕士', '博士', '主修', '学习'],
+                'registration': ['注册', '报名', '登记', '入学', '申请', '申请表', '注册表'],
+                'academic_schedule': ['时间表', '日历', '什么时候', '时间', '日期', '截止日期', '学期'],
+                'staff_contact': ['联系', '电邮', '电话', '号码', '教授', '讲师', '员工', '学院', '院长'],
+                'facility_info': ['实验室', '设备', '设施', '房间', '建筑', '校园', '图书馆'],
+                'fees': ['学费', '费用', '成本', '付款', '价格', '财务', '钱', '奖学金'],
+                'general_query': ['你好', '嗨', '帮助', '信息', '关于', '告诉我', '是什么', '如何']
+            }
+        }
+    
+    def preprocess_text(self, text: str, language: str = 'en') -> str:
+        """Clean and normalize the input text for specific language"""
+        text = text.strip()
+        
+        # Keep original Chinese characters, clean others
+        if language != 'zh':
+            text = text.lower()
+        
+        # Remove extra spaces
         text = re.sub(r'\s+', ' ', text)
         
-        # Remove special characters but keep basic punctuation
-        text = re.sub(r'[^\w\s?.,]', '', text)
+        # Language-specific cleaning
+        if language == 'zh':
+            # For Chinese, keep Chinese characters, numbers, and basic punctuation
+            text = re.sub(r'[^\u4e00-\u9fff0-9\s?.,!？，。！]', '', text)
+        else:
+            # For English/Malay, keep alphanumeric and basic punctuation
+            text = re.sub(r'[^\w\s?.,!]', '', text)
         
         return text
     
-    def tokenize_text(self, text: str) -> List[str]:
-        """Split text into tokens and remove stop words"""
-        
-        # Simple tokenization
-        tokens = text.split()
+    def tokenize_text(self, text: str, language: str = 'en') -> List[str]:
+        """Split text into tokens and remove stop words for specific language"""
+        # Chinese tokenization is different (character/word based)
+        if language == 'zh':
+            # Simple Chinese tokenization - split by common delimiters
+            tokens = []
+            current_token = ""
+            for char in text:
+                if char in [' ', '，', '。', '？', '！', '、']:
+                    if current_token:
+                        tokens.append(current_token)
+                        current_token = ""
+                else:
+                    current_token += char
+            if current_token:
+                tokens.append(current_token)
+        else:
+            # English/Malay tokenization
+            tokens = text.split()
         
         # Remove stop words
-        tokens = [token for token in tokens if token not in self.stop_words]
+        stop_words = self.stop_words.get(language, self.stop_words['en'])
+        tokens = [token for token in tokens if token not in stop_words and len(token) > 1]
         
         return tokens
     
-    def extract_entities(self, text: str) -> Dict[str, List[str]]:
-        """Extract important entities from the text"""
-        entities = {}
-    
-        # Course codes
-        course_codes = re.findall(r'\b[B][A][XIZTS]{2,4}\b', text, re.IGNORECASE)
-        if course_codes:
-            entities['course_codes'] = [code.upper() for code in course_codes]
+    def detect_language(self, query: str) -> Dict[str, Any]:
+        """Detect language of the query with confidence"""
+        lang_code = self.language_detector.detect(query)
         
-        # Catch course codes with numbers (like BAXI3923, BITZ2024)
-        course_codes_with_numbers = re.findall(r'\b[B][A][XIZTS]{2,4}\s?\d{3,4}\b', text, re.IGNORECASE)
-        if course_codes_with_numbers:
-            if 'course_codes' not in entities:
-                entities['course_codes'] = []
-            entities['course_codes'].extend([code.upper() for code in course_codes_with_numbers])
+        lang_names = {
+            'en': {'code': 'en', 'name': 'English'},
+            'ms': {'code': 'ms', 'name': 'Bahasa Malaysia'},
+            'zh': {'code': 'zh', 'name': 'Chinese'}
+        }
         
-        # Email addresses
-        emails = re.findall(r'\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b', text)
-        if emails:
-            entities['emails'] = emails
+        return lang_names.get(lang_code, lang_names['en'])
+    
+    def detect_intent_keyword(self, text: str, language: str) -> Tuple[str, float]:
+        """Keyword-based intent detection for specific language"""
+        if language not in self.patterns:
+            language = 'en'  # Default to English
         
-        # Dates
-        dates = re.findall(r'\d{1,2}/\d{1,2}/\d{4}|\d{4}-\d{2}-\d{2}', text)
-        if dates:
-            entities['dates'] = dates
+        language_patterns = self.patterns[language]
+        text_lower = text.lower() if language != 'zh' else text
         
-        # Staff names (simple pattern)
-        staff_names = re.findall(r'(professor|dr|mr|mrs|ms)\.?\s+[A-Z][a-z]+', text, re.IGNORECASE)
-        if staff_names:
-            entities['staff_names'] = staff_names
+        intent_scores = {}
+        
+        for intent, keywords in language_patterns.items():
+            score = 0
+            for keyword in keywords:
+                # For Chinese, check if keyword is in text directly
+                if language == 'zh':
+                    if keyword in text:
+                        score += 3
+                else:
+                    # For other languages, check in lowercase text
+                    if keyword in text_lower:
+                        score += 2
+                        # Bonus for exact word match
+                        if f" {keyword} " in f" {text_lower} ":
+                            score += 1
+            
+            if score > 0:
+                intent_scores[intent] = score
+        
+        if intent_scores:
+            # Get best intent
+            best_intent = max(intent_scores.items(), key=lambda x: x[1])
+            intent_name = best_intent[0]
+            raw_score = best_intent[1]
+            
+            # Calculate confidence (normalize to 0-1)
+            max_possible_score = len(language_patterns.get(intent_name, [])) * 3
+            confidence = min(raw_score / max(max_possible_score, 1), 1.0)
+            
+            # Minimum confidence boost for Chinese
+            if language == 'zh' and confidence < 0.3:
+                confidence = 0.3
+            
+            return intent_name, confidence
+        
+        # Default to general query with low confidence
+        return 'general_query', 0.2 if language == 'zh' else 0.1
     
-        # Important keywords (words longer than 3 characters)
-        tokens = self.tokenize_text(text)
-        important_words = [token for token in tokens if len(token) > 3]
-        if important_words:
-            entities['keywords'] = important_words
-    
-        return entities
-    
-    def detect_intent(self, text: str) -> tuple:
+    def detect_intent(self, text: str, language: str) -> Tuple[str, float]:
         """
         Detect the main intent of the user query.
         Uses NLP model if available, otherwise falls back to keyword matching.
         """
-        # Try NLP-based classification first
-        if self.use_nlp and self.intent_classifier and self.intent_classifier.is_available():
+        # Try NLP-based classification first (for English)
+        if self.use_nlp and self.intent_classifier and language == 'en':
             try:
                 intent, confidence, all_scores = self.intent_classifier.classify(text)
+                
+                # Map to our intent categories
+                intent_mapping = {
+                    'course_info': 'course_info',
+                    'course_info_program': 'program_info',
+                    'registration': 'registration',
+                    'schedule': 'academic_schedule',
+                    'staff': 'staff_contact',
+                    'facilities': 'facility_info',
+                    'fees': 'fees',
+                    'general': 'general_query'
+                }
+                
+                mapped_intent = intent_mapping.get(intent, 'general_query')
+                
                 # Use NLP result if confidence is reasonable
                 if confidence >= 0.3:
-                    return intent, confidence
-                # Otherwise fall through to keyword-based
+                    return mapped_intent, confidence
             except Exception as e:
-                print(f"Warning: NLP classification failed, using fallback: {e}")
+                self.logger.debug(f"NLP classification failed, using fallback: {e}")
         
-        # Fallback to keyword-based detection
-        tokens = self.tokenize_text(text)
+        # Use keyword-based detection for all languages
+        return self.detect_intent_keyword(text, language)
+    
+    def extract_entities(self, text: str, language: str) -> Dict[str, List[str]]:
+        """Extract important entities from the text for specific language"""
+        entities = {}
         
-        intent_scores = {}
+        # Course codes
+        if codes := re.findall(r'\b(BAXI|BAXZ|BITZ|BAXS)\b', text, re.IGNORECASE):
+            entities['course_codes'] = [code.upper() for code in codes]
         
-        # Score each intent based on keyword matches
-        for intent, keywords in self.intent_patterns.items():
-            score = 0
-            for keyword in keywords:
-                if keyword in tokens:
-                    score += 2  # Higher weight for exact matches
-            intent_scores[intent] = score
+        # Course codes with numbers
+        if codes_with_nums := re.findall(r'\b(BAXI|BAXZ|BITZ|BAXS)\s?\d{3,4}\b', text, re.IGNORECASE):
+            entities['course_codes'] = entities.get('course_codes', [])
+            entities['course_codes'].extend([code.upper().replace(' ', '') for code in codes_with_nums])
         
-        # Find intent with highest score
-        if intent_scores:
-            best_intent = max(intent_scores.items(), key=lambda x: x[1])
-            confidence = min(best_intent[1] / 10, 1.0)  # Normalize to 0-1
-            
-            # If confidence is too low, return general query
-            if confidence < 0.2:
-                return "general_query", confidence
+        # Emails
+        if emails := re.findall(r'\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b', text):
+            entities['emails'] = emails
+        
+        # Dates
+        if dates := re.findall(r'\d{1,2}/\d{1,2}/\d{4}|\d{4}-\d{2}-\d{2}', text):
+            entities['dates'] = dates
+        
+        # Phone numbers
+        phones = []
+        phones.extend(re.findall(r'\+60\s?\d{2}[-.\s]?\d{3}[-.\s]?\d{4}', text))
+        phones.extend(re.findall(r'0\d{2}[-.\s]?\d{3}[-.\s]?\d{4}', text))
+        if phones:
+            entities['phones'] = phones
+        
+        # MYR amounts
+        if amounts := re.findall(r'RM\s?\d+(?:,\d{3})*(?:\.\d{2})?', text, re.IGNORECASE):
+            entities['amounts'] = amounts
+        
+        return entities
+    
+    def _identify_missing_info(self, intent: str, entities: Dict, language: str) -> List[str]:
+        """Identify what information might be missing for better responses"""
+        missing = []
+        
+        if intent == 'course_info' and 'course_codes' not in entities:
+            if language == 'zh':
+                missing.append('具体课程代码或名称')
+            elif language == 'ms':
+                missing.append('kod kursus atau nama khusus')
             else:
-                return best_intent[0], confidence
+                missing.append('specific course code or name')
         
-        return "general_query", 0.0
+        elif intent == 'staff_contact' and 'staff_names' not in entities:
+            if language == 'zh':
+                missing.append('教职员工姓名')
+            elif language == 'ms':
+                missing.append('nama kakitangan')
+            else:
+                missing.append('staff member name')
+        
+        elif intent == 'registration' and 'dates' not in entities:
+            if language == 'zh':
+                missing.append('具体日期或学期')
+            elif language == 'ms':
+                missing.append('tarikh atau semester khusus')
+            else:
+                missing.append('specific date or semester')
+        
+        return missing
+    
+    def search_faix_knowledge(self, query: str, intent: str, keywords: List[str], language: str) -> List[Dict[str, Any]]:
+        """Search FAIX knowledge base using appropriate data source"""
+        if self.use_database and self.faq_model:
+            return self._search_database(query, intent, keywords, language)
+        else:
+            return self._search_csv(query, intent, keywords, language)
+    
+    def _search_database(self, query: str, intent: str, keywords: List[str], language: str) -> List[Dict[str, Any]]:
+        """Search FAIX knowledge base in Django database"""
+        try:
+            from django.db.models import Q
+            
+            # Build search query
+            search_query = Q(is_active=True)
+            
+            # Search in questions and keywords
+            for keyword in keywords:
+                if len(keyword) > 1:  # Chinese characters can be single
+                    search_query &= (Q(question__icontains=keyword) | Q(keywords__icontains=keyword))
+            
+            # Filter by category if intent matches
+            intent_category_map = {
+                'course_info': 'course_info',
+                'program_info': 'program_info',
+                'registration': 'registration',
+                'academic_schedule': 'academic_schedule',
+                'staff_contact': 'staff_contact',
+                'facility_info': 'facility_info',
+                'fees': 'fees',
+                'general_query': 'general'
+            }
+            
+            category = intent_category_map.get(intent)
+            if category:
+                search_query &= Q(category=category)
+            
+            # Execute query
+            results = self.faq_model.objects.filter(search_query).order_by('-view_count')[:10]
+            
+            # Format results
+            matches = []
+            query_lower = query.lower() if language != 'zh' else query
+            
+            for faq in results:
+                score = 0
+                
+                # Category match
+                if faq.category == intent:
+                    score += 2
+                
+                # Keyword matches in question
+                question_text = faq.question.lower() if language != 'zh' else faq.question
+                for keyword in keywords:
+                    if keyword in question_text:
+                        score += 1
+                
+                # Check keywords field
+                faq_keywords = [k.strip() for k in faq.keywords.split(',')] if faq.keywords else []
+                if any(keyword in query_lower for keyword in faq_keywords):
+                    score += 3
+                
+                # Direct question match
+                if query_lower in question_text:
+                    score += 5
+                
+                if score > 0:
+                    matches.append({
+                        'id': faq.id,
+                        'question': faq.question,
+                        'answer': faq.answer,
+                        'category': faq.category,
+                        'match_score': score,
+                        'keywords': faq_keywords,
+                        'language': language
+                    })
+            
+            matches.sort(key=lambda x: x['match_score'], reverse=True)
+            return matches[:3]
+            
+        except Exception as e:
+            self.logger.error(f"Database search error: {e}")
+            return []
+    
+    def _search_csv(self, query: str, intent: str, keywords: List[str], language: str) -> List[Dict[str, Any]]:
+        """Search FAIX knowledge base in CSV data"""
+        knowledge_items = []
+        for _, row in self.faix_data.iterrows():
+            knowledge_items.append({
+                'id': row.get('id', _),
+                'question': row['question'],
+                'answer': row['answer'],
+                'category': row['category'],
+                'keywords': str(row['keywords']).split(',') if pd.notna(row['keywords']) else []
+            })
+        
+        matches = []
+        query_lower = query.lower() if language != 'zh' else query
+        
+        for item in knowledge_items:
+            score = 0
+            
+            # Check category match
+            if item['category'] == intent:
+                score += 2
+            
+            # Check question text match
+            question_text = str(item['question']).lower() if language != 'zh' else str(item['question'])
+            for keyword in keywords:
+                if keyword in question_text:
+                    score += 1
+            
+            # Check direct substring match
+            if query_lower in question_text:
+                score += 3
+            
+            # Check keyword field match
+            item_keywords = item['keywords']
+            for keyword in keywords:
+                if keyword in item_keywords:
+                    score += 2
+            
+            if score > 0:
+                matches.append({
+                    'id': item['id'],
+                    'question': item['question'],
+                    'answer': item['answer'],
+                    'category': item['category'],
+                    'match_score': score,
+                    'keywords': item_keywords,
+                    'language': language
+                })
+        
+        matches.sort(key=lambda x: x['match_score'], reverse=True)
+        return matches[:3]
     
     def process_query(self, user_input: str) -> Dict[str, Any]:
         """
-        Main method: Process user query and return structured data
-        This output will be passed to other modules
+        Main method: Process user query through all steps
         """
+        self.logger.info(f"\n{'='*50}")
+        self.logger.info(f"Processing query: '{user_input}'")
         
-        print(f"Processing query: '{user_input}'")
+        # Detect language first
+        language_info = self.detect_language(user_input)
+        language_code = language_info['code']
         
-        # Preprocess text
-        cleaned_text = self.preprocess_text(user_input)
+        # Check and normalize short forms/slang
+        slang_analysis = self.slang_processor.process_query_with_slang(user_input, language_code)
         
-        # Tokenize
-        tokens = self.tokenize_text(cleaned_text)
+        # Use normalized text for processing if slang was detected
+        if slang_analysis['slang_detected']:
+            processing_text = slang_analysis['normalized_query']
+            self.logger.info(f"Detected slang/short forms. Normalized to: '{processing_text}'")
+        else:
+            processing_text = user_input
         
-        # Detect intent
-        intent, confidence = self.detect_intent(cleaned_text)
+        # Preprocess text with language-specific handling
+        cleaned_text = self.preprocess_text(processing_text, language_code)
         
-        # Extract entities
-        entities = self.extract_entities(user_input)
+        # Tokenize with language-specific handling
+        tokens = self.tokenize_text(cleaned_text, language_code)
         
-        # Prepare output for other modules
+        # Detect intent with language-specific handling
+        intent, confidence = self.detect_intent(cleaned_text, language_code)
+        
+        # Extract entities with language-specific handling
+        entities = self.extract_entities(processing_text, language_code)
+        
+        # Search FAIX knowledge base
+        keywords = tokens  # Use all tokens as keywords for now
+        faix_results = self.search_faix_knowledge(cleaned_text, intent, keywords, language_code)
+        
+        # Identify missing information
+        missing_info = self._identify_missing_info(intent, entities, language_code)
+        
+        # Get intent description in correct language
+        intent_description = self.intent_categories.get(intent, {}).get(language_code, 
+                             self.intent_categories.get('general_query', {}).get(language_code, 'General inquiry'))
+        
+        # Prepare comprehensive output
         processed_data = {
+            'module': 'query_processor',
+            'timestamp': datetime.now().isoformat(),
+            
+            # Original input
             'original_query': user_input,
+            'normalized_query': processing_text if slang_analysis['slang_detected'] else user_input,
             'cleaned_query': cleaned_text,
             'tokens': tokens,
+            
+            # Language information
+            'language': language_info,
+            
+            # Slang/short form information
+            'slang_analysis': {
+                'had_slang': slang_analysis['slang_detected'],
+                'normalized': slang_analysis['normalized_query'] if slang_analysis['slang_detected'] else None,
+            },
+            
+            # Intent information
             'detected_intent': intent,
+            'intent_description': intent_description,
             'confidence_score': round(confidence, 2),
-            'extracted_entities': entities,
             'requires_clarification': confidence < 0.3,
-            'module': 'query_processing'
+            
+            # Extracted information
+            'extracted_entities': entities,
+            
+            # FAIX knowledge results
+            'faix_matches': faix_results,
+            
+            # Missing information for clarification
+            'missing_info': missing_info,
+            
+            # NLP capabilities used
+            'nlp_capabilities': {
+                'intent_classifier_used': self.use_nlp and confidence >= 0.3 and language_code == 'en',
+                'advanced_nlp_available': NLP_AVAILABLE,
+                'short_form_processed': slang_analysis['slang_detected']
+            },
+            
+            # Data source info
+            'data_source': 'database' if self.use_database else 'csv'
         }
         
-        print(f"Query processing complete!")
+        self.logger.info(f"Processing complete. Intent: {intent}, Language: {language_info['name']}")
+        if slang_analysis['slang_detected']:
+            self.logger.info(f"Short forms detected and normalized")
+        self.logger.info(f"Confidence: {confidence:.0%}, Matches: {len(faix_results)}")
+        self.logger.info(f"{'='*50}\n")
+        
         return processed_data
     
-    def format_for_knowledge_base(self, processed_data: Dict) -> Dict:
-        """Format data specifically for Module 2 (Knowledge Base)"""
-        
-        return {
-            'search_intent': processed_data['detected_intent'],
-            'search_terms': processed_data['tokens'],
-            'entities': processed_data['extracted_entities'],
-            'confidence': processed_data['confidence_score'],
-            'original_query': processed_data['original_query']
-        }
-    
-    def format_for_conversation_manager(self, processed_data: Dict) -> Dict:
-        """Format data specifically for Module 3 (Conversation Management)"""
-        return {
-            'user_query': processed_data['original_query'],
-            'detected_intent': processed_data['detected_intent'],
-            'confidence_level': processed_data['confidence_score'],
-            'needs_clarification': processed_data['requires_clarification'],
-            'missing_info': self._identify_missing_info(processed_data),
-            'entities': processed_data['extracted_entities']
-        }
-    
-    def _identify_missing_info(self, processed_data: Dict) -> List[str]:
-        """Identify what information might be missing for better responses"""
-        
-        missing = []
-        intent = processed_data['detected_intent']
-        entities = processed_data['extracted_entities']
-        
-        if intent == 'course_info' and 'course_codes' not in entities:
-            missing.append('specific course code or name')
-        elif intent == 'staff_contact' and 'staff_names' not in entities:
-            missing.append('staff member name')
-        elif intent == 'registration' and 'dates' not in entities:
-            missing.append('specific date or semester')
-            
-        return missing
-
-    def display_test_queries(self):
-        """Display comprehensive test queries for Module 1"""
-        
-        test_queries = [
-            # Course Information Queries
-            {
-                "query": "What are the requirements for BAXI courses?",
-                "description": "Course info with specific course code"
-            },
-            {
-                "query": "Tell me about the BITZ program curriculum",
-                "description": "Program curriculum inquiry"
-            },
-            {
-                "query": "When does BAXZ 2024 registration start?",
-                "description": "Registration with course code and year"
-            },
-            
-            # Staff Contact Queries
-            {
-                "query": "What is Professor Rehan email address?",
-                "description": "Staff email inquiry"
-            },
-            {
-                "query": "How can I contact Dr. Elle from FAIX?",
-                "description": "Staff contact request"
-            },
-            
-            # Registration Queries
-            {
-                "query": "When is the deadline for course registration?",
-                "description": "Registration deadline inquiry"
-            },
-            {
-                "query": "How do I apply for the BAIS program?",
-                "description": "Program application process"
-            },
-            
-            # Schedule Queries
-            {
-                "query": "What is the academic calendar for next semester?",
-                "description": "Academic schedule inquiry"
-            },
-            {
-                "query": "When are the BACS classes scheduled?",
-                "description": "Class schedule with course code"
-            },
-            
-            # Facility Queries
-            {
-                "query": "What lab facilities are available in FAIX?",
-                "description": "Facility information request"
-            },
-            {
-                "query": "Where is the AI laboratory located?",
-                "description": "Specific facility location"
-            },
-            
-            # General Queries
-            {
-                "query": "Hello, can you help me with FAIX information?",
-                "description": "General help request"
-            },
-            {
-                "query": "What programs does the faculty offer?",
-                "description": "General program inquiry"
-            }
-        ]
-        
-        print("\n" + "="*70)
-        print("MODULE 1 - TEST QUERIES DEMONSTRATION")
-        print("="*70)
-        
-        for i, test_case in enumerate(test_queries, 1):
-            print(f"\n{'─'*70}")
-            print(f"TEST {i:2d}: {test_case['query']}")
-            print(f"Description: {test_case['description']}")
-            print(f"{'─'*70}")
-            
-            # Process the query
-            result = self.process_query(test_case['query'])
-            
-            # Display results
-            print(f"\nCleaned Query: {result['cleaned_query']}")
-            print(f"Detected Intent: {result['detected_intent']}")
-            print(f"Confidence Score: {result['confidence_score']}")
-            print(f"Requires Clarification: {result['requires_clarification']}")
-            print(f"Extracted Entities: {json.dumps(result['extracted_entities'], indent=2)}")
-            
-            # Show formatted data for other modules
-            kb_data = self.format_for_knowledge_base(result)
-            conv_data = self.format_for_conversation_manager(result)
-            
-            print(f"For Knowledge Base: {len(kb_data['search_terms'])} search terms")
-            print(f"For Conversation Manager: Needs clarification = {conv_data['needs_clarification']}")
-        
-        print(f"\n{'='*70}")
-        print("MODULE 1 TESTING COMPLETE")
-        print(f"{'='*70}")
-
     def quick_test(self, query: str):
         """Quick test for a single query"""
         print(f"\nQUICK TEST: '{query}'")
@@ -350,45 +1166,127 @@ class QueryProcessor:
         
         result = self.process_query(query)
         
-        print(f"Intent: {result['detected_intent']}")
+        print(f"Intent: {result['detected_intent']} ({result['intent_description']})")
         print(f"Confidence: {result['confidence_score']}")
+        print(f"Language: {result['language']['name']}")
+        if result['slang_analysis']['had_slang']:
+            print(f"Short forms: YES → Normalized: {result['normalized_query']}")
+        else:
+            print(f"Short forms: No")
+        print(f"Data Source: {result['data_source']}")
         print(f"Entities: {result['extracted_entities']}")
         print(f"Clarification Needed: {result['requires_clarification']}")
-
-# Integration function for other modules to use
-def create_query_processor():
-    """Factory function to create and return QueryProcessor instance"""
-    return QueryProcessor()
-
-# Demo function to show how to use the test functions
-def demo_module1():
-    """Demonstrate Module 1 functionality"""
-    processor = QueryProcessor()
-    
-    print("\n MODULE 1 DEMONSTRATION")
-    print("Choose an option:")
-    print("1. Test main queries")
-    print("2. Test custom query")
-    print("3. Exit")
-    
-    while True:
-        choice = input("\nEnter your choice (1-3): ").strip()
+        print(f"FAIX Matches: {len(result['faix_matches'])}")
         
-        if choice == '1':
-            processor.display_test_queries()
-        elif choice == '2':
-            custom_query = input("Enter query: ").strip()
-            if custom_query:
-                processor.quick_test(custom_query)
+        if result['faix_matches']:
+            print(f"Top match: {result['faix_matches'][0]['question']}")
+    
+    def run_demo(self):
+        """Run demonstration"""
+        print("\n" + "="*60)
+        print("FAIX CHATBOT - QUERY PROCESSOR DEMONSTRATION")
+        print("="*60)
+        
+        print(f"\nUsing {'Django Database' if self.use_database else 'CSV File'} as data source")
+        print("Interactive Mode - Type queries to test")
+        print("Commands: 'sample' for examples, 'slang' for short form examples, 'test' for full test, 'quit' to exit")
+        print("-"*60)
+        
+        # Test with short forms immediately
+        print("\nTesting short form query: 'wanna know bout FAIX prog'")
+        self.quick_test("wanna know bout FAIX prog")
+        print("-"*60)
+        
+        while True:
+            try:
+                query = input("\nEnter your query: ").strip()
+                
+                if query.lower() == 'quit':
+                    break
+                elif query.lower() == 'sample':
+                    print("\nSample queries:")
+                    print("  1. What programs does FAIX offer? (English)")
+                    print("  2. Kursus apa yang ditawarkan FAIX? (Malay)")
+                    print("  3. 课程 (Chinese)")
+                    print("  4. How to register for BAXI? (English)")
+                    print("  5. 学费多少？ (Chinese)")
+                    continue
+                elif query.lower() == 'slang':
+                    print("\nShort form/slang examples:")
+                    print("  English:")
+                    print("    - wanna know bout cs prog")
+                    print("    - how 2 register 4 sem")
+                    print("    - pls tell me bout uni fees")
+                    print("    - where's prof office?")
+                    print("    - whenz exam timetable?")
+                    print("  Malay:")
+                    print("    - nak tau pasal kursus cs")
+                    print("    - camne nk daftar utk sem")
+                    print("    - kwn ckp fees byk sgt")
+                    print("    - dekan kat mne?")
+                    print("    - exam bile?")
+                    print("  Chinese:")
+                    print("    - 啥课程")
+                    print("    - 咋报名")
+                    print("    - 学费多少")
+                    print("    - 老师在哪")
+                    print("    - 考试啥时候")
+                    continue
+                
+                if not query:
+                    continue
+                
+                self.quick_test(query)
+                
+            except KeyboardInterrupt:
+                print("\n\nInterrupted. Goodbye!")
+                break
+            except Exception as e:
+                print(f"\nError: {str(e)}")
+    
+    def test_slang_processing(self):
+        """Test the slang/short form processor"""
+        test_cases = [
+            ("wanna know bout FAIX prog", "en"),
+            ("how 2 register 4 sem", "en"),
+            ("wherez prof office?", "en"),
+            ("nak tau pasal kursus cs", "ms"),
+            ("camne nk daftar utk sem", "ms"),
+            ("dekan kat mne?", "ms"),
+            ("啥课程", "zh"),
+            ("咋报名", "zh"),
+            ("学费多少", "zh"),
+            ("u r gonna need 2 register b4 sem starts", "en"),
+            ("idk wat fees r 4 cs prog", "en"),
+            ("tq 4 ur help", "en"),
+        ]
+        
+        print("\n" + "="*60)
+        print("SHORT FORM/SLANG PROCESSOR TEST")
+        print("="*60)
+        
+        for query, expected_lang in test_cases:
+            lang_info = self.detect_language(query)
+            lang_code = lang_info['code']
+            
+            print(f"\nQuery: '{query}'")
+            print(f"Detected language: {lang_info['name']} (expected: {expected_lang})")
+            
+            result = self.slang_processor.process_query_with_slang(query, lang_code)
+            
+            if result['slang_detected']:
+                print(f"Contains slang: YES")
+                print(f"Normalized: '{result['normalized_query']}'")
             else:
-                print("Please enter a valid query.")
-        elif choice == '3':
-            print("Exiting demo...")
-            break
-        else:
-            print("Invalid choice. Please enter 1, 2, or 3.")
+                print(f"Contains slang: NO")
+        
+        print("\n" + "="*60)
+
+def create_query_processor(data_path: str = "faix_data.csv", use_nlp: bool = True, use_database: bool = True):
+    """Factory function to create and return QueryProcessor instance"""
+    return QueryProcessor(use_database=use_database, data_path=data_path, use_nlp=use_nlp)
 
 if __name__ == "__main__":
-    
     # Run the demo when this file is executed directly
-    demo_module1()
+    processor = create_query_processor()
+    processor.run_demo()
