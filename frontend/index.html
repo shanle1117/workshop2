@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="style.css" />
+    <script src="chat.js"></script>
+    <title>FAIX Website with Chatbot</title>
+</head>
+
+<body>
+    <header>
+        <nav>
+            <div class="logo">FAIX</div>
+            <ul>
+                <li><a href="#home">Home</a></li>
+                <li><a href="#features">FAIX</a></li>
+                <li><a href="#about">Admission</a></li>
+                <li><a href="#contact">Academics</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <section class="hero" id="home">
+        <h1>FACULTY OF ARTIFICIAL INTELLIGENCE AND CYBER SECURITY</h1>
+        <p>Create something amazing with this modern template</p>
+        <a href="#features" class="cta-button">WELCOME</a>
+    </section>
+
+    <section class="section" id="features">
+        <h2>Features</h2>
+        <div class="features">
+            <div class="feature-card">
+                <h3>Fast & Responsive</h3>
+                <p>Built with modern web standards to ensure your site looks great on any device and loads quickly.</p>
+            </div>
+            <div class="feature-card">
+                <h3>Clean Design</h3>
+                <p>A minimalist approach that puts your content first while maintaining visual appeal.</p>
+            </div>
+            <div class="feature-card">
+                <h3>Easy to Customize</h3>
+                <p>Simple HTML and CSS structure makes it easy to adapt to your specific needs.</p>
+            </div>
+        </div>
+    </section>
+
+    <section class="section" id="about">
+        <h2>About Us</h2>
+        <p style="text-align: center; max-width: 800px; margin: 0 auto; font-size: 1.1rem; color: #666;">
+            We're passionate about creating beautiful, functional websites. This template is designed to give you a
+            solid foundation to build upon, with modern design principles and smooth animations that make your content
+            shine.
+        </p>
+    </section>
+
+    <footer id="contact">
+        <p>&copy; 2024 YourBrand. All rights reserved.</p>
+        <p>Contact: hello@yourbrand.com</p>
+    </footer>
+
+    <!-- Chatbot Widget -->
+    <div id="chatbot-widget" class="chatbot-widget">
+        <div id="chatbot-toggle" class="chatbot-toggle">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+            </svg>
+            <span class="chatbot-badge" id="chatbot-badge" style="display: none;">1</span>
+        </div>
+        
+        <div id="chatbot-container" class="chatbot-container" style="display: none;">
+            <div class="chatbot-header">
+                <div class="chatbot-header-content">
+                    <h3>FAIX Assistant</h3>
+                    <p class="chatbot-status" id="chatbot-status">Online</p>
+                </div>
+                <button id="chatbot-minimize" class="chatbot-minimize">−</button>
+            </div>
+            
+            <div class="chatbot-messages" id="chatbot-messages">
+                <div class="message bot-message">
+                    <div class="message-avatar">🤖</div>
+                    <div class="message-content">
+                        <p>👋 Hello! Welcome to FAIX AI Chatbot. I'm here to help you with questions about course registration, staff contacts, schedules, and other student inquiries. How can I assist you today?</p>
+                        <span class="message-time" id="welcome-time"></span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="chatbot-typing" id="chatbot-typing" style="display: none;">
+                <div class="typing-indicator">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </div>
+            </div>
+            
+            <div class="chatbot-input-container">
+                <input type="text" id="chatbot-input" class="chatbot-input" placeholder="Type your message..." autocomplete="off">
+                <button id="chatbot-mic" class="chatbot-mic" title="Voice input">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"></path>
+                        <path d="M19 10v2a7 7 0 0 1-14 0v-2"></path>
+                        <line x1="12" y1="19" x2="12" y2="23"></line>
+                        <line x1="8" y1="23" x2="16" y2="23"></line>
+                    </svg>
+                </button>
+                <button id="chatbot-send" class="chatbot-send">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="22" y1="2" x2="11" y2="13"></line>
+                        <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+                    </svg>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script src="{% static 'chat.js' %}"></script>
+</body>
+
+</html>

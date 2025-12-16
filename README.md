@@ -44,6 +44,7 @@ The FAIX AI Chatbot is a multi-module system that provides intelligent student a
   - Dynamic configuration via JSON files
 - **Speech-to-Text**: Web Speech API integration for voice input
 - **Semantic Search**: Sentence-transformers for improved query matching
+- **RAG with Open LLMs**: Optional integration with open-source Llama models via Ollama, using Retrieval-Augmented Generation (RAG) over the existing knowledge base
 - **Multi-Topic Support**: 
   - 📚 Course Registration
   - 📞 Staff Contacts
@@ -52,7 +53,6 @@ The FAIX AI Chatbot is a multi-module system that provides intelligent student a
 - **Fallback Handling**: Gracefully handles unclear or ambiguous inputs
 - **Context Continuity**: Remembers previous topics and questions
 - **Database Integration**: Django models for sessions, conversations, and message history
-- **Firebase Support**: Optional Firebase integration for cloud data storage
 - **Django Integration**: Production-ready Django web framework integration
 - **Extensible Architecture**: Easy to integrate additional NLP modules and knowledge base systems
 
@@ -127,7 +127,6 @@ workshop2/
 | `src/nlp_intent_classifier.py` | Transformer-based intent classification using DistilBERT/RoBERTa |
 | `src/nlp_semantic_search.py` | Semantic search using sentence-transformers for better query matching |
 | `src/knowledge_base.py` | Stores and retrieves information from JSON/CSV data files and database |
-| `src/firebase_service.py` | Firebase integration for cloud data storage |
 | `src/query_preprocessing.py` | NLP preprocessing utilities |
 | `frontend/main.html` | Web interface for the chatbot |
 | `frontend/chat.js` | Chat functionality with Speech-to-Text support |
@@ -288,11 +287,7 @@ Manages data retrieval from JSON/CSV files and database.
 - Multi-source data retrieval
 - Query preprocessing
 
-### 5. Firebase Service (`src/firebase_service.py`)
-
-Optional Firebase integration for cloud data storage.
-
-### 6. Test Suite
+### 5. Test Suite
 
 Multiple test modules for comprehensive validation:
 - `tests/test_chatbot.py` - Core chatbot functionality
@@ -404,6 +399,35 @@ def chat(request):
 ---
 
 ## 🔌 Integration Guide
+
+### Using Llama via Ollama (Conversational Agents)
+
+This project can use an open-source Llama model (via Ollama) as a conversational
+agent with Retrieval-Augmented Generation (RAG) on top of the existing
+knowledge base and JSON data under `data/`.
+
+- Install and run Ollama with a Llama model, for example:
+
+```bash
+ollama pull llama3.1
+ollama serve
+```
+
+- Configure the backend with environment variables:
+  - `LLM_PROVIDER=ollama`
+  - `OLLAMA_BASE_URL=http://localhost:11434`
+  - `OLLAMA_MODEL=llama3.1:8b` (or another model tag you have installed)
+  - `LLM_ENABLED=1` (optional, defaults to enabled)
+
+The Django chat API (`/api/chat/`) accepts:
+
+- `agent_id`: one of `faq`, `schedule`, `staff` (selects a specialised conversational agent)
+- `history`: recent turns as a list of `{ "role": "user"|"assistant", "content": "..." }`
+
+The frontend chat widget defaults to the `faq` agent and includes the selected
+`agent_id` and recent `history` in each request. When `agent_id` is provided,
+the backend routes the request through the Llama-based conversational agent;
+when it is omitted, it falls back to the previous rules/KB-based behaviour.
 
 ### With Django Views:
 
@@ -558,7 +582,6 @@ Bot: 💡 I can help you with registration questions...
 ### Phase 3 (Advanced Features):
 - [x] ✅ Speech-to-Text integration
 - [x] ✅ Database integration for conversation history
-- [x] ✅ Firebase support (optional)
 - [ ] User authentication and personalization
 - [ ] Integration with university database systems
 - [ ] Email notification capabilities
@@ -619,7 +642,7 @@ For questions or issues, please open a GitHub issue or contact the project maint
 
 ---
 
-**Last Updated**: December 2024  
+**Last Updated**: December 2025  
 **Project Status**: 🟢 Active Development
 
 ---

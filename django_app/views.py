@@ -20,6 +20,9 @@ from django_app.models import (
 from src.query_preprocessing import QueryProcessor
 from src.knowledge_base import KnowledgeBase
 from src.conversation_manager import process_conversation
+from src.llm_client import get_llm_client, LLMError
+from src.agents import get_agent, retrieve_for_agent
+from src.prompt_builder import build_messages
 
 # Initialize global instances
 query_processor = QueryProcessor()
@@ -71,7 +74,12 @@ def chat_api(request):
     {
         "message": "user message text",
         "session_id": "optional session id",
-        "user_id": "optional user id"
+        "user_id": "optional user id",
+        "agent_id": "optional conversational agent id (e.g., 'faq', 'schedule', 'staff')",
+        "history": [
+            {"role": "user", "content": "..."},
+            {"role": "assistant", "content": "..."}
+        ]
     }
     
     Returns:
@@ -80,7 +88,7 @@ def chat_api(request):
         "session_id": "session id",
         "conversation_id": "conversation id",
         "intent": "detected intent",
-        "confidence": 0.85,
+         "confidence": 0.85,
         "timestamp": "2024-01-01T12:00:00Z"
     }
     """
@@ -89,6 +97,8 @@ def chat_api(request):
         user_message = data.get('message', '').strip()
         session_id = data.get('session_id')
         user_id = data.get('user_id')
+        agent_id = data.get('agent_id')
+        history = data.get('history') or []
         
         if not user_message:
             return JsonResponse({
@@ -110,60 +120,131 @@ def chat_api(request):
         # Get context from session
         context = session.context if session.context else {}
         
-        # Get answer from knowledge base
+        # Detect handbook-style queries for PDF handling
         pdf_url = None
         user_message_lower = user_message.lower()
         is_handbook_query = (
             'handbook' in user_message_lower or
             'academic handbook' in user_message_lower
         )
-        
-        if intent and intent != 'general_query':
-            answer = knowledge_base.get_answer(intent, user_message)
-            
-            # Validate answer is not None, empty, or invalid type
-            if not answer or not isinstance(answer, str) or not answer.strip():
-                answer = (
-                    "I couldn't find the exact information for your query. "
-                    "Try asking about course info, registration, staff contacts, or program information."
+
+        # Normalise history into a compact, safe format
+        history_messages = []
+        if isinstance(history, list):
+            for turn in history[-10:]:  # keep last 10 turns at most
+                if not isinstance(turn, dict):
+                    continue
+                role = turn.get('role')
+                content = turn.get('content')
+                if role in ('user', 'assistant') and isinstance(content, str) and content.strip():
+                    history_messages.append({'role': role, 'content': content.strip()})
+
+        # Agent-based path: use LLM + RAG when an agent_id is provided
+        if agent_id:
+            agent = get_agent(agent_id)
+            if not agent:
+                return JsonResponse(
+                    {'error': f"Unknown agent_id '{agent_id}'"},
+                    status=400,
                 )
-            
-            # Check if user is asking about academic handbook
+
+            # Retrieve context for the agent (FAQ, schedule, staff, etc.)
+            agent_context = retrieve_for_agent(
+                agent_id=agent_id,
+                user_text=user_message,
+                knowledge_base=knowledge_base,
+                intent=intent,
+                top_k=3,
+            )
+
+            # Build LLM messages and call Llama via Ollama
+            messages = build_messages(
+                agent=agent,
+                user_message=user_message,
+                history=history_messages,
+                context=agent_context,
+                intent=intent,
+            )
+
+            try:
+                llm_client = get_llm_client()
+                llm_response = llm_client.chat(messages)
+                answer = llm_response.content
+            except LLMError as e:
+                print(f"LLMError in chat_api: {e}")
+                answer = (
+                    "I'm having trouble reaching the AI assistant right now. "
+                    "Please try again in a moment or contact the FAIX office for help."
+                )
+            except Exception as e:
+                print(f"Unexpected error in chat_api LLM path: {e}")
+                answer = (
+                    "An unexpected error occurred while generating a response. "
+                    "Please try again or contact the FAIX office for assistance."
+                )
+
+            # For handbook queries, still attach PDF information if available
             if intent == 'program_info' or is_handbook_query:
-                # Check if Academic_Handbook.pdf exists
                 import os
                 from django.conf import settings
-                pdf_path = os.path.join(settings.MEDIA_ROOT, 'Academic_Handbook.pdf')
-                if os.path.exists(pdf_path):
-                    pdf_url = settings.MEDIA_URL + 'Academic_Handbook.pdf'
-        else:
-            # Use conversation manager for general queries
-            # BUT check for handbook first
-            if is_handbook_query:
-                import os
-                from django.conf import settings
-                answer = (
-                    "📚 The Academic Handbook contains comprehensive information about "
-                    "programs, courses, academic policies, graduation requirements, and more. "
-                    "You can view the complete handbook PDF below."
-                )
                 pdf_path = os.path.join(settings.MEDIA_ROOT, 'Academic_Handbook.pdf')
                 if os.path.exists(pdf_path):
                     pdf_url = settings.MEDIA_URL + 'Academic_Handbook.pdf'
                 else:
-                    answer = (
-                        "📚 The Academic Handbook contains comprehensive information about "
-                        "programs, courses, academic policies, and graduation requirements. "
-                        "Please contact the FAIX office for access to the handbook."
+                    answer += (
+                        "\n\n📚 The Academic Handbook contains detailed program information, "
+                        "but I couldn't find a copy on this system. Please contact the FAIX "
+                        "office for access to the handbook."
                     )
-            else:
-                answer, context = process_conversation(user_message, context)
-                # Validate answer from conversation manager
+
+        else:
+            # Existing non-agent behaviour (no LLM)
+            if intent and intent != 'general_query':
+                answer = knowledge_base.get_answer(intent, user_message)
+                
+                # Validate answer is not None, empty, or invalid type
                 if not answer or not isinstance(answer, str) or not answer.strip():
                     answer = (
-                        "I'm sorry, I couldn't process your query. "
-                        "Could you please rephrase your question?"
+                        "I couldn't find the exact information for your query. "
+                        "Try asking about course info, registration, staff contacts, or program information."
                     )
+                
+                # Check if user is asking about academic handbook
+                if intent == 'program_info' or is_handbook_query:
+                    # Check if Academic_Handbook.pdf exists
+                    import os
+                    from django.conf import settings
+                    pdf_path = os.path.join(settings.MEDIA_ROOT, 'Academic_Handbook.pdf')
+                    if os.path.exists(pdf_path):
+                        pdf_url = settings.MEDIA_URL + 'Academic_Handbook.pdf'
+            else:
+                # Use conversation manager for general queries
+                # BUT check for handbook first
+                if is_handbook_query:
+                    import os
+                    from django.conf import settings
+                    answer = (
+                        "📚 The Academic Handbook contains comprehensive information about "
+                        "programs, courses, academic policies, graduation requirements, and more. "
+                        "You can view the complete handbook PDF below."
+                    )
+                    pdf_path = os.path.join(settings.MEDIA_ROOT, 'Academic_Handbook.pdf')
+                    if os.path.exists(pdf_path):
+                        pdf_url = settings.MEDIA_URL + 'Academic_Handbook.pdf'
+                    else:
+                        answer = (
+                            "📚 The Academic Handbook contains comprehensive information about "
+                            "programs, courses, academic policies, and graduation requirements. "
+                            "Please contact the FAIX office for access to the handbook."
+                        )
+                else:
+                    answer, context = process_conversation(user_message, context)
+                    # Validate answer from conversation manager
+                    if not answer or not isinstance(answer, str) or not answer.strip():
+                        answer = (
+                            "I'm sorry, I couldn't process your query. "
+                            "Could you please rephrase your question?"
+                        )
         
         # Final safety check: ensure answer is never None or empty before saving
         if not answer or not isinstance(answer, str) or not answer.strip():

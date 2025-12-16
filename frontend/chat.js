@@ -3,10 +3,17 @@
  * Handles real-time chat interaction with AJAX calls to Django API
  */
 
+// Base URL for the backend API.
+// In development, this can point to your local Django server.
+// For production, update this to your deployed backend URL.
+const API_BASE_URL = 'http://localhost:8000';
+
 class Chatbot {
     constructor() {
         this.sessionId = this.getOrCreateSessionId();
         this.conversationId = null;
+        this.agentId = 'faq';
+        this.history = [];
         this.isOpen = false;
         this.isLoading = false;
         this.isRecording = false;
@@ -33,6 +40,8 @@ class Chatbot {
         this.typingIndicator = document.getElementById('chatbot-typing');
         this.status = document.getElementById('chatbot-status');
         this.badge = document.getElementById('chatbot-badge');
+        // Optional agent selector (e.g., dropdown or tabs)
+        this.agentSelect = document.getElementById('chatbot-agent-select');
     }
     
     initializeSpeechRecognition() {
@@ -125,6 +134,14 @@ class Chatbot {
                 this.sendMessage();
             }
         });
+
+        // Agent selector change
+        if (this.agentSelect) {
+            this.agentSelect.addEventListener('change', (e) => {
+                const value = e.target.value || 'faq';
+                this.agentId = value;
+            });
+        }
         
         // Auto-resize input
         this.input.addEventListener('input', () => {
@@ -189,6 +206,8 @@ class Chatbot {
         
         // Add user message to UI
         this.addMessage('user', message);
+        // Track user turn in history for LLM context
+        this.history.push({ role: 'user', content: message });
         
         // Show typing indicator
         this.showTyping();
@@ -203,6 +222,9 @@ class Chatbot {
                 body: JSON.stringify({
                     message: message,
                     session_id: this.sessionId,
+                        agent_id: this.agentId,
+                        // Send compact history (last 10 turns)
+                        history: this.history.slice(-10),
                 }),
             });
             
@@ -227,6 +249,8 @@ class Chatbot {
                 this.hideTyping();
                 if (data.response) {
                     this.addMessage('bot', data.response, data.pdf_url);  // Pass PDF URL
+                    // Track assistant turn in history
+                    this.history.push({ role: 'assistant', content: data.response });
                 } else {
                     this.addMessage('bot', 'Sorry, I received an empty response. Please try again.');
                 }
@@ -349,6 +373,13 @@ class Chatbot {
         this.isLoading = loading;
         this.sendButton.disabled = loading;
         this.input.disabled = loading;
+        
+        // Disable microphone button while loading to prevent starting
+        // speech recognition during an active request (tests expect
+        // mic to be disabled while loading)
+        if (this.micButton) {
+            this.micButton.disabled = loading;
+        }
     }
     
     scrollToBottom() {
@@ -420,8 +451,10 @@ class Chatbot {
             options.headers = options.headers || {};
             options.headers['X-CSRFToken'] = csrftoken;
         }
-        
-        return fetch(url, options);
+
+        // Prefix relative URLs with the backend base URL
+        const fullUrl = url.startsWith('http') ? url : `${API_BASE_URL}${url}`;
+        return fetch(fullUrl, options);
     }
     
     getCookie(name) {
