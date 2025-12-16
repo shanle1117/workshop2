@@ -3,6 +3,11 @@
  * Handles real-time chat interaction with AJAX calls to Django API
  */
 
+// Base URL for the backend API.
+// In development, this can point to your local Django server.
+// For production, update this to your deployed backend URL.
+const API_BASE_URL = 'http://localhost:8000';
+
 class Chatbot {
     constructor() {
         this.sessionId = this.getOrCreateSessionId();
@@ -446,8 +451,10 @@ class Chatbot {
             options.headers = options.headers || {};
             options.headers['X-CSRFToken'] = csrftoken;
         }
-        
-        return fetch(url, options);
+
+        // Prefix relative URLs with the backend base URL
+        const fullUrl = url.startsWith('http') ? url : `${API_BASE_URL}${url}`;
+        return fetch(fullUrl, options);
     }
     
     getCookie(name) {
