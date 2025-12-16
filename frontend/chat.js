@@ -7,6 +7,8 @@ class Chatbot {
     constructor() {
         this.sessionId = this.getOrCreateSessionId();
         this.conversationId = null;
+        this.agentId = 'faq';
+        this.history = [];
         this.isOpen = false;
         this.isLoading = false;
         this.isRecording = false;
@@ -33,6 +35,8 @@ class Chatbot {
         this.typingIndicator = document.getElementById('chatbot-typing');
         this.status = document.getElementById('chatbot-status');
         this.badge = document.getElementById('chatbot-badge');
+        // Optional agent selector (e.g., dropdown or tabs)
+        this.agentSelect = document.getElementById('chatbot-agent-select');
     }
     
     initializeSpeechRecognition() {
@@ -125,6 +129,14 @@ class Chatbot {
                 this.sendMessage();
             }
         });
+
+        // Agent selector change
+        if (this.agentSelect) {
+            this.agentSelect.addEventListener('change', (e) => {
+                const value = e.target.value || 'faq';
+                this.agentId = value;
+            });
+        }
         
         // Auto-resize input
         this.input.addEventListener('input', () => {
@@ -189,6 +201,8 @@ class Chatbot {
         
         // Add user message to UI
         this.addMessage('user', message);
+        // Track user turn in history for LLM context
+        this.history.push({ role: 'user', content: message });
         
         // Show typing indicator
         this.showTyping();
@@ -203,6 +217,9 @@ class Chatbot {
                 body: JSON.stringify({
                     message: message,
                     session_id: this.sessionId,
+                        agent_id: this.agentId,
+                        // Send compact history (last 10 turns)
+                        history: this.history.slice(-10),
                 }),
             });
             
@@ -227,6 +244,8 @@ class Chatbot {
                 this.hideTyping();
                 if (data.response) {
                     this.addMessage('bot', data.response, data.pdf_url);  // Pass PDF URL
+                    // Track assistant turn in history
+                    this.history.push({ role: 'assistant', content: data.response });
                 } else {
                     this.addMessage('bot', 'Sorry, I received an empty response. Please try again.');
                 }

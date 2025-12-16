@@ -363,7 +363,140 @@ class KnowledgeBase:
             answer += "\n\n📚 The complete Academic Handbook PDF is available below with detailed program information."
         
         return answer
-    
+
+    def get_documents(
+        self,
+        intent: Optional[str],
+        user_text: str,
+        top_k: int = 3,
+    ) -> List[Dict]:
+        """
+        Retrieve FAQ-style documents for use as RAG context.
+
+        Each document is a dict with at least:
+            - question
+            - answer
+            - category
+            - score (similarity score, best first)
+        """
+        intent_norm = intent.lower() if isinstance(intent, str) else None
+        user_clean = self.preprocess(user_text)
+
+        # Database-backed mode
+        if self.use_database:
+            if not getattr(self, "entries", None):
+                return []
+
+            # Optional filtering by category/intent
+            if intent_norm:
+                candidate_entries = [
+                    e for e in self.entries
+                    if isinstance(e.get("category"), str)
+                    and e["category"].lower() == intent_norm
+                ]
+                if not candidate_entries:
+                    candidate_entries = self.entries
+            else:
+                candidate_entries = self.entries
+
+            # Semantic search if available
+            if (
+                self.use_semantic_search
+                and self.semantic_search
+                and self.semantic_search.is_available()
+            ):
+                try:
+                    results = self.semantic_search.find_similar_with_metadata(
+                        user_text,
+                        candidate_entries,
+                        text_field="question",
+                        top_k=top_k,
+                        threshold=0.2,
+                    )
+                    docs = []
+                    for entry, score in results:
+                        docs.append(
+                            {
+                                "question": entry.get("question", ""),
+                                "answer": entry.get("answer", ""),
+                                "category": entry.get("category", ""),
+                                "score": float(score),
+                            }
+                        )
+                    if docs:
+                        return docs
+                except Exception as e:
+                    print(f"Warning: Semantic search for documents failed: {e}")
+
+            # TF-IDF fallback across all entries
+            if not getattr(self, "question_vectors", None) is not None:
+                return []
+
+            query_vec = self.vectorizer.transform([user_clean])
+            similarity = cosine_similarity(query_vec, self.question_vectors)[0]
+
+            # Get indices sorted by similarity (descending)
+            ranked_indices = similarity.argsort()[::-1][:top_k]
+            docs: List[Dict] = []
+            for idx in ranked_indices:
+                if 0 <= idx < len(self.entries):
+                    entry = self.entries[idx]
+                    docs.append(
+                        {
+                            "question": entry.get("question", ""),
+                            "answer": entry.get("answer", ""),
+                            "category": entry.get("category", ""),
+                            "score": float(similarity[idx]),
+                        }
+                    )
+            return docs
+
+        # CSV-backed mode
+        if not hasattr(self, "df"):
+            return []
+
+        try:
+            # Optional category filter
+            if intent_norm:
+                subset = self.df[
+                    self.df["category"].str.lower() == intent_norm
+                ]
+            else:
+                subset = self.df
+
+            if subset.empty:
+                subset = self.df
+
+            query_vec = self.vectorizer.transform([user_clean])
+            similarity = cosine_similarity(query_vec, self.question_vectors)[0]
+
+            # Restrict to subset indices if filtering
+            if subset is not self.df:
+                subset_indices = subset.index.to_list()
+                # Build (global_idx, score) pairs only for subset rows
+                pairs = [(i, similarity[i]) for i in subset_indices]
+            else:
+                pairs = list(enumerate(similarity))
+
+            # Sort by score, take top_k
+            ranked = sorted(pairs, key=lambda x: x[1], reverse=True)[:top_k]
+
+            docs: List[Dict] = []
+            for idx, score in ranked:
+                row = self.df.iloc[idx]
+                docs.append(
+                    {
+                        "question": str(row.get("question", "")),
+                        "answer": str(row.get("answer", "")),
+                        "category": str(row.get("category", "")),
+                        "score": float(score),
+                    }
+                )
+            return docs
+        except Exception as e:
+            print(f"Warning: CSV document retrieval failed: {e}")
+            return []
+        
     def refresh(self):
         """Refresh knowledge base from database (useful after updates)"""
         if self.use_database:
