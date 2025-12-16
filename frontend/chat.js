@@ -349,6 +349,13 @@ class Chatbot {
         this.isLoading = loading;
         this.sendButton.disabled = loading;
         this.input.disabled = loading;
+        
+        // Disable microphone button while loading to prevent starting
+        // speech recognition during an active request (tests expect
+        // mic to be disabled while loading)
+        if (this.micButton) {
+            this.micButton.disabled = loading;
+        }
     }
     
     scrollToBottom() {
