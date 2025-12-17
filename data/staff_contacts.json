@@ -1,0 +1,84 @@
+{
+  "faculty": "Faculty of Artificial Intelligence and Cyber Security (FAIX)",
+  "university": "Universiti Teknikal Malaysia Melaka (UTeM)",
+  "departments": {
+    "administration": {
+      "name": "Faculty Administration",
+      "staff": [
+        {
+          "id": 1,
+          "name": "Professor Dr. Azah Kamilah Binti Drman @ Muda",
+          "position": "Professor",
+          "email": "azah@utem.edu.my",
+          "phone": "-",
+          "office": "-",
+          "keywords": ["professor"]
+        },
+        {
+          "id": 5,
+          "name": "Ms. Fatimah Zahra",
+          "position": "Administrative Officer",
+          "email": "fatimah.zahra@utem.edu.my",
+          "phone": "+60-6-270-1200",
+          "office": "Level 1, Reception",
+          "keywords": ["admin", "registration", "inquiry"]
+        }
+      ]
+    },
+    "artificial_intelligence": {
+      "name": "Artificial Intelligence Department",
+      "staff": [
+        {
+          "id": 2,
+          "name": "Prof. Ahmad bin Abdullah",
+          "position": "Professor",
+          "email": "ahmad.abdullah@utem.edu.my",
+          "phone": "+60-6-270-1235",
+          "office": "Level 3, Room 305",
+          "specialization": ["Deep Learning", "Neural Networks"],
+          "keywords": ["professor", "ai", "neural networks"]
+        },
+        {
+          "id": 6,
+          "name": "Dr. Raj Kumar",
+          "position": "Lecturer",
+          "email": "raj.kumar@utem.edu.my",
+          "phone": "+60-6-270-1238",
+          "office": "Level 2, Room 215",
+          "specialization": ["NLP", "Machine Learning"],
+          "keywords": ["nlp", "machine learning"]
+        }
+      ]
+    },
+    "cybersecurity": {
+      "name": "Cybersecurity Department",
+      "staff": [
+        {
+          "id": 3,
+          "name": "Dr. Siti Nurhaliza",
+          "position": "Senior Lecturer",
+          "email": "siti.nurhaliza@utem.edu.my",
+          "phone": "+60-6-270-1236",
+          "office": "Level 2, Room 208",
+          "specialization": ["Network Security", "Cryptography"],
+          "keywords": ["cybersecurity", "security"]
+        }
+      ]
+    },
+    "data_science": {
+      "name": "Data Science Department",
+      "staff": [
+        {
+          "id": 4,
+          "name": "Dr. Lee Wei Ming",
+          "position": "Senior Lecturer",
+          "email": "lee.weiming@utem.edu.my",
+          "phone": "+60-6-270-1237",
+          "office": "Level 3, Room 312",
+          "specialization": ["Data Mining", "Big Data"],
+          "keywords": ["data science", "analytics"]
+        }
+      ]
+    }
+  }
+}
