@@ -38,7 +38,8 @@ class AgentRegistry:
                 description="Answers general questions using the FAQ knowledge base.",
                 system_prompt=(
                     "You are the FAIX FAQ assistant. Answer student questions using "
-                    "the provided FAQ context. Be concise and friendly. If the "
+                    "the provided FAQ context. Keep responses SHORT and concise (2-3 sentences max). "
+                    "Use bullet points when listing multiple items. Be friendly. If the "
                     "answer is not in the context, say you are not sure and suggest "
                     "contacting the FAIX office."
                 ),
@@ -52,7 +53,8 @@ class AgentRegistry:
                 description="Helps with academic schedule, important dates and times.",
                 system_prompt=(
                     "You are the FAIX schedule assistant. Focus on academic calendar, "
-                    "class times, and important deadlines. Use the schedule context "
+                    "class times, and important deadlines. Keep responses SHORT and use "
+                    "bullet points for dates/events. Use the schedule context "
                     "if available. If details are missing, be honest and suggest "
                     "checking the official schedule or contacting the office."
                 ),
@@ -67,6 +69,11 @@ class AgentRegistry:
                 system_prompt=(
                     "You are the FAIX staff contact assistant. Use the staff contact "
                     "context to provide accurate names, roles, and contact details. "
+                    "IMPORTANT: When listing staff members, show ONLY their NAMES first "
+                    "in a simple bullet list (max 3-5 most relevant). "
+                    "Then ask: 'Would you like contact information for any of these staff members?'\n"
+                    "Format: • Name\n• Name\n• Name\n\nWould you like contact information for any of these staff members?\n"
+                    "Only provide full details (email, phone, office) when the user specifically asks for them. "
                     "Never invent people or contact details; if you don't find the "
                     "information, say you are not sure and suggest contacting the "
                     "FAIX office."
@@ -144,7 +151,44 @@ def _get_staff_documents() -> List[Dict[str, str]]:
     data_dir = _get_project_data_dir()
     data = _load_json_file(data_dir / "staff_contacts.json")
     docs: List[Dict[str, str]] = []
-    if isinstance(data, list):
+    
+    if not data or not isinstance(data, dict):
+        return docs
+    
+    # Handle new nested structure with departments
+    if "departments" in data and isinstance(data["departments"], dict):
+        for dept_key, dept_info in data["departments"].items():
+            if not isinstance(dept_info, dict):
+                continue
+            dept_name = dept_info.get("name", "")
+            staff_list = dept_info.get("staff", [])
+            
+            if not isinstance(staff_list, list):
+                continue
+            
+            for staff_item in staff_list:
+                if not isinstance(staff_item, dict):
+                    continue
+                
+                # Extract specialization if it exists
+                specialization = staff_item.get("specialization", [])
+                specialization_str = ", ".join(specialization) if isinstance(specialization, list) else str(specialization)
+                
+                docs.append(
+                    {
+                        "name": str(staff_item.get("name", "")),
+                        "role": str(staff_item.get("position", "")),  # Using "position" from new structure
+                        "email": str(staff_item.get("email", "")),
+                        "phone": str(staff_item.get("phone", "")),
+                        "office": str(staff_item.get("office", "")),
+                        "department": dept_name,
+                        "specialization": specialization_str,
+                        "keywords": ", ".join(staff_item.get("keywords", [])) if isinstance(staff_item.get("keywords"), list) else "",
+                        "raw": staff_item,
+                    }
+                )
+    # Fallback: handle old flat list structure for backward compatibility
+    elif isinstance(data, list):
         for item in data:
             if not isinstance(item, dict):
                 continue
@@ -154,10 +198,27 @@ def _get_staff_documents() -> List[Dict[str, str]]:
                     "role": str(item.get("role", "")),
                     "email": str(item.get("email", "")),
                     "phone": str(item.get("phone", "")),
+                    "office": str(item.get("office", "")),
+                    "department": "",
+                    "specialization": "",
+                    "keywords": "",
                     "raw": item,
                 }
             )
+    
     return docs
+
+
+def check_staff_data_available() -> bool:
+    """Check if staff data is available in data/staff_contacts.json"""
+    docs = _get_staff_documents()
+    return len(docs) > 0
+
+
+def check_schedule_data_available() -> bool:
+    """Check if schedule data is available in data/schedule.json"""
+    docs = _get_schedule_documents()
+    return len(docs) > 0
 
 
 def retrieve_for_agent(
@@ -202,6 +263,9 @@ def retrieve_for_agent(
         staff_docs = _get_staff_documents()
         if staff_docs:
             context["staff"] = staff_docs
+            print(f"DEBUG: Loaded {len(staff_docs)} staff documents for staff agent")
+        else:
+            print("DEBUG: No staff documents found - check data/staff_contacts.json")
 
     return context
 

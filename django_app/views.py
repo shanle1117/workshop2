@@ -21,7 +21,7 @@ from src.query_preprocessing import QueryProcessor
 from src.knowledge_base import KnowledgeBase
 from src.conversation_manager import process_conversation
 from src.llm_client import get_llm_client, LLMError
-from src.agents import get_agent, retrieve_for_agent
+from src.agents import get_agent, retrieve_for_agent, check_staff_data_available, check_schedule_data_available, _get_staff_documents, _get_schedule_documents
 from src.prompt_builder import build_messages
 
 # Initialize global instances
@@ -111,12 +111,6 @@ def chat_api(request):
         # Get or create conversation
         conversation = get_or_create_conversation(session, user_id)
         
-        # Process query with NLP
-        processed_query = query_processor.process_query(user_message)
-        intent = processed_query.get('detected_intent', 'general_query')
-        confidence = processed_query.get('confidence_score', 0.0)
-        entities = processed_query.get('extracted_entities', {})
-        
         # Get context from session
         context = session.context if session.context else {}
         
@@ -127,6 +121,79 @@ def chat_api(request):
             'handbook' in user_message_lower or
             'academic handbook' in user_message_lower
         )
+
+        # STEP 1: Check data availability FIRST before NLP processing
+        # This ensures we route to agents that have data available
+        # NOTE: Frontend may send agent_id='faq' by default, but we override if query matches staff/schedule
+        print(f"DEBUG: Initial agent_id from request: {agent_id}")
+        print(f"DEBUG: User message: '{user_message}'")
+        print(f"DEBUG: User message (lowercase): '{user_message_lower}'")
+        
+        # Always check for staff/schedule keywords and override agent_id if appropriate
+        # (even if frontend sent a default agent_id like 'faq')
+        
+        # Check for staff-related keywords and verify staff data exists
+        staff_keywords = [
+            'contact', 'email', 'phone', 'professor', 'lecturer', 'staff', 'faculty', 
+            'who can i', 'who can', 'reach', 'get in touch', 'call', 'number', 
+            'office', 'address', 'dean', 'head of', 'department head', 'ai', 'artificial intelligence',
+            'cybersecurity', 'data science', 'machine learning', 'nlp', 'deep learning'
+        ]
+        matched_keywords = [kw for kw in staff_keywords if kw in user_message_lower]
+        print(f"DEBUG: Staff keyword matching - Matched: {matched_keywords}")
+        
+        if matched_keywords:
+            # Check if staff data actually exists
+            staff_available = check_staff_data_available()
+            print(f"DEBUG: Staff data available check: {staff_available}")
+            if staff_available:
+                staff_docs = _get_staff_documents()  # Get actual docs for logging
+                agent_id = 'staff'  # OVERRIDE any default agent_id from frontend
+                print(f"DEBUG: Data-first routing - Found {len(staff_docs)} staff members, OVERRIDING to staff agent")
+                print(f"DEBUG: Matched keywords: {matched_keywords}")
+            else:
+                print(f"DEBUG: Staff keywords detected but no staff data found in data/staff_contacts.json")
+        else:
+            print(f"DEBUG: No staff keywords matched in query")
+        
+        # Check for schedule-related keywords and verify schedule data exists
+        if agent_id != 'staff':  # Don't override if we already set staff
+            schedule_keywords = ['schedule', 'timetable', 'calendar', 'when', 'time', 'date', 'semester', 'deadline']
+            if any(kw in user_message_lower for kw in schedule_keywords):
+                if check_schedule_data_available():
+                    schedule_docs = _get_schedule_documents()  # Get actual docs for logging
+                    agent_id = 'schedule'  # OVERRIDE any default agent_id from frontend
+                    print(f"DEBUG: Data-first routing - Found schedule data, OVERRIDING to schedule agent")
+        
+        # STEP 2: Process query with NLP (as secondary check/confirmation)
+        processed_query = query_processor.process_query(user_message)
+        intent = processed_query.get('detected_intent', 'general_query')
+        confidence = processed_query.get('confidence_score', 0.0)
+        entities = processed_query.get('extracted_entities', {})
+        
+        # Use NLP intent as confirmation if agent not already set by data-first routing
+        if not agent_id:
+            print(f"DEBUG: No agent set from data-first routing, checking NLP intent: '{intent}'")
+            # Map intents to agent IDs
+            intent_to_agent = {
+                'staff_contact': 'staff',
+                'academic_schedule': 'schedule',
+                # For other intents, use 'faq' agent or keep None for fallback
+            }
+            agent_id = intent_to_agent.get(intent)
+            
+            if agent_id:
+                print(f"DEBUG: NLP-based routing - Intent '{intent}' mapped to agent '{agent_id}'")
+            else:
+                print(f"DEBUG: No agent mapping for intent '{intent}', will use default behavior")
+        
+        # Final check: if still no agent_id and we have staff keywords, force staff agent
+        if not agent_id and any(kw in user_message_lower for kw in ['contact', 'who can', 'email', 'phone', 'professor', 'staff']):
+            if check_staff_data_available():
+                agent_id = 'staff'
+                print(f"DEBUG: Final fallback - Forcing staff agent based on keywords and data availability")
+        
+        print(f"DEBUG: Final agent_id before processing: {agent_id}")
 
         # Normalise history into a compact, safe format
         history_messages = []
@@ -156,6 +223,13 @@ def chat_api(request):
                 intent=intent,
                 top_k=3,
             )
+            
+            # Debug: Log staff context if available
+            if agent_id == 'staff':
+                staff_docs = agent_context.get('staff', [])
+                print(f"DEBUG: Staff agent - Loaded {len(staff_docs)} staff members")
+                if staff_docs:
+                    print(f"DEBUG: First staff member: {staff_docs[0].get('name', 'N/A')}")
 
             # Build LLM messages and call Llama via Ollama
             messages = build_messages(
@@ -165,23 +239,96 @@ def chat_api(request):
                 context=agent_context,
                 intent=intent,
             )
+            
+            # Debug: Print message count and check if staff context is in messages
+            if agent_id == 'staff':
+                print(f"DEBUG: Built {len(messages)} messages for LLM")
+                for i, msg in enumerate(messages):
+                    if 'Staff Contacts Context' in msg.get('content', ''):
+                        print(f"DEBUG: Staff context found in message {i}")
 
             try:
                 llm_client = get_llm_client()
-                llm_response = llm_client.chat(messages)
+                print(f"DEBUG: Calling LLM with agent '{agent_id}'")
+                # Use shorter max_tokens for staff queries to keep responses concise
+                max_tokens = 200 if agent_id == 'staff' else 300
+                llm_response = llm_client.chat(messages, max_tokens=max_tokens, temperature=0.3)
                 answer = llm_response.content
+                print(f"DEBUG: LLM response length: {len(answer) if answer else 0} characters")
+                
+                # Fallback: If LLM returns empty or very short response for staff queries, use staff data directly
+                if agent_id == 'staff' and (not answer or len(answer.strip()) < 20):
+                    staff_docs = agent_context.get('staff', [])
+                    if staff_docs:
+                        print("DEBUG: LLM response too short, generating fallback from staff data")
+                        # Filter staff by query keywords if possible
+                        query_words = set(user_message_lower.split())
+                        relevant_staff = []
+                        for staff in staff_docs:
+                            staff_text = ' '.join([
+                                staff.get('name', '').lower(),
+                                staff.get('department', '').lower(),
+                                staff.get('specialization', '').lower(),
+                                staff.get('keywords', '').lower()
+                            ])
+                            if any(word in staff_text for word in query_words if len(word) > 2):
+                                relevant_staff.append(staff)
+                        
+                        if not relevant_staff:
+                            relevant_staff = staff_docs[:3]  # Show first 3 if no match
+                        
+                        answer_parts = ["Here are some staff members you can contact:\n"]
+                        for staff in relevant_staff[:5]:  # Limit to 5
+                            if staff.get('name'):
+                                answer_parts.append(f"• {staff['name']}")
+                        
+                        answer_parts.append("")
+                        answer_parts.append("Would you like contact information (email, phone, office) for any of these staff members?")
+                        answer = '\n'.join(answer_parts)
             except LLMError as e:
                 print(f"LLMError in chat_api: {e}")
-                answer = (
-                    "I'm having trouble reaching the AI assistant right now. "
-                    "Please try again in a moment or contact the FAIX office for help."
-                )
+                # Fallback to staff data if available
+                if agent_id == 'staff':
+                    staff_docs = agent_context.get('staff', [])
+                    if staff_docs:
+                        print("DEBUG: LLM failed, using fallback from staff data")
+                        answer = "Here are some staff members you can contact:\n\n"
+                        for staff in staff_docs[:5]:
+                            if staff.get('name'):
+                                answer += f"• {staff.get('name')}\n"
+                        answer += "\nWould you like contact information (email, phone, office) for any of these staff members?"
+                    else:
+                        answer = (
+                            "I'm having trouble reaching the AI assistant right now. "
+                            "Please try again in a moment or contact the FAIX office for help."
+                        )
+                else:
+                    answer = (
+                        "I'm having trouble reaching the AI assistant right now. "
+                        "Please try again in a moment or contact the FAIX office for help."
+                    )
             except Exception as e:
                 print(f"Unexpected error in chat_api LLM path: {e}")
-                answer = (
-                    "An unexpected error occurred while generating a response. "
-                    "Please try again or contact the FAIX office for assistance."
-                )
+                # Fallback to staff data if available
+                if agent_id == 'staff':
+                    staff_docs = agent_context.get('staff', [])
+                    if staff_docs:
+                        print("DEBUG: Exception occurred, using fallback from staff data")
+                        answer = "Here are some staff members you can contact:\n\n"
+                        for staff in staff_docs[:5]:
+                            if staff.get('name'):
+                                answer += f"• {staff.get('name')}\n"
+                        answer += "\nWould you like contact information (email, phone, office) for any of these staff members?"
+                    else:
+                        answer = (
+                            "An unexpected error occurred while generating a response. "
+                            "Please try again or contact the FAIX office for assistance."
+                        )
+                else:
+                    answer = (
+                        "An unexpected error occurred while generating a response. "
+                        "Please try again or contact the FAIX office for assistance."
+                    )
 
             # For handbook queries, still attach PDF information if available
             if intent == 'program_info' or is_handbook_query:
@@ -566,7 +713,7 @@ def manage_knowledge_base(request):
 def index(request):
     """Serve the main HTML page"""
     from django.shortcuts import render
-    return render(request, 'main.html')
+    return render(request, 'index.html')
 
 
 def admin_dashboard(request):

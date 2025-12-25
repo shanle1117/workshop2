@@ -51,15 +51,26 @@ def _format_staff_context(staff_docs: List[Dict[str, Any]]) -> str:
         role = person.get("role", "")
         email = person.get("email", "")
         phone = person.get("phone", "")
+        office = person.get("office", "")
+        department = person.get("department", "")
+        specialization = person.get("specialization", "")
+        
         parts = []
         if name:
             parts.append(name)
         if role:
-            parts.append(role)
+            parts.append(f"Position: {role}")
+        if department:
+            parts.append(f"Department: {department}")
+        if specialization:
+            parts.append(f"Specialization: {specialization}")
         if email:
             parts.append(f"Email: {email}")
-        if phone:
+        if phone and phone != "-":
             parts.append(f"Phone: {phone}")
+        if office and office != "-":
+            parts.append(f"Office: {office}")
+        
         if parts:
             lines.append(" - " + " | ".join(parts))
     return "\n".join(lines).strip()
@@ -93,6 +104,13 @@ def build_messages(
         "If the answer is not clearly supported by the context, say you are "
         "not sure and suggest contacting the FAIX office."
     )
+    # Add reminder for staff queries to keep it short
+    if agent.id == "staff":
+        system_parts.append(
+            "REMINDER: Show ONLY staff names first (bullet list, 3-5 max). "
+            "Then ask if the user needs contact information. "
+            "Only provide full details (email, phone, office) when specifically requested."
+        )
     system_content = "\n\n".join(system_parts)
     messages.append({"role": "system", "content": system_content})
 
