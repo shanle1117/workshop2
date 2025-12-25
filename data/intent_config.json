@@ -7,7 +7,8 @@
     "facility_info",
     "program_info",
     "general_query",
-    "admission"
+    "admission",
+    "fees"
   ],
   "intent_descriptions": {
     "course_info": "Questions about specific courses, course content, course requirements, or course details",
@@ -17,7 +18,8 @@
     "facility_info": "Questions about campus facilities, laboratories, buildings, or equipment",
     "program_info": "Questions about academic programs, degrees, requirements, program details, academic handbook, or student handbook",
     "general_query": "General questions, greetings, or unclear queries that don't fit other categories",
-    "admission": "Questions about admission requirements, entry criteria, or application process"
+    "admission": "Questions about admission requirements, entry criteria, or application process",
+    "fees": "Questions about tuition fees, payment schedules, fee structure, or financial costs"
   },
   "keyword_patterns": {
     "course_info": [
@@ -81,6 +83,19 @@
       "application",
       "requirements",
       "criteria"
+    ],
+    "fees": [
+      "fee",
+      "fees",
+      "tuition",
+      "yuran",
+      "bayaran",
+      "cost",
+      "payment",
+      "price",
+      "money",
+      "diploma fee",
+      "degree fee"
     ]
   },
   "model_config": {

@@ -383,6 +383,7 @@ footer {
 }
 
 .message-content p {
+    white-space: pre-wrap; /* Preserve line breaks and wrap text */
     margin: 0;
     line-height: 1.5;
     word-wrap: break-word;

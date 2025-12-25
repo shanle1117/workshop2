@@ -178,9 +178,29 @@ def chat_api(request):
             intent_to_agent = {
                 'staff_contact': 'staff',
                 'academic_schedule': 'schedule',
+                'program_info': 'faq',  # Route program queries to FAQ (has FAIX data)
+                'course_info': 'faq',   # Route course queries to FAQ (has FAIX data)
+                'facility_info': 'faq', # Route facility queries to FAQ (has FAIX data)
+                'fees': 'faq',          # Route fee queries to FAQ (has fee information)
                 # For other intents, use 'faq' agent or keep None for fallback
             }
             agent_id = intent_to_agent.get(intent)
+            
+            # Check for program/admission/facility keywords and route to FAQ agent
+            if not agent_id:
+                faix_keywords = [
+                    'program', 'programme', 'degree', 'course', 'admission', 'admit',
+                    'facility', 'facilities', 'department', 'departments', 'vision', 'mission',
+                    'undergraduate', 'postgraduate', 'master', 'bachelor', 'research',
+                    'key highlight', 'objective', 'objectives', 'fee', 'fees', 'tuition',
+                    'yuran', 'bayaran', 'diploma fee', 'degree fee', 'payment', 'cost'
+                ]
+                if any(kw in user_message_lower for kw in faix_keywords):
+                    # Check if FAIX data is available
+                    from src.agents import check_faix_data_available
+                    if check_faix_data_available():
+                        agent_id = 'faq'
+                        print(f"DEBUG: Keyword-based routing - FAIX keywords detected, routing to FAQ agent with comprehensive FAIX data")
             
             if agent_id:
                 print(f"DEBUG: NLP-based routing - Intent '{intent}' mapped to agent '{agent_id}'")
@@ -248,13 +268,22 @@ def chat_api(request):
                         print(f"DEBUG: Staff context found in message {i}")
 
             try:
-                llm_client = get_llm_client()
-                print(f"DEBUG: Calling LLM with agent '{agent_id}'")
-                # Use shorter max_tokens for staff queries to keep responses concise
-                max_tokens = 200 if agent_id == 'staff' else 300
-                llm_response = llm_client.chat(messages, max_tokens=max_tokens, temperature=0.3)
-                answer = llm_response.content
-                print(f"DEBUG: LLM response length: {len(answer) if answer else 0} characters")
+                # Check if this is a fee query - if so, return link directly without calling LLM
+                fee_keywords = ['fee', 'fees', 'tuition', 'yuran', 'bayaran', 'diploma fee', 'degree fee', 'cost', 'payment']
+                is_fee_query = intent == 'fees' or any(kw in user_message_lower for kw in fee_keywords)
+                
+                if is_fee_query:
+                    print(f"DEBUG: Fee query detected - returning link directly")
+                    answer = "https://bendahari.utem.edu.my/ms/jadual-yuran-pelajar.html"
+                else:
+                    llm_client = get_llm_client()
+                    print(f"DEBUG: Calling LLM with agent '{agent_id}'")
+                    
+                    # Increased max_tokens to allow well-formatted, summarized responses with line breaks
+                    max_tokens = 400 if agent_id == 'staff' else 600
+                    llm_response = llm_client.chat(messages, max_tokens=max_tokens, temperature=0.3)
+                    answer = llm_response.content
+                    print(f"DEBUG: LLM response length: {len(answer) if answer else 0} characters")
                 
                 # Fallback: If LLM returns empty or very short response for staff queries, use staff data directly
                 if agent_id == 'staff' and (not answer or len(answer.strip()) < 20):
@@ -346,7 +375,14 @@ def chat_api(request):
 
         else:
             # Existing non-agent behaviour (no LLM)
-            if intent and intent != 'general_query':
+            # Check if this is a fee query first - return link directly
+            fee_keywords = ['fee', 'fees', 'tuition', 'yuran', 'bayaran', 'diploma fee', 'degree fee', 'cost', 'payment']
+            is_fee_query = intent == 'fees' or any(kw in user_message_lower for kw in fee_keywords)
+            
+            if is_fee_query:
+                print(f"DEBUG: Fee query detected (non-agent path) - returning link directly")
+                answer = "https://bendahari.utem.edu.my/ms/jadual-yuran-pelajar.html"
+            elif intent and intent != 'general_query':
                 answer = knowledge_base.get_answer(intent, user_message)
                 
                 # Validate answer is not None, empty, or invalid type

@@ -35,13 +35,26 @@ class AgentRegistry:
             Agent(
                 id="faq",
                 display_name="FAQ Assistant",
-                description="Answers general questions using the FAQ knowledge base.",
+                description="Answers general questions using the FAQ knowledge base and comprehensive FAIX data.",
                 system_prompt=(
                     "You are the FAIX FAQ assistant. Answer student questions using "
-                    "the provided FAQ context. Keep responses SHORT and concise (2-3 sentences max). "
-                    "Use bullet points when listing multiple items. Be friendly. If the "
-                    "answer is not in the context, say you are not sure and suggest "
-                    "contacting the FAIX office."
+                    "the provided FAQ context and comprehensive FAIX information (programs, admission, "
+                    "facilities, departments, fees, etc.).\n\n"
+                    "RESPONSE FORMATTING:\n"
+                    "- Provide well-structured, summarized answers with proper paragraphs and line breaks\n"
+                    "- Use bullet points (•) when listing multiple items\n"
+                    "- Use line breaks (\\n) to separate paragraphs and sections\n"
+                    "- Keep responses concise but informative (3-5 sentences for simple queries, "
+                    "summarized paragraphs for complex topics)\n"
+                    "- Format your response with clear sections using newlines\n"
+                    "- IMPORTANT: Always preserve and display URLs/links exactly as provided in the context\n"
+                    "- For fee-related queries: Provide ONLY the fee schedule link, no extra text. Just the URL.\n\n"
+                    "The FAIX Information Context contains detailed information about programs, admission "
+                    "requirements, facilities, departments, vision/mission, fees, and more. Summarize and present "
+                    "this information in a clear, well-formatted manner. When answers include links (especially "
+                    "for fees, payment, or official resources), always include them in your response. "
+                    "For fee queries specifically, keep it minimal - just provide the link. "
+                    "If the answer is not in the context, say you are not sure and suggest contacting the FAIX office."
                 ),
                 default_intent=None,
             )
@@ -53,9 +66,13 @@ class AgentRegistry:
                 description="Helps with academic schedule, important dates and times.",
                 system_prompt=(
                     "You are the FAIX schedule assistant. Focus on academic calendar, "
-                    "class times, and important deadlines. Keep responses SHORT and use "
-                    "bullet points for dates/events. Use the schedule context "
-                    "if available. If details are missing, be honest and suggest "
+                    "class times, and important deadlines.\n\n"
+                    "RESPONSE FORMATTING:\n"
+                    "- Use bullet points (•) for dates/events\n"
+                    "- Use line breaks (\\n) to separate different events or sections\n"
+                    "- Provide a brief summary introduction, then list relevant schedule items\n"
+                    "- Format dates clearly with line breaks between items\n\n"
+                    "Use the schedule context if available. If details are missing, be honest and suggest "
                     "checking the official schedule or contacting the office."
                 ),
                 default_intent="academic_schedule",
@@ -68,15 +85,22 @@ class AgentRegistry:
                 description="Provides staff and faculty contact information.",
                 system_prompt=(
                     "You are the FAIX staff contact assistant. Use the staff contact "
-                    "context to provide accurate names, roles, and contact details. "
+                    "context to provide accurate names, roles, and contact details.\n\n"
+                    "RESPONSE FORMATTING:\n"
+                    "- Use proper line breaks (\\n) between items\n"
+                    "- Format each staff member on a new line with bullet points\n"
+                    "- When showing contact details, use line breaks to separate name, email, phone, office\n\n"
                     "IMPORTANT: When listing staff members, show ONLY their NAMES first "
-                    "in a simple bullet list (max 3-5 most relevant). "
+                    "in a simple bullet list (max 3-5 most relevant), each on a new line. "
                     "Then ask: 'Would you like contact information for any of these staff members?'\n"
-                    "Format: • Name\n• Name\n• Name\n\nWould you like contact information for any of these staff members?\n"
-                    "Only provide full details (email, phone, office) when the user specifically asks for them. "
-                    "Never invent people or contact details; if you don't find the "
-                    "information, say you are not sure and suggest contacting the "
-                    "FAIX office."
+                    "Example format:\n"
+                    "• Name 1\n"
+                    "• Name 2\n"
+                    "• Name 3\n\n"
+                    "Would you like contact information for any of these staff members?\n\n"
+                    "Only provide full details (email, phone, office) when the user specifically asks for them, "
+                    "and format them with clear line breaks. Never invent people or contact details; if you don't find the "
+                    "information, say you are not sure and suggest contacting the FAIX office."
                 ),
                 default_intent="staff_contact",
             )
@@ -221,6 +245,66 @@ def check_schedule_data_available() -> bool:
     return len(docs) > 0
 
 
+def _get_faix_data_documents() -> Dict[str, Any]:
+    """Load FAIX comprehensive data from data/faix_json_data.json if present."""
+    data_dir = _get_project_data_dir()
+    data = _load_json_file(data_dir / "faix_json_data.json")
+    
+    if not data or not isinstance(data, dict):
+        return {}
+    
+    # Return structured data organized by sections
+    structured_data = {}
+    
+    # Faculty information
+    if "faculty_info" in data:
+        structured_data["faculty_info"] = data["faculty_info"]
+    
+    # Vision & Mission
+    if "vision_mission" in data:
+        structured_data["vision_mission"] = data["vision_mission"]
+    
+    # Programmes
+    if "programmes" in data:
+        structured_data["programmes"] = data["programmes"]
+    
+    # Admission information
+    if "admission" in data:
+        structured_data["admission"] = data["admission"]
+    
+    # Departments
+    if "departments" in data:
+        structured_data["departments"] = data["departments"]
+    
+    # Facilities
+    if "facilities" in data:
+        structured_data["facilities"] = data["facilities"]
+    
+    # Academic resources
+    if "academic_resources" in data:
+        structured_data["academic_resources"] = data["academic_resources"]
+    
+    # Key highlights
+    if "key_highlights" in data:
+        structured_data["key_highlights"] = data["key_highlights"]
+    
+    # FAQs (already in knowledge base, but keep for reference)
+    if "faqs" in data:
+        structured_data["faqs"] = data["faqs"]
+    
+    # Research focus
+    if "research_focus" in data:
+        structured_data["research_focus"] = data["research_focus"]
+    
+    return structured_data
+
+
+def check_faix_data_available() -> bool:
+    """Check if FAIX comprehensive data is available in data/faix_json_data.json"""
+    data = _get_faix_data_documents()
+    return len(data) > 0
+
+
 def retrieve_for_agent(
     agent_id: str,
     user_text: str,
@@ -243,8 +327,23 @@ def retrieve_for_agent(
     # FAQ-style documents from the main knowledge base
     # Use agent.default_intent if provided, otherwise fall back to detected intent.
     kb_intent = agent.default_intent or intent
+    
+    # For fee-related queries, ensure we explicitly search for fee entries
+    user_text_lower = user_text.lower()
+    fee_keywords = ['fee', 'fees', 'tuition', 'yuran', 'bayaran', 'cost', 'payment', 'diploma fee', 'degree fee']
+    is_fee_query = any(keyword in user_text_lower for keyword in fee_keywords) or intent == 'fees'
+    
     try:
+        # First try with the detected intent
         faq_docs = knowledge_base.get_documents(kb_intent, user_text, top_k=top_k)
+        
+        # If it's a fee query and we didn't get good results, explicitly search for 'fees' category
+        if is_fee_query and (not faq_docs or len(faq_docs) == 0):
+            print(f"DEBUG: Fee query detected, explicitly searching for fee entries")
+            fee_docs = knowledge_base.get_documents('fees', user_text, top_k=top_k)
+            if fee_docs:
+                faq_docs = fee_docs
+                print(f"DEBUG: Found {len(fee_docs)} fee-related documents")
     except Exception as e:
         print(f"Warning: Knowledge base document retrieval failed: {e}")
         faq_docs = []
@@ -266,6 +365,12 @@ def retrieve_for_agent(
             print(f"DEBUG: Loaded {len(staff_docs)} staff documents for staff agent")
         else:
             print("DEBUG: No staff documents found - check data/staff_contacts.json")
+
+    # FAIX comprehensive data context (available for all agents, especially FAQ)
+    # This provides rich context about programs, admission, facilities, etc.
+    faix_data = _get_faix_data_documents()
+    if faix_data:
+        context["faix_data"] = faix_data
 
     return context
 

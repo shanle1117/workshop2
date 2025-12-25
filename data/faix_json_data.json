@@ -1,0 +1,263 @@
+{
+  "faculty_info": {
+    "name": "Faculty of Artificial Intelligence and Cyber Security (FAIX)",
+    "university": "Universiti Teknikal Malaysia Melaka (UTeM)",
+    "established": "July 22, 2024",
+    "dean": "Associate Professor Ts. Dr. Muhammad Hafidz Fazli Bin Md Fauadi",
+    "staff_count": {
+      "academic": 25,
+      "administrative": 5
+    },
+    "address": {
+      "street": "Hang Tuah Jaya",
+      "postcode": "76100",
+      "city": "Durian Tunggal",
+      "state": "Melaka",
+      "country": "Malaysia"
+    },
+    "contact": {
+      "email": "faix@utem.edu.my",
+      "phone": "+606 270 4540",
+      "website": "https://faix.utem.edu.my/en/"
+    }
+  },
+  "vision_mission": {
+    "vision": "To be a leading faculty in producing skilled AI and cybersecurity professionals to meet Malaysia's goal of cultivating 200,000 AI specialists and 100,000 cyber security experts by 2030",
+    "mission": "To advance education, research, and development of high-caliber professionals in AI and cyber security disciplines through innovation, industry collaboration, and future-ready curriculum",
+    "objectives": [
+      "Foster an innovative learning environment",
+      "Develop solutions with tangible societal impact",
+      "Produce workforce equipped with necessary skills for technology leadership",
+      "Establish UTeM as a primary driver in AI and cybersecurity education"
+    ]
+  },
+  "programmes": {
+    "undergraduate": [
+      {
+        "name": "Bachelor of Computer Science (Artificial Intelligence) with Honours",
+        "code": "BCSAI",
+        "duration": "4 years",
+        "focus_areas": [
+          "AI technology",
+          "Machine learning",
+          "Neural networks",
+          "Fuzzy logic",
+          "Evolutionary computing",
+          "Intelligent agents"
+        ],
+        "career_opportunities": [
+          "Knowledge engineer",
+          "Smart systems developer",
+          "Expert system developer",
+          "Systems analyst",
+          "Systems programmer",
+          "Systems designer",
+          "Software developer",
+          "Software consultant",
+          "Computer scientist",
+          "Researcher"
+        ],
+        "learning_distribution": {
+          "coursework": "70%",
+          "practical_projects": "30%"
+        },
+        "graduate_attributes": [
+          "Able to acquire and apply knowledge in computer science and information technology",
+          "Able to analyze, design and develop ICT applications",
+          "Can use artificial intelligence techniques when developing systems"
+        ]
+      },
+      {
+        "name": "Bachelor of Computer Science (Computer Security) with Honours",
+        "code": "BCSCS",
+        "duration": "4 years",
+        "focus_areas": [
+          "Cybersecurity",
+          "Digital forensics",
+          "Network security",
+          "Information security",
+          "Security systems"
+        ],
+        "career_opportunities": [
+          "Cybersecurity analyst",
+          "Security consultant",
+          "Penetration tester",
+          "Digital forensics specialist",
+          "Security architect",
+          "Information security manager"
+        ]
+      }
+    ],
+    "postgraduate": [
+      {
+        "name": "Master of Computer Science (Security Science)",
+        "code": "MCSSS",
+        "type": "Coursework/Research",
+        "focus": "Advanced cybersecurity and security science research"
+      },
+      {
+        "name": "Master of Technology (Data Science and Analytics)",
+        "code": "MTDSA",
+        "type": "Coursework",
+        "focus": "Data science, analytics, and big data technologies"
+      },
+      {
+        "name": "Master of Technology in Data Science and Analytics (Open and Distance Learning - ODL)",
+        "code": "MTDSA-ODL",
+        "type": "ODL",
+        "focus": "Flexible learning for working professionals in data science"
+      }
+    ]
+  },
+  "admission": {
+    "undergraduate_local": {
+      "requirements": {
+        "spm_stpm": "SPM/STPM or equivalent qualification",
+        "minimum_requirements": "As specified by UTeM Senate"
+      },
+      "application_links": {
+        "entry_requirements": "https://www.utem.edu.my/en/undergraduate.html",
+        "fees": "https://bendahari.utem.edu.my/ms/jadual-yuran-pelajar.html",
+        "scholarships": "https://www.utem.edu.my/en/undergraduate.html"
+      }
+    },
+    "undergraduate_international": {
+      "requirements": {
+        "academic": "Equivalent to Malaysian secondary education",
+        "description": "International qualifications accepted subject to evaluation"
+      },
+      "application_links": {
+        "entry_requirements": "https://www.utem.edu.my/en/undergraduate-int.html",
+        "fees": "https://www.utem.edu.my/en/undergraduate-int.html",
+        "scholarships": "https://www.utem.edu.my/en/undergraduate-int.html"
+      },
+      "learning_approach": "70% coursework and practical projects, emphasis on real-world applications"
+    },
+    "postgraduate": {
+      "entry_requirements": [
+        {
+          "category": "Computing background - Strong",
+          "requirement": "Bachelor's degree (Level 6, MQF) in Computing or related fields with minimum CGPA of 2.50"
+        },
+        {
+          "category": "Computing background - Moderate",
+          "requirement": "Bachelor's degree (Level 6, MQF) in Computing or related fields with minimum CGPA of 2.00, subject to rigorous assessment"
+        },
+        {
+          "category": "Non-Computing background - With experience",
+          "requirement": "Bachelor's degree (Level 6, MQF) in Non-Computing field with minimum CGPA of 2.00, subject to assessment of working experience in Computing"
+        },
+        {
+          "category": "Non-Computing background - Prerequisite needed",
+          "requirement": "Bachelor's degree (Level 6, MQF) in Non-Computing field with minimum CGPA of 2.00, with prerequisite courses required"
+        }
+      ],
+      "language_requirements": {
+        "muet": "Minimum Band 4",
+        "cefr": "Low B2 equivalent",
+        "alternative": "Enroll in English proficiency courses if requirements not met"
+      },
+      "contact": {
+        "coordinator": "Mdm. Nur Azriah Binti Amir",
+        "email": "Contact through FAIX website"
+      }
+    }
+  },
+  "departments": [
+    {
+      "name": "Department of Cyber Security",
+      "focus": "Cybersecurity education, research, and development"
+    },
+    {
+      "name": "Department of Intelligent Computing and Analytics",
+      "focus": "AI, machine learning, data analytics, and intelligent systems"
+    }
+  ],
+  "facilities": {
+    "available": [
+      "FAIX facilities",
+      "Room booking system",
+      "Laboratory facilities",
+      "Research centers"
+    ],
+    "booking_system": "https://rbs.utem.edu.my/ftmk/web/"
+  },
+  "academic_resources": {
+    "ulearn_portal": "https://ulearn.utem.edu.my/",
+    "resources": [
+      "Timetable",
+      "Work processes",
+      "Forms",
+      "Academic handbook",
+      "Professional certification programs",
+      "Education funds information"
+    ]
+  },
+  "key_highlights": [
+    "Established in 2024 as part of Malaysia's Advanced TVET initiative",
+    "Aims to produce 200,000 AI specialists and 100,000 cybersecurity experts by 2030",
+    "Part of Malaysia's Technical University Network (MTUN)",
+    "Emphasis on practical learning (70% coursework, 30% hands-on projects)",
+    "Curriculum designed to stay ahead of evolving tech landscape",
+    "Strong industry collaboration and real-world application focus",
+    "Diverse international student community",
+    "Leading hub for AI and cybersecurity research in Malaysia"
+  ],
+  "faqs": [
+    {
+      "question": "What programmes does FAIX offer?",
+      "answer": "FAIX offers 2 undergraduate programmes (AI and Computer Security) and 3 postgraduate programmes (Security Science, Data Science and Analytics including ODL option).",
+      "category": "programmes"
+    },
+    {
+      "question": "When was FAIX established?",
+      "answer": "FAIX was officially founded on July 22, 2024.",
+      "category": "about"
+    },
+    {
+      "question": "How can I contact FAIX?",
+      "answer": "Email: faix@utem.edu.my, Phone: +606 270 4540, Website: https://faix.utem.edu.my/en/",
+      "category": "contact"
+    },
+    {
+      "question": "What are the career opportunities for AI graduates?",
+      "answer": "AI graduates can pursue careers as knowledge engineers, smart systems developers, systems analysts, software developers, computer scientists, and researchers.",
+      "category": "career"
+    },
+    {
+      "question": "Does FAIX accept international students?",
+      "answer": "Yes, FAIX welcomes international students and provides a diverse learning community with support for international applicants.",
+      "category": "admission"
+    },
+    {
+      "question": "What is the learning approach at FAIX?",
+      "answer": "FAIX emphasizes practical learning with 70% coursework and 30% hands-on, real-world projects to ensure industry readiness.",
+      "category": "academics"
+    },
+    {
+      "question": "What are the postgraduate entry requirements?",
+      "answer": "Requirements vary based on background: Computing graduates need minimum CGPA 2.50, non-computing graduates may need prerequisite courses. MUET Band 4 or CEFR Low B2 required.",
+      "category": "admission"
+    },
+    {
+      "question": "How many staff members are at FAIX?",
+      "answer": "FAIX has 25 academic staff and 5 administrative personnel.",
+      "category": "about"
+    }
+  ],
+  "research_focus": [
+    "Artificial Intelligence applications",
+    "Cybersecurity solutions",
+    "Data science and analytics",
+    "Machine learning",
+    "Digital forensics",
+    "Intelligent systems",
+    "Industry-relevant research with societal impact"
+  ],
+  "metadata": {
+    "last_updated": "2024-12-26",
+    "data_source": "FAIX Official Website",
+    "website": "https://faix.utem.edu.my/en/",
+    "scraped_by": "FAIX Chatbot Project"
+  }
+}

@@ -310,7 +310,13 @@ class Chatbot {
         messageContent.className = 'message-content';
         
         const text = document.createElement('p');
-        text.textContent = content;
+        // Convert newlines to <br> tags to preserve line breaks in responses
+        // First escape any HTML to prevent XSS, then convert newlines and URLs to links
+        const escapedContent = content.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+        // Convert URLs to clickable links
+        const urlRegex = /(https?:\/\/[^\s]+)/g;
+        const contentWithLinks = escapedContent.replace(urlRegex, '<a href="$1" target="_blank" rel="noopener noreferrer" style="color: #007bff; text-decoration: underline;">$1</a>');
+        text.innerHTML = contentWithLinks.replace(/\n/g, '<br>');
         messageContent.appendChild(text);
         
         // Add PDF link/embed if provided

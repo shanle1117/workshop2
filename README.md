@@ -45,6 +45,10 @@ The FAIX AI Chatbot is a multi-module system that provides intelligent student a
 - **Speech-to-Text**: Web Speech API integration for voice input
 - **Semantic Search**: Sentence-transformers for improved query matching
 - **RAG with Open LLMs**: Optional integration with open-source Llama models via Ollama, using Retrieval-Augmented Generation (RAG) over the existing knowledge base
+- **Conversational Agents**: Specialized agents (FAQ, Schedule, Staff) with agent-specific prompts and context retrieval
+- **Enhanced Response Formatting**: Automatic URL linking, line break preservation, and structured responses
+- **Comprehensive FAIX Data**: Rich JSON data source covering programs, admission, facilities, departments, vision/mission, and more
+- **Fee Query Handling**: Special handling for fee-related queries with direct link responses to official fee schedules
 - **Multi-Topic Support**: 
   - 📚 Course Registration
   - 📞 Staff Contacts
@@ -73,6 +77,8 @@ workshop2/
 │   ├── knowledge_base.py             # 🧠 Knowledge Base Module
 │   ├── nlp_intent_classifier.py      # 🤖 Transformer-based Intent Classification
 │   ├── nlp_semantic_search.py        # 🔍 Semantic Search using Sentence Transformers
+│   ├── agents.py                     # 🤖 Conversational Agents (FAQ, Schedule, Staff)
+│   ├── prompt_builder.py             # 📝 RAG Prompt Construction
 │   ├── query_preprocessing.py        # 🔤 NLP preprocessing
 │   ├── query_preprocessing_v2.py     # 🔤 Enhanced NLP preprocessing
 │   ├── firebase_service.py           # 🔥 Firebase integration
@@ -83,7 +89,8 @@ workshop2/
 │   ├── schedule.json                 # 📅 Schedule Data
 │   ├── faqs.json                     # ❓ FAQ Data
 │   ├── staff_contacts.json           # 📇 Staff Contact Data
-│   ├── faix_data.csv                 # 📊 FAIX General Data
+│   ├── faix_data.csv                 # 📊 FAIX General Data (CSV format)
+│   ├── faix_json_data.json           # 📊 FAIX Comprehensive Data (JSON: programs, admission, facilities, etc.)
 │   └── intent_config.json            # ⚙️ Intent classification configuration
 │
 ├── frontend/                         # 🌐 Frontend files
@@ -126,11 +133,13 @@ workshop2/
 | `src/conversation_manager.py` | Manages conversation flow, context, and intent detection |
 | `src/nlp_intent_classifier.py` | Transformer-based intent classification using DistilBERT/RoBERTa |
 | `src/nlp_semantic_search.py` | Semantic search using sentence-transformers for better query matching |
+| `src/agents.py` | Conversational agent definitions (FAQ, Schedule, Staff) with RAG support |
+| `src/prompt_builder.py` | Constructs RAG prompts with context from knowledge base and FAIX data |
 | `src/knowledge_base.py` | Stores and retrieves information from JSON/CSV data files and database |
 | `src/query_preprocessing.py` | NLP preprocessing utilities |
 | `frontend/main.html` | Web interface for the chatbot |
-| `frontend/chat.js` | Chat functionality with Speech-to-Text support |
-| `frontend/style.css` | CSS styling for the web interface |
+| `frontend/chat.js` | Chat functionality with Speech-to-Text support and enhanced formatting |
+| `frontend/style.css` | CSS styling for the web interface with line break preservation |
 | `django_app/views.py` | Django API endpoints for chat, sessions, and conversations |
 | `django_app/models.py` | Database models for sessions, conversations, and messages |
 | `tests/test_chatbot.py` | Core unit tests for chatbot functionality |
@@ -140,8 +149,9 @@ workshop2/
 | `data/schedule.json` | Academic schedules and deadlines |
 | `data/faqs.json` | Frequently asked questions and answers |
 | `data/staff_contacts.json` | Staff directory and contact information |
-| `data/faix_data.csv` | General FAIX faculty information |
-| `data/intent_config.json` | Configuration for intent classification |
+| `data/faix_data.csv` | General FAIX faculty information (CSV format) |
+| `data/faix_json_data.json` | Comprehensive FAIX data: programs, admission, facilities, departments, vision/mission |
+| `data/intent_config.json` | Configuration for intent classification (includes 'fees' intent) |
 
 ---
 
@@ -277,7 +287,44 @@ class SemanticSearch:
 - Caching for performance
 - Configurable model selection
 
-### 4. Knowledge Base (`src/knowledge_base.py`)
+### 4. Conversational Agents (`src/agents.py`)
+
+Specialized conversational agents using RAG (Retrieval-Augmented Generation) with open LLMs.
+
+#### Available Agents:
+- **FAQ Agent**: Answers general questions using FAQ knowledge base and comprehensive FAIX data
+- **Schedule Agent**: Handles academic calendar, class times, and deadlines
+- **Staff Agent**: Provides staff and faculty contact information
+
+#### Main Functions:
+- `AgentRegistry` - Manages available agents
+- `retrieve_for_agent()` - Retrieves relevant context for each agent
+- `check_faix_data_available()` - Checks if comprehensive FAIX data is available
+
+**Features:**
+- Agent-specific system prompts
+- Context-aware retrieval from knowledge base
+- Integration with FAIX comprehensive data (programs, admission, facilities)
+- Special handling for fee queries with direct link responses
+- Enhanced response formatting with line breaks and URL preservation
+
+### 5. Prompt Builder (`src/prompt_builder.py`)
+
+Constructs RAG prompts with context from multiple sources.
+
+#### Main Function:
+```python
+def build_messages(agent: Agent, user_message: str, context: dict, intent: Optional[str] = None) -> List[Dict]
+```
+
+**Features:**
+- Formats context from FAQ, schedule, staff contacts, and FAIX data
+- Agent-specific prompt customization
+- Intent-aware prompt construction
+- URL and link preservation in responses
+- Enhanced formatting instructions for structured responses
+
+### 6. Knowledge Base (`src/knowledge_base.py`)
 
 Manages data retrieval from JSON/CSV files and database.
 
@@ -286,8 +333,9 @@ Manages data retrieval from JSON/CSV files and database.
 - Database integration
 - Multi-source data retrieval
 - Query preprocessing
+- Support for comprehensive FAIX JSON data
 
-### 5. Test Suite
+### 7. Test Suite
 
 Multiple test modules for comprehensive validation:
 - `tests/test_chatbot.py` - Core chatbot functionality
@@ -402,32 +450,49 @@ def chat(request):
 
 ### Using Llama via Ollama (Conversational Agents)
 
-This project can use an open-source Llama model (via Ollama) as a conversational
-agent with Retrieval-Augmented Generation (RAG) on top of the existing
-knowledge base and JSON data under `data/`.
+This project uses open-source Llama models (via Ollama) as conversational
+agents with Retrieval-Augmented Generation (RAG) on top of the existing
+knowledge base and comprehensive FAIX JSON data.
 
-- Install and run Ollama with a Llama model, for example:
+#### Setup:
 
-```bash
-ollama pull llama3.1
-ollama serve
-```
+1. **Install and run Ollama with a Llama model:**
+   ```bash
+   ollama pull llama3.1
+   ollama serve
+   ```
 
-- Configure the backend with environment variables:
-  - `LLM_PROVIDER=ollama`
-  - `OLLAMA_BASE_URL=http://localhost:11434`
-  - `OLLAMA_MODEL=llama3.1:8b` (or another model tag you have installed)
-  - `LLM_ENABLED=1` (optional, defaults to enabled)
+2. **Configure the backend with environment variables:**
+   - `LLM_PROVIDER=ollama`
+   - `OLLAMA_BASE_URL=http://localhost:11434`
+   - `OLLAMA_MODEL=llama3.1:8b` (or another model tag you have installed)
+   - `LLM_ENABLED=1` (optional, defaults to enabled)
+
+#### Available Agents:
+
+- **`faq`** (FAQ Assistant): Answers general questions using FAQ knowledge base and comprehensive FAIX data (programs, admission, facilities, departments, fees, etc.)
+- **`schedule`** (Schedule Assistant): Handles academic calendar, class times, and important deadlines
+- **`staff`** (Staff Contact Assistant): Provides staff and faculty contact information
+
+#### API Usage:
 
 The Django chat API (`/api/chat/`) accepts:
 
-- `agent_id`: one of `faq`, `schedule`, `staff` (selects a specialised conversational agent)
-- `history`: recent turns as a list of `{ "role": "user"|"assistant", "content": "..." }`
+- `agent_id`: one of `faq`, `schedule`, `staff` (selects a specialized conversational agent)
+- `history`: recent conversation turns as a list of `{ "role": "user"|"assistant", "content": "..." }`
 
 The frontend chat widget defaults to the `faq` agent and includes the selected
 `agent_id` and recent `history` in each request. When `agent_id` is provided,
-the backend routes the request through the Llama-based conversational agent;
-when it is omitted, it falls back to the previous rules/KB-based behaviour.
+the backend routes the request through the Llama-based conversational agent with
+RAG context; when it is omitted, it falls back to the previous rules/KB-based behaviour.
+
+#### Features:
+
+- **Automatic Intent Routing**: NLP-based intent detection routes queries to appropriate agents
+- **Context Retrieval**: Each agent retrieves relevant context from knowledge base and FAIX data
+- **Enhanced Formatting**: Responses include proper line breaks, bullet points, and preserved URLs
+- **Fee Query Handling**: Fee-related queries automatically return direct links to official fee schedules
+- **Comprehensive Data**: FAQ agent has access to rich FAIX data including programs, admission requirements, facilities, and more
 
 ### With Django Views:
 
@@ -685,7 +750,21 @@ Enhanced query matching using sentence-transformers:
 
 ### Configuration
 Intent classification can be configured via `data/intent_config.json`:
-- Custom intent categories
+- Custom intent categories (including `fees` intent)
 - Keyword patterns
 - Model selection
 - Confidence thresholds
+
+### Conversational Agents with RAG
+The system uses specialized conversational agents that combine:
+- **Retrieval**: Context from knowledge base, FAIX comprehensive data, and specialized data sources
+- **Augmentation**: Agent-specific system prompts and formatting instructions
+- **Generation**: Open LLM models (via Ollama) for natural language responses
+
+### Response Formatting
+Enhanced response formatting includes:
+- Automatic URL detection and linking
+- Line break preservation (`\n` converted to `<br>`)
+- Structured bullet points and sections
+- HTML escaping for security
+- Special handling for fee queries (direct link responses)
