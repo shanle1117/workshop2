@@ -8,6 +8,18 @@ from datetime import datetime
 from collections import defaultdict
 from functools import lru_cache
 
+# Constants for cache sizes and scoring weights
+LANGUAGE_CACHE_SIZE = 1000
+INTENT_CACHE_SIZE = 2000
+PREPROCESS_CACHE_SIZE = 5000
+
+# Scoring weights for intent detection
+KEYWORD_MATCH_WEIGHT = 2
+EXACT_MATCH_BONUS = 1
+STRONG_INDICATOR_WEIGHT = 3
+ENGLISH_INDICATOR_WEIGHT = 2
+SPECIFIC_INTENT_BOOST = 1
+
 # Suppress warnings
 os.environ['TF_ENABLE_ONEDNN_OPTS'] = '0'
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
@@ -49,8 +61,8 @@ class LanguageDetector:
             ],
             'ms': [
                 # Unique Malay words (high weight)
-                r'\byang\b', r'\boleh\b', r'\bditawarkan\b', r'\bditawarkan\b',
-                r'\boleh\b', r'\bdengan\b', r'\buntuk\b', r'\bdari\b', r'\bdaripada\b',
+                r'\byang\b', r'\boleh\b', r'\bditawarkan\b',
+                r'\bdengan\b', r'\buntuk\b', r'\bdari\b', r'\bdaripada\b',
                 r'\bini\b', r'\bitu\b', r'\bsaya\b', r'\bawak\b', r'\banda\b',
                 r'\bdia\b', r'\bkita\b', r'\bkami\b', r'\bmereka\b', r'\badalah\b',
                 r'\bialah\b', r'\bakan\b', r'\btelah\b', r'\bsudah\b', r'\bbelum\b',
@@ -97,7 +109,7 @@ class LanguageDetector:
             for pattern in patterns:
                 matches = re.findall(pattern, text_lower)
                 # Give higher weight to unique language indicators
-                weight = 2 if pattern not in [r'\bprogram\b', r'\bsemester\b'] else 1
+                weight = KEYWORD_MATCH_WEIGHT if pattern not in [r'\bprogram\b', r'\bsemester\b'] else EXACT_MATCH_BONUS
                 scores[lang] += len(matches) * weight
         
         # Check for Malay-specific indicators that are very reliable
@@ -105,14 +117,14 @@ class LanguageDetector:
                                    'maklumat', 'hubungan', 'kakitangan', 'kemudahan']
         for indicator in malay_strong_indicators:
             if re.search(r'\b' + re.escape(indicator) + r'\b', text_lower):
-                scores['ms'] += 3  # Strong boost for Malay
+                scores['ms'] += STRONG_INDICATOR_WEIGHT  # Strong boost for Malay
         
         # Check for English-specific indicators
         english_strong_indicators = ['the', 'what', 'how', 'when', 'where', 'who', 'why',
                                       'information', 'available', 'contact', 'register']
         for indicator in english_strong_indicators:
             if re.search(r'\b' + re.escape(indicator) + r'\b', text_lower):
-                scores['en'] += 2  # Boost for English
+                scores['en'] += ENGLISH_INDICATOR_WEIGHT  # Boost for English
         
         # If no pattern matches, use fallback
         if sum(scores.values()) == 0:
@@ -132,9 +144,9 @@ class LanguageDetector:
         
         result = self._detect_logic(text)
         # Cache last 1000 results (simple LRU by limiting cache size)
-        if len(self._detect_cache) > 1000:
+        if len(self._detect_cache) > LANGUAGE_CACHE_SIZE:
             # Clear oldest entries (simple approach: clear half)
-            self._detect_cache = dict(list(self._detect_cache.items())[500:])
+            self._detect_cache = dict(list(self._detect_cache.items())[LANGUAGE_CACHE_SIZE // 2:])
         self._detect_cache[text_hash] = result
         return result
     
@@ -177,6 +189,9 @@ class LanguageDetector:
 
 class ShortFormProcessor:
     """Process short-form/slang language commonly used by students"""
+    
+    # Pre-compiled regex patterns cache (class-level for reuse)
+    _compiled_patterns = {}
     
     def __init__(self):
         # Comprehensive dictionary of short forms and their expansions
@@ -284,7 +299,6 @@ class ShortFormProcessor:
                 'lgi': 'lagi',
                 'dlm': 'dalam',
                 'dgn': 'dengan',
-                'utk': 'untuk',
                 'stp': 'setiap',
                 'otw': 'on the way',
                 'ptg': 'petang',
@@ -298,8 +312,8 @@ class ShortFormProcessor:
                 'byk': 'banyak',
                 'sdkt': 'sedikit',
                 'yg': 'yang',
-                'utk': 'untuk',
                 'drpd': 'daripada',
+                'utk': 'untuk',
                 'pd': 'pada',
                 'skit': 'sedikit',
                 'g': 'sangat',
@@ -409,7 +423,6 @@ class ShortFormProcessor:
                 'ok': '可以',
                 
                 # Academic-specific Chinese
-                '课': '课程',
                 '大课': '主修课程',
                 '必修': '必修课',
                 '选修': '选修课',
@@ -507,11 +520,16 @@ class ShortFormProcessor:
                 expanded_word = word
                 for short, long in self.short_forms[language].items():
                     if len(short) > 1:
-                        # Only replace if short form is at word boundaries (start or end of word)
-                        # or if it's a number substitution pattern (like 2, 4)
-                        pattern = r'\b' + re.escape(short) + r'\b'
-                        if re.search(pattern, expanded_word, re.IGNORECASE):
-                            expanded_word = re.sub(pattern, long, expanded_word, flags=re.IGNORECASE)
+                        # Use pre-compiled pattern for better performance
+                        pattern_key = (short, language)
+                        if pattern_key not in ShortFormProcessor._compiled_patterns:
+                            ShortFormProcessor._compiled_patterns[pattern_key] = re.compile(
+                                r'\b' + re.escape(short) + r'\b', re.IGNORECASE
+                            )
+                        compiled = ShortFormProcessor._compiled_patterns[pattern_key]
+                        
+                        if compiled.search(expanded_word):
+                            expanded_word = compiled.sub(long, expanded_word)
                         # Also handle number substitutions (2day -> today, 4ever -> forever)
                         elif short.isdigit() or (len(short) == 1 and short.isdigit()):
                             if short in expanded_word.lower():
@@ -941,9 +959,6 @@ class QueryProcessor:
         
         return text
     
-    # Cache text preprocessing results
-    _preprocess_cache = {}
-    
     def preprocess_text(self, text: str, language: str = 'en') -> str:
         """Clean and normalize the input text for specific language (cached)"""
         # Use simple in-memory cache
@@ -954,9 +969,9 @@ class QueryProcessor:
             return self._preprocess_cache[cache_key]
         
         result = self._preprocess_logic(text, language)
-        # Cache last 5000 results
-        if len(self._preprocess_cache) > 5000:
-            self._preprocess_cache = dict(list(self._preprocess_cache.items())[2500:])
+        # Cache results with size limit
+        if len(self._preprocess_cache) > PREPROCESS_CACHE_SIZE:
+            self._preprocess_cache = dict(list(self._preprocess_cache.items())[PREPROCESS_CACHE_SIZE // 2:])
         self._preprocess_cache[cache_key] = result
         return result
     
@@ -1049,7 +1064,7 @@ class QueryProcessor:
             # If a specific intent has any score, reduce general_query's influence
             if intent != 'general_query' and score > 0:
                 # Boost specific intents
-                score += 1
+                score += SPECIFIC_INTENT_BOOST
             
             if score > 0:
                 intent_scores[intent] = score
@@ -1077,17 +1092,17 @@ class QueryProcessor:
             
             result = (intent_name, confidence)
             # Cache the result
-            if len(self._intent_cache) > 2000:
+            if len(self._intent_cache) > INTENT_CACHE_SIZE:
                 # Clear half when cache gets too large
-                self._intent_cache = dict(list(self._intent_cache.items())[1000:])
+                self._intent_cache = dict(list(self._intent_cache.items())[INTENT_CACHE_SIZE // 2:])
             self._intent_cache[cache_key] = result
             return result
         
         # Default to general query with low confidence
         result = ('general_query', 0.2 if language == 'zh' else 0.1)
         # Cache the result
-        if len(self._intent_cache) > 2000:
-            self._intent_cache = dict(list(self._intent_cache.items())[1000:])
+        if len(self._intent_cache) > INTENT_CACHE_SIZE:
+            self._intent_cache = dict(list(self._intent_cache.items())[INTENT_CACHE_SIZE // 2:])
         self._intent_cache[cache_key] = result
         return result
     
