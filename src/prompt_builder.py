@@ -214,6 +214,7 @@ def build_messages(
     history: Optional[List[Dict[str, str]]],
     context: Dict[str, List[Dict]],
     intent: Optional[str] = None,
+    language_code: str = 'en',
 ) -> List[Dict[str, str]]:
     """
     Build messages for the LLM client.
@@ -224,11 +225,24 @@ def build_messages(
         history: Conversation history as a list of {role, content} dicts.
         context: Retrieved documents grouped by source key (faq/schedule/staff).
         intent: Optional detected intent string for additional guidance.
+        language_code: Detected language code ('en', 'ms', 'zh', 'ar').
     """
     messages: List[Dict[str, str]] = []
 
+    # Language-specific response instructions
+    language_instructions = {
+        'en': "Respond in English.",
+        'ms': "Respond in Bahasa Malaysia (Malay). Use proper Malay grammar and vocabulary.",
+        'zh': "Respond in Chinese (Simplified). Use proper Chinese grammar and vocabulary.",
+        'ar': "Respond in Arabic. Use proper Arabic grammar and vocabulary. Write from right to left.",
+    }
+    language_instruction = language_instructions.get(language_code, language_instructions['en'])
+
     # System message with agent behaviour and RAG instructions
     system_parts: List[str] = [agent.system_prompt]
+    
+    # Add language instruction
+    system_parts.append(f"LANGUAGE REQUIREMENT: {language_instruction}")
     if intent:
         system_parts.append(f"The detected intent for this query is: '{intent}'.")
     system_parts.append(

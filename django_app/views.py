@@ -170,6 +170,8 @@ def chat_api(request):
         intent = processed_query.get('detected_intent', 'general_query')
         confidence = processed_query.get('confidence_score', 0.0)
         entities = processed_query.get('extracted_entities', {})
+        language_info = processed_query.get('language', {'code': 'en', 'name': 'English'})
+        language_code = language_info.get('code', 'en')
         
         # Use NLP intent as confirmation if agent not already set by data-first routing
         if not agent_id:
@@ -258,6 +260,7 @@ def chat_api(request):
                 history=history_messages,
                 context=agent_context,
                 intent=intent,
+                language_code=language_code,
             )
             
             # Debug: Print message count and check if staff context is in messages

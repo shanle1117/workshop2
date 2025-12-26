@@ -28,24 +28,47 @@ except ImportError:
         print("Warning: NLP modules not available. Using keyword-based intent detection.")
 
 class LanguageDetector:
-    """Enhanced language detection for English, Malay, Chinese"""
+    """Enhanced language detection for English, Malay, Chinese, Arabic"""
     
     def __init__(self):
         # Language-specific keywords
+        # Words that appear in both languages are weighted lower
         self.language_patterns = {
             'en': [
                 r'\bthe\b', r'\band\b', r'\bfor\b', r'\bwith\b', r'\bthis\b',
-                r'\bprogram\b', r'\bcourse\b', r'\bregister\b', r'\benroll\b',
-                r'\bsemester\b', r'\bfaculty\b', r'\bstudent\b', r'\bprofessor\b'
+                r'\bthat\b', r'\bwhat\b', r'\bhow\b', r'\bwhen\b', r'\bwhere\b',
+                r'\bwho\b', r'\bwhy\b', r'\bare\b', r'\bis\b', r'\bwas\b',
+                r'\bwere\b', r'\bhave\b', r'\bhas\b', r'\bhad\b', r'\bdo\b',
+                r'\bdoes\b', r'\bdid\b', r'\bwill\b', r'\bwould\b', r'\bshould\b',
+                r'\bcould\b', r'\bcan\b', r'\bmay\b', r'\bmight\b', r'\bmust\b',
+                r'\bregister\b', r'\benroll\b', r'\bfaculty\b', r'\bstudent\b',
+                r'\bprofessor\b', r'\bcontact\b', r'\binformation\b', r'\bavailable\b'
             ],
             'ms': [
-                r'\bdan\b', r'\bdengan\b', r'\buntuk\b', r'\bini\b', r'\bitu\b',
-                r'\bkursus\b', r'\bprogram\b', r'\bdaftar\b', r'\bmendaftar\b',
-                r'\bsemester\b', r'\bfakulti\b', r'\bpelajar\b', r'\bprofesor\b'
+                # Unique Malay words (high weight)
+                r'\byang\b', r'\boleh\b', r'\bditawarkan\b', r'\bditawarkan\b',
+                r'\boleh\b', r'\bdengan\b', r'\buntuk\b', r'\bdari\b', r'\bdaripada\b',
+                r'\bini\b', r'\bitu\b', r'\bsaya\b', r'\bawak\b', r'\banda\b',
+                r'\bdia\b', r'\bkita\b', r'\bkami\b', r'\bmereka\b', r'\badalah\b',
+                r'\bialah\b', r'\bakan\b', r'\btelah\b', r'\bsudah\b', r'\bbelum\b',
+                r'\bjangan\b', r'\btidak\b', r'\bbukan\b', r'\bapakah\b', r'\bbagaimana\b',
+                r'\bkenapa\b', r'\bsiapa\b', r'\bbila\b', r'\bdimana\b', r'\bmengapa\b',
+                r'\bkursus\b', r'\bdaftar\b', r'\bmendaftar\b', r'\bfakulti\b',
+                r'\bpelajar\b', r'\bprofesor\b', r'\bhubungi\b', r'\bmaklumat\b',
+                r'\bhubungan\b', r'\bkemudahan\b', r'\byuran\b', r'\bbayaran\b',
+                r'\bkemasukan\b', r'\bpendaftaran\b', r'\bpermohonan\b', r'\bmemohon\b'
             ],
             'zh': [
                 r'[\u4e00-\u9fff]',  
+            ],
+            'ar': [
+                r'[\u0600-\u06FF]',  # Arabic Unicode range
             ]
+        }
+        
+        # Words that appear in multiple languages (lower weight)
+        self.common_words = {
+            'program', 'semester', 'course', 'programme'
         }
     
     def detect(self, text: str) -> str:
@@ -56,15 +79,37 @@ class LanguageDetector:
         if self._has_chinese(text):
             return 'zh'
         
-        # Count pattern matches for each language
-        scores = {'en': 0, 'ms': 0, 'zh': 0}
+        # Check for Arabic characters (most reliable)
+        if self._has_arabic(text):
+            return 'ar'
+        
+        # Count pattern matches for each language with weighted scoring
+        scores = {'en': 0, 'ms': 0, 'zh': 0, 'ar': 0}
+        text_lower = text.lower()
         
         for lang, patterns in self.language_patterns.items():
+            if lang in ['zh', 'ar']:
+                continue  # Already handled
+            
             for pattern in patterns:
-                if lang == 'zh':
-                    continue  # Already handled
-                matches = re.findall(pattern, text.lower())
-                scores[lang] += len(matches)
+                matches = re.findall(pattern, text_lower)
+                # Give higher weight to unique language indicators
+                weight = 2 if pattern not in [r'\bprogram\b', r'\bsemester\b'] else 1
+                scores[lang] += len(matches) * weight
+        
+        # Check for Malay-specific indicators that are very reliable
+        malay_strong_indicators = ['yang', 'oleh', 'ditawarkan', 'apakah', 'bagaimana', 
+                                   'maklumat', 'hubungan', 'kakitangan', 'kemudahan']
+        for indicator in malay_strong_indicators:
+            if re.search(r'\b' + re.escape(indicator) + r'\b', text_lower):
+                scores['ms'] += 3  # Strong boost for Malay
+        
+        # Check for English-specific indicators
+        english_strong_indicators = ['the', 'what', 'how', 'when', 'where', 'who', 'why',
+                                      'information', 'available', 'contact', 'register']
+        for indicator in english_strong_indicators:
+            if re.search(r'\b' + re.escape(indicator) + r'\b', text_lower):
+                scores['en'] += 2  # Boost for English
         
         # If no pattern matches, use fallback
         if sum(scores.values()) == 0:
@@ -80,12 +125,20 @@ class LanguageDetector:
                 return True
         return False
     
+    def _has_arabic(self, text: str) -> bool:
+        """Check if text contains Arabic characters"""
+        for char in text:
+            if '\u0600' <= char <= '\u06FF':
+                return True
+        return False
+    
     def _fallback_detection(self, text: str) -> str:
         """Fallback detection using common phrases"""
         text_lower = text.lower()
         
         malay_indicators = ['apa', 'bagaimana', 'kenapa', 'siapa', 'bila']
         chinese_indicators = ['吗', '呢', '什么', '怎么', '为什么']
+        arabic_indicators = ['ما', 'كيف', 'متى', 'أين', 'لماذا', 'من', 'هل']
         
         for indicator in malay_indicators:
             if indicator in text_lower:
@@ -94,6 +147,10 @@ class LanguageDetector:
         for indicator in chinese_indicators:
             if indicator in text:
                 return 'zh'
+        
+        for indicator in arabic_indicators:
+            if indicator in text:
+                return 'ar'
         
         # Default to English
         return 'en'
@@ -587,26 +644,107 @@ class QueryProcessor:
                 '的', '了', '和', '在', '是', '我', '有', '就', '不', '人', '都',
                 '一', '一个', '也', '很', '吗', '呢', '吧', '啊', '呀', '哦',
                 '可以', '能', '会', '要', '想', '说', '看', '做', '去', '来'
+            ]),
+            'ar': set([
+                'في', 'من', 'إلى', 'على', 'عن', 'مع', 'هذا', 'هذه', 'ذلك', 'تلك',
+                'الذي', 'التي', 'الذين', 'اللاتي', 'كان', 'كانت', 'يكون', 'تكون',
+                'أنا', 'أنت', 'هو', 'هي', 'نحن', 'أنتم', 'هم', 'هن',
+                'و', 'أو', 'لكن', 'إذا', 'إن', 'أن', 'لا', 'لم', 'لن'
             ])
         }
 
-        # Enhanced intent categories with Chinese translations
+        # Enhanced intent categories with multi-language translations
         self.intent_categories = {
-            'course_info': {'en': 'Information about courses and subjects', 'zh': '课程和科目信息'},
-            'program_info': {'en': 'Information about programs and degrees', 'zh': '项目和学位信息'},
-            'registration': {'en': 'Registration and enrollment procedures', 'zh': '注册和报名程序'},
-            'academic_schedule': {'en': 'Academic calendar and timelines', 'zh': '学术日历和时间表'},
-            'staff_contact': {'en': 'Faculty and staff contacts', 'zh': '教职员工联系信息'},
-            'facility_info': {'en': 'Campus facilities and resources', 'zh': '校园设施和资源'},
-            'fees': {'en': 'Tuition and financial information', 'zh': '学费和财务信息'},
-            'academic_policy': {'en': 'Academic rules and requirements', 'zh': '学术规则和要求'},
-            'technical': {'en': 'IT and technical support', 'zh': 'IT和技术支持'},
-            'career': {'en': 'Career services and internships', 'zh': '职业服务和实习'},
-            'student_life': {'en': 'Clubs and student activities', 'zh': '俱乐部和学生活动'},
-            'housing': {'en': 'Accommodation and residence', 'zh': '住宿和宿舍'},
-            'international': {'en': 'International student matters', 'zh': '国际学生事务'},
-            'research': {'en': 'Research opportunities', 'zh': '研究机会'},
-            'wellness': {'en': 'Health and counseling services', 'zh': '健康和咨询服务'},
+            'course_info': {
+                'en': 'Information about courses and subjects',
+                'zh': '课程和科目信息',
+                'ms': 'Maklumat tentang kursus dan subjek',
+                'ar': 'معلومات عن الدورات والمواضيع'
+            },
+            'program_info': {
+                'en': 'Information about programs and degrees',
+                'zh': '项目和学位信息',
+                'ms': 'Maklumat tentang program dan ijazah',
+                'ar': 'معلومات عن البرامج والدرجات'
+            },
+            'registration': {
+                'en': 'Registration and enrollment procedures',
+                'zh': '注册和报名程序',
+                'ms': 'Prosedur pendaftaran dan pendaftaran',
+                'ar': 'إجراءات التسجيل والقبول'
+            },
+            'academic_schedule': {
+                'en': 'Academic calendar and timelines',
+                'zh': '学术日历和时间表',
+                'ms': 'Kalendar akademik dan jadual waktu',
+                'ar': 'التقويم الأكاديمي والجداول الزمنية'
+            },
+            'staff_contact': {
+                'en': 'Faculty and staff contacts',
+                'zh': '教职员工联系信息',
+                'ms': 'Kontak fakulti dan kakitangan',
+                'ar': 'جهات اتصال أعضاء هيئة التدريس والموظفين'
+            },
+            'facility_info': {
+                'en': 'Campus facilities and resources',
+                'zh': '校园设施和资源',
+                'ms': 'Kemudahan dan sumber kampus',
+                'ar': 'مرافق وموارد الحرم الجامعي'
+            },
+            'fees': {
+                'en': 'Tuition and financial information',
+                'zh': '学费和财务信息',
+                'ms': 'Maklumat yuran dan kewangan',
+                'ar': 'معلومات الرسوم الدراسية والمالية'
+            },
+            'academic_policy': {
+                'en': 'Academic rules and requirements',
+                'zh': '学术规则和要求',
+                'ms': 'Peraturan dan keperluan akademik',
+                'ar': 'القواعد والمتطلبات الأكاديمية'
+            },
+            'technical': {
+                'en': 'IT and technical support',
+                'zh': 'IT和技术支持',
+                'ms': 'Sokongan IT dan teknikal',
+                'ar': 'دعم تكنولوجيا المعلومات والتقنية'
+            },
+            'career': {
+                'en': 'Career services and internships',
+                'zh': '职业服务和实习',
+                'ms': 'Perkhidmatan kerjaya dan latihan',
+                'ar': 'خدمات التوظيف والتدريب'
+            },
+            'student_life': {
+                'en': 'Clubs and student activities',
+                'zh': '俱乐部和学生活动',
+                'ms': 'Kelab dan aktiviti pelajar',
+                'ar': 'الأندية والأنشطة الطلابية'
+            },
+            'housing': {
+                'en': 'Accommodation and residence',
+                'zh': '住宿和宿舍',
+                'ms': 'Penginapan dan kediaman',
+                'ar': 'الإقامة والسكن'
+            },
+            'international': {
+                'en': 'International student matters',
+                'zh': '国际学生事务',
+                'ms': 'Hal ehwal pelajar antarabangsa',
+                'ar': 'شؤون الطلاب الدوليين'
+            },
+            'research': {
+                'en': 'Research opportunities',
+                'zh': '研究机会',
+                'ms': 'Peluang penyelidikan',
+                'ar': 'فرص البحث'
+            },
+            'wellness': {
+                'en': 'Health and counseling services',
+                'zh': '健康和咨询服务',
+                'ms': 'Perkhidmatan kesihatan dan kaunseling',
+                'ar': 'خدمات الصحة والإرشاد'
+            },
             'financial_aid': {'en': 'Scholarships and financial assistance', 'zh': '奖学金和经济援助'},
             'location': {'en': 'Campus location and directions', 'zh': '校园位置和方向'},
             'curriculum': {'en': 'Course content and programming languages', 'zh': '课程内容和编程语言'},
@@ -692,34 +830,44 @@ class QueryProcessor:
         """Initialize comprehensive language-specific patterns"""
         return {
             'en': {
-                'course_info': ['course', 'subject', 'module', 'curriculum', 'class', 'lecture', 'tutorial', 'lab'],
-                'program_info': ['program', 'degree', 'bachelor', 'master', 'phd', 'major', 'study'],
-                'registration': ['register', 'enroll', 'enrollment', 'admission', 'apply', 'application', 'sign up'],
-                'academic_schedule': ['schedule', 'timetable', 'calendar', 'when', 'time', 'date', 'deadline', 'semester'],
-                'staff_contact': ['contact', 'email', 'phone', 'number', 'professor', 'lecturer', 'staff', 'faculty', 'dean'],
-                'facility_info': ['lab', 'laboratory', 'facility', 'equipment', 'room', 'building', 'campus', 'library'],
-                'fees': ['tuition', 'fee', 'cost', 'payment', 'price', 'financial', 'money', 'scholarship'],
+                'course_info': ['course', 'courses', 'subject', 'subjects', 'module', 'modules', 'curriculum', 'class', 'classes', 'lecture', 'lectures', 'tutorial', 'tutorials', 'lab', 'labs'],
+                'program_info': ['program', 'programs', 'programme', 'programmes', 'degree', 'degrees', 'bachelor', 'masters', 'master', 'phd', 'doctorate', 'major', 'majors', 'study', 'studies', 'offer', 'offers', 'offered'],
+                'registration': ['register', 'registration', 'enroll', 'enrollment', 'enrolling', 'admission', 'admissions', 'apply', 'applying', 'application', 'applications', 'sign up', 'signup'],
+                'academic_schedule': ['schedule', 'schedules', 'timetable', 'timetables', 'calendar', 'when', 'time', 'times', 'date', 'dates', 'deadline', 'deadlines', 'semester', 'semesters', 'starting', 'starts', 'start'],
+                'staff_contact': ['contact', 'contacts', 'email', 'emails', 'phone', 'telephone', 'number', 'numbers', 'professor', 'professors', 'lecturer', 'lecturers', 'staff', 'faculty', 'dean', 'who'],
+                'facility_info': ['facility', 'facilities', 'lab', 'laboratory', 'laboratories', 'equipment', 'room', 'rooms', 'building', 'buildings', 'campus', 'library', 'libraries', 'available'],
+                'fees': ['tuition', 'fee', 'fees', 'cost', 'costs', 'payment', 'payments', 'price', 'prices', 'financial', 'money', 'scholarship', 'scholarships', 'how much'],
                 'general_query': ['hello', 'hi', 'help', 'information', 'about', 'tell me', 'what is', 'how to']
             },
             'ms': {
-                'course_info': ['kursus', 'subjek', 'modul', 'kurikulum', 'kelas', 'kuliah', 'tutorial', 'makmal'],
-                'program_info': ['program', 'ijazah', 'sarjana', 'doktor', 'pengajian', 'bidang'],
-                'registration': ['daftar', 'mendaftar', 'pendaftaran', 'kemasukan', 'memohon', 'permohonan'],
-                'academic_schedule': ['jadual', 'kalendar', 'bila', 'masa', 'tarikh', 'had masa', 'semester'],
-                'staff_contact': ['hubungi', 'emel', 'telefon', 'nombor', 'profesor', 'pensyarah', 'kakitangan', 'fakulti', 'dekan'],
-                'facility_info': ['makmal', 'laboratori', 'kemudahan', 'peralatan', 'bilik', 'bangunan', 'kampus', 'perpustakaan'],
-                'fees': ['yuran', 'kos', 'bayaran', 'harga', 'kewangan', 'wang', 'biasiswa'],
+                'course_info': ['kursus', 'kursus-kursus', 'subjek', 'subjek-subjek', 'modul', 'modul-modul', 'kurikulum', 'kelas', 'kelas-kelas', 'kuliah', 'kuliah-kuliah', 'tutorial', 'tutorial-tutorial', 'makmal'],
+                'program_info': ['program', 'program-program', 'programme', 'ijazah', 'ijazah-ijazah', 'sarjana', 'doktor', 'pengajian', 'bidang', 'tawarkan', 'ditawarkan', 'menawarkan'],
+                'registration': ['daftar', 'mendaftar', 'pendaftaran', 'kemasukan', 'memohon', 'permohonan', 'mohon'],
+                'academic_schedule': ['jadual', 'jadual-jadual', 'kalendar', 'bila', 'masa', 'tarikh', 'tarikh-tarikh', 'had masa', 'semester', 'semester-semester', 'bermula', 'mula'],
+                'staff_contact': ['hubungi', 'menghubungi', 'emel', 'telefon', 'nombor', 'profesor', 'pensyarah', 'kakitangan', 'fakulti', 'dekan', 'siapa'],
+                'facility_info': ['makmal', 'laboratori', 'kemudahan', 'kemudahan-kemudahan', 'peralatan', 'bilik', 'bilik-bilik', 'bangunan', 'bangunan-bangunan', 'kampus', 'perpustakaan', 'tersedia'],
+                'fees': ['yuran', 'yuran-yuran', 'kos', 'bayaran', 'bayaran-bayaran', 'harga', 'harga-harga', 'kewangan', 'wang', 'biasiswa', 'berapakah'],
                 'general_query': ['helo', 'hai', 'bantuan', 'maklumat', 'tentang', 'beritahu saya', 'apa itu', 'bagaimana']
             },
             'zh': {
-                'course_info': ['课程', '科目', '模块', '课程', '课堂', '讲座', '辅导', '实验室'],
-                'program_info': ['专业', '学位', '学士', '硕士', '博士', '主修', '学习'],
-                'registration': ['注册', '报名', '登记', '入学', '申请', '申请表', '注册表'],
-                'academic_schedule': ['时间表', '日历', '什么时候', '时间', '日期', '截止日期', '学期'],
+                'course_info': ['课程', '科目', '模块', '课堂', '讲座', '辅导', '实验室', '有哪些课程', '什么课程'],
+                'program_info': ['专业', '项目', '学位', '学士', '硕士', '博士', '主修', '学习', '项目的信息', '关于项目', '项目信息', '提供', '提供什么', '提供哪些', '提供什么课程', '提供什么项目'],
+                'registration': ['注册', '报名', '登记', '入学', '申请', '申请表', '注册表', '如何注册'],
+                'academic_schedule': ['时间表', '日历', '什么时候', '时间', '日期', '截止日期', '学期', '开始'],
                 'staff_contact': ['联系', '电邮', '电话', '号码', '教授', '讲师', '员工', '学院', '院长'],
-                'facility_info': ['实验室', '设备', '设施', '房间', '建筑', '校园', '图书馆'],
-                'fees': ['学费', '费用', '成本', '付款', '价格', '财务', '钱', '奖学金'],
+                'facility_info': ['实验室', '设备', '设施', '房间', '建筑', '校园', '图书馆', '有哪些设施'],
+                'fees': ['学费', '费用', '成本', '付款', '价格', '财务', '钱', '奖学金', '是多少'],
                 'general_query': ['你好', '嗨', '帮助', '信息', '关于', '告诉我', '是什么', '如何']
+            },
+            'ar': {
+                'course_info': ['دورة', 'دورات', 'الدورات', 'مادة', 'مواد', 'وحدة', 'وحدات', 'منهج', 'مناهج', 'فصل', 'فصول', 'محاضرة', 'محاضرات', 'دروس', 'ما هي الدورات', 'الدورات المتاحة'],
+                'program_info': ['برنامج', 'برامج', 'البرامج', 'درجة', 'درجات', 'بكالوريوس', 'ماجستير', 'دكتوراه', 'تخصص', 'تخصصات', 'دراسة', 'دراسات', 'تقدم', 'تقدمها', 'عن البرامج'],
+                'registration': ['تسجيل', 'التسجيل', 'التحاق', 'قبول', 'تطبيق', 'طلب', 'استمارة', 'استمارات', 'سجل', 'أسجل', 'كيف أسجل'],
+                'academic_schedule': ['جدول', 'جداول', 'تقويم', 'تقاويم', 'متى', 'وقت', 'أوقات', 'تاريخ', 'تواريخ', 'موعد نهائي', 'فصل دراسي', 'فصول دراسية', 'يبدأ', 'تبدأ'],
+                'staff_contact': ['اتصال', 'اتصالات', 'بريد إلكتروني', 'هاتف', 'هواتف', 'رقم', 'أرقام', 'أستاذ', 'أساتذة', 'محاضر', 'محاضرون', 'موظف', 'موظفون', 'كلية', 'عميد'],
+                'facility_info': ['معدات', 'مرافق', 'المرافق', 'غرفة', 'غرف', 'مبنى', 'مبان', 'حرم', 'مكتبة', 'مكتبات', 'ما هي المرافق', 'المرافق المتاحة'],
+                'fees': ['رسوم', 'الرسوم', 'تكلفة', 'تكاليف', 'دفع', 'مدفوعات', 'سعر', 'أسعار', 'مالي', 'مال', 'منحة', 'منح', 'كم'],
+                'general_query': ['مرحبا', 'أهلا', 'مساعدة', 'معلومات', 'حول', 'أخبرني', 'ما هو', 'كيف']
             }
         }
     
@@ -727,8 +875,8 @@ class QueryProcessor:
         """Clean and normalize the input text for specific language"""
         text = text.strip()
         
-        # Keep original Chinese characters, clean others
-        if language != 'zh':
+        # Keep original Chinese/Arabic characters, clean others
+        if language not in ['zh', 'ar']:
             text = text.lower()
         
         # Remove extra spaces
@@ -738,9 +886,26 @@ class QueryProcessor:
         if language == 'zh':
             # For Chinese, keep Chinese characters, numbers, and basic punctuation
             text = re.sub(r'[^\u4e00-\u9fff0-9\s?.,!？，。！]', '', text)
+            # Normalize multiple consecutive punctuation marks to single ones
+            text = re.sub(r'([？，。！?!.,])+', r'\1', text)
+        elif language == 'ar':
+            # For Arabic, keep Arabic characters, numbers, and basic punctuation
+            text = re.sub(r'[^\u0600-\u06FF0-9\s?.,!؟،؛]', '', text)
+            # Normalize multiple consecutive punctuation marks to single ones
+            text = re.sub(r'([؟،؛?!.,])+', r'\1', text)
         else:
             # For English/Malay, keep alphanumeric and basic punctuation
             text = re.sub(r'[^\w\s?.,!]', '', text)
+            # Normalize multiple consecutive punctuation marks to single ones
+            # But remove excessive question marks and exclamation marks
+            text = re.sub(r'[?!]{2,}', '', text)  # Remove multiple ? or !
+            text = re.sub(r'([.,])+', r'\1', text)  # Normalize multiple dots/commas to single
+        
+        # Final cleanup: remove trailing punctuation and extra spaces
+        text = re.sub(r'\s+', ' ', text).strip()
+        # Remove trailing punctuation for English/Malay (but keep single ? for questions)
+        if language not in ['zh', 'ar']:
+            text = re.sub(r'[.,!]+$', '', text).strip()
         
         return text
     
@@ -753,6 +918,19 @@ class QueryProcessor:
             current_token = ""
             for char in text:
                 if char in [' ', '，', '。', '？', '！', '、']:
+                    if current_token:
+                        tokens.append(current_token)
+                        current_token = ""
+                else:
+                    current_token += char
+            if current_token:
+                tokens.append(current_token)
+        elif language == 'ar':
+            # Arabic tokenization - split by spaces and Arabic punctuation
+            tokens = []
+            current_token = ""
+            for char in text:
+                if char in [' ', '،', '؛', '؟', '!', '.', ',', ';', '?']:
                     if current_token:
                         tokens.append(current_token)
                         current_token = ""
@@ -777,7 +955,8 @@ class QueryProcessor:
         lang_names = {
             'en': {'code': 'en', 'name': 'English'},
             'ms': {'code': 'ms', 'name': 'Bahasa Malaysia'},
-            'zh': {'code': 'zh', 'name': 'Chinese'}
+            'zh': {'code': 'zh', 'name': 'Chinese'},
+            'ar': {'code': 'ar', 'name': 'Arabic'}
         }
         
         return lang_names.get(lang_code, lang_names['en'])
@@ -788,17 +967,20 @@ class QueryProcessor:
             language = 'en'  # Default to English
         
         language_patterns = self.patterns[language]
-        text_lower = text.lower() if language != 'zh' else text
+        text_lower = text.lower() if language not in ['zh', 'ar'] else text
         
         intent_scores = {}
         
         for intent, keywords in language_patterns.items():
             score = 0
             for keyword in keywords:
-                # For Chinese, check if keyword is in text directly
-                if language == 'zh':
+                # For Chinese and Arabic, check if keyword is in text directly
+                if language in ['zh', 'ar']:
                     if keyword in text:
                         score += 3
+                        # Bonus for exact word match
+                        if f" {keyword} " in f" {text} " or text.startswith(keyword + " ") or text.endswith(" " + keyword):
+                            score += 1
                 else:
                     # For other languages, check in lowercase text
                     if keyword in text_lower:
@@ -807,8 +989,21 @@ class QueryProcessor:
                         if f" {keyword} " in f" {text_lower} ":
                             score += 1
             
+            # Prioritize specific intents over general_query
+            # If a specific intent has any score, reduce general_query's influence
+            if intent != 'general_query' and score > 0:
+                # Boost specific intents
+                score += 1
+            
             if score > 0:
                 intent_scores[intent] = score
+        
+        # If we have specific intents, reduce general_query score significantly
+        if 'general_query' in intent_scores:
+            specific_intents = [i for i in intent_scores.keys() if i != 'general_query']
+            if specific_intents:
+                # Reduce general_query score by half if there are specific intents
+                intent_scores['general_query'] = max(1, intent_scores['general_query'] // 2)
         
         if intent_scores:
             # Get best intent
@@ -820,8 +1015,8 @@ class QueryProcessor:
             max_possible_score = len(language_patterns.get(intent_name, [])) * 3
             confidence = min(raw_score / max(max_possible_score, 1), 1.0)
             
-            # Minimum confidence boost for Chinese
-            if language == 'zh' and confidence < 0.3:
+            # Minimum confidence boost for Chinese and Arabic
+            if language in ['zh', 'ar'] and confidence < 0.3:
                 confidence = 0.3
             
             return intent_name, confidence
@@ -905,6 +1100,8 @@ class QueryProcessor:
                 missing.append('具体课程代码或名称')
             elif language == 'ms':
                 missing.append('kod kursus atau nama khusus')
+            elif language == 'ar':
+                missing.append('رمز الدورة أو الاسم المحدد')
             else:
                 missing.append('specific course code or name')
         
@@ -913,6 +1110,8 @@ class QueryProcessor:
                 missing.append('教职员工姓名')
             elif language == 'ms':
                 missing.append('nama kakitangan')
+            elif language == 'ar':
+                missing.append('اسم الموظف')
             else:
                 missing.append('staff member name')
         
@@ -921,6 +1120,8 @@ class QueryProcessor:
                 missing.append('具体日期或学期')
             elif language == 'ms':
                 missing.append('tarikh atau semester khusus')
+            elif language == 'ar':
+                missing.append('تاريخ محدد أو فصل دراسي')
             else:
                 missing.append('specific date or semester')
         
@@ -967,7 +1168,7 @@ class QueryProcessor:
             
             # Format results
             matches = []
-            query_lower = query.lower() if language != 'zh' else query
+            query_lower = query.lower() if language not in ['zh', 'ar'] else query
             
             for faq in results:
                 score = 0
@@ -977,7 +1178,7 @@ class QueryProcessor:
                     score += 2
                 
                 # Keyword matches in question
-                question_text = faq.question.lower() if language != 'zh' else faq.question
+                question_text = faq.question.lower() if language not in ['zh', 'ar'] else faq.question
                 for keyword in keywords:
                     if keyword in question_text:
                         score += 1
@@ -1032,7 +1233,7 @@ class QueryProcessor:
                 score += 2
             
             # Check question text match
-            question_text = str(item['question']).lower() if language != 'zh' else str(item['question'])
+            question_text = str(item['question']).lower() if language not in ['zh', 'ar'] else str(item['question'])
             for keyword in keywords:
                 if keyword in question_text:
                     score += 1
