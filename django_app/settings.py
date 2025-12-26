@@ -131,3 +131,15 @@ FIREBASE_CONFIG = {
     'credentials_path': os.environ.get('FIREBASE_CREDENTIALS_PATH', ''),
 }
 
+# Cache configuration for performance optimization
+CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
+        'LOCATION': 'unique-snowflake',
+        'TIMEOUT': 3600,  # 1 hour default timeout
+        'OPTIONS': {
+            'MAX_ENTRIES': 10000,
+        }
+    }
+}
+

@@ -16,7 +16,7 @@ class LLMSettings:
 
     provider: str = "ollama"
     base_url: str = "http://localhost:11434"
-    model: str = "llama3.1:8b"
+    model: str = "llama3.2:3b"
     request_timeout: int = 60  # seconds
     enabled: bool = True
 
@@ -28,13 +28,13 @@ class LLMSettings:
         Environment variables:
             LLM_PROVIDER:     e.g. 'ollama'
             OLLAMA_BASE_URL:  e.g. 'http://localhost:11434'
-            OLLAMA_MODEL:     e.g. 'llama3.1:8b'
+            OLLAMA_MODEL:     e.g. 'llama3.2:3b'
             LLM_ENABLED:      '0' or 'false' to disable
             LLM_REQUEST_TIMEOUT: request timeout in seconds
         """
         provider = os.getenv("LLM_PROVIDER", "ollama").strip().lower()
         base_url = os.getenv("OLLAMA_BASE_URL", "http://localhost:11434").strip()
-        model = os.getenv("OLLAMA_MODEL", "llama3.1:8b").strip()
+        model = os.getenv("OLLAMA_MODEL", "llama3.2:3b").strip()
 
         enabled_raw = os.getenv("LLM_ENABLED", "1").strip().lower()
         enabled = enabled_raw not in ("0", "false", "no", "off")

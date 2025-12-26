@@ -253,8 +253,10 @@ def build_messages(
         "IMPORTANT: Always preserve and include URLs/links from the context in your response, "
         "especially for fee schedules, official resources, or payment information. Links should "
         "be displayed as clickable URLs.\n\n"
-        "If the answer is not clearly supported by the context, say you are "
-        "not sure and suggest contacting the FAIX office."
+        "CRITICAL: Do NOT add disclaimers like 'The final answer to your question is not explicitly stated' "
+        "or 'According to the FAQ section:' or similar meta-commentary. Answer directly and naturally "
+        "using the provided context. If the answer is not clearly supported by the context, simply say "
+        "you are not sure and suggest contacting the FAIX office."
     )
     # Add reminder for staff queries to keep it short
     if agent.id == "staff":

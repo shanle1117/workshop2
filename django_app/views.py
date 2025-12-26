@@ -2,6 +2,8 @@ import os
 import sys
 import json
 import uuid
+import hashlib
+import threading
 from pathlib import Path
 from django.http import JsonResponse, HttpResponse
 from django.views.decorators.csrf import csrf_exempt
@@ -9,6 +11,7 @@ from django.views.decorators.http import require_http_methods
 from django.utils import timezone
 from django.db import transaction
 from django.db.models import Q
+from django.core.cache import cache
 
 # Setup paths for imports
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -27,6 +30,44 @@ from src.prompt_builder import build_messages
 # Initialize global instances
 query_processor = QueryProcessor()
 knowledge_base = KnowledgeBase(use_database=True)
+
+
+def get_query_cache_key(user_message: str, agent_id: str, intent: str) -> str:
+    """Generate cache key for query"""
+    query_hash = hashlib.md5(f"{user_message}_{agent_id}_{intent}".encode()).hexdigest()
+    return f"chat_response:{query_hash}"
+
+
+def save_messages_async(conversation, user_message, answer, intent, confidence, entities):
+    """Save messages asynchronously to avoid blocking response"""
+    def _save():
+        try:
+            with transaction.atomic():
+                Message.objects.create(
+                    conversation=conversation,
+                    role='user',
+                    content=user_message,
+                    intent=intent,
+                    confidence=confidence,
+                    entities=entities,
+                )
+                Message.objects.create(
+                    conversation=conversation,
+                    role='bot',
+                    content=answer,
+                    intent=intent,
+                    confidence=confidence,
+                )
+                conversation.updated_at = timezone.now()
+                if not conversation.title or conversation.title == "New Conversation":
+                    conversation.title = user_message[:50] + ("..." if len(user_message) > 50 else "")
+                conversation.save()
+        except Exception as e:
+            print(f"Error saving messages async: {e}")
+    
+    thread = threading.Thread(target=_save)
+    thread.daemon = True
+    thread.start()
 
 
 def get_or_create_session(session_id=None, user_id=None):
@@ -121,6 +162,66 @@ def chat_api(request):
             'handbook' in user_message_lower or
             'academic handbook' in user_message_lower
         )
+        
+        # PERFORMANCE OPTIMIZATION: Early exit for simple greeting/farewell queries
+        simple_greetings = ['hello', 'hi', 'hey', 'good morning', 'good afternoon', 'good evening']
+        simple_farewells = ['bye', 'goodbye', 'see you', 'thanks', 'thank you', 'thank']
+        if any(greeting in user_message_lower for greeting in simple_greetings):
+            # Return cached greeting response immediately
+            cached_greeting = cache.get('greeting_response')
+            if cached_greeting:
+                answer = cached_greeting
+                intent = 'general_query'
+                confidence = 0.9
+                entities = {}
+            else:
+                answer = "Hello! I'm the FAIX AI Chatbot. How can I help you today?"
+                cache.set('greeting_response', answer, timeout=86400)  # Cache for 24 hours
+                intent = 'general_query'
+                confidence = 0.9
+                entities = {}
+            
+            # Save asynchronously and return immediately
+            save_messages_async(conversation, user_message, answer, intent, confidence, entities)
+            session.context = context
+            session.save(update_fields=['context', 'updated_at'])
+            
+            return JsonResponse({
+                'response': answer,
+                'session_id': session.session_id,
+                'conversation_id': conversation.id,
+                'intent': intent,
+                'confidence': confidence,
+                'entities': entities,
+                'timestamp': timezone.now().isoformat(),
+                'pdf_url': None,
+            })
+        
+        if any(farewell in user_message_lower for farewell in simple_farewells):
+            cached_farewell = cache.get('farewell_response')
+            if cached_farewell:
+                answer = cached_farewell
+            else:
+                answer = "Thank you for using FAIX AI Chatbot! Have a great day!"
+                cache.set('farewell_response', answer, timeout=86400)
+            intent = 'general_query'
+            confidence = 0.9
+            entities = {}
+            
+            save_messages_async(conversation, user_message, answer, intent, confidence, entities)
+            session.context = context
+            session.save(update_fields=['context', 'updated_at'])
+            
+            return JsonResponse({
+                'response': answer,
+                'session_id': session.session_id,
+                'conversation_id': conversation.id,
+                'intent': intent,
+                'confidence': confidence,
+                'entities': entities,
+                'timestamp': timezone.now().isoformat(),
+                'pdf_url': None,
+            })
 
         # STEP 1: Check data availability FIRST before NLP processing
         # This ensures we route to agents that have data available
@@ -172,6 +273,26 @@ def chat_api(request):
         entities = processed_query.get('extracted_entities', {})
         language_info = processed_query.get('language', {'code': 'en', 'name': 'English'})
         language_code = language_info.get('code', 'en')
+        
+        # PERFORMANCE OPTIMIZATION: Check cache before expensive processing
+        # Build cache key after we have intent (more accurate caching)
+        cache_key = get_query_cache_key(user_message, agent_id or 'default', intent)
+        cached_response = cache.get(cache_key)
+        if cached_response:
+            print(f"DEBUG: Cache hit for query - returning cached response")
+            # Update session context asynchronously
+            session.context = context
+            session.save(update_fields=['context', 'updated_at'])
+            # Save messages asynchronously
+            save_messages_async(
+                conversation, 
+                user_message, 
+                cached_response['response'], 
+                cached_response['intent'], 
+                cached_response.get('confidence', 0.0),
+                cached_response.get('entities', {})
+            )
+            return JsonResponse(cached_response)
         
         # Use NLP intent as confirmation if agent not already set by data-first routing
         if not agent_id:
@@ -271,21 +392,54 @@ def chat_api(request):
                         print(f"DEBUG: Staff context found in message {i}")
 
             try:
-                # Check if this is a fee query - if so, return link directly without calling LLM
+                # PERFORMANCE OPTIMIZATION: Check if this is a fee query - return link directly without calling LLM
                 fee_keywords = ['fee', 'fees', 'tuition', 'yuran', 'bayaran', 'diploma fee', 'degree fee', 'cost', 'payment']
                 is_fee_query = intent == 'fees' or any(kw in user_message_lower for kw in fee_keywords)
                 
+                # PERFORMANCE OPTIMIZATION: Skip LLM for low-confidence queries or simple queries
+                skip_llm = False
                 if is_fee_query:
                     print(f"DEBUG: Fee query detected - returning link directly")
                     answer = "https://bendahari.utem.edu.my/ms/jadual-yuran-pelajar.html"
-                else:
+                    skip_llm = True
+                elif intent == 'general_query' and confidence < 0.3:
+                    # Use knowledge base directly for low-confidence queries
+                    print(f"DEBUG: Low confidence query - using knowledge base directly")
+                    answer = knowledge_base.retrieve(intent, user_message) if hasattr(knowledge_base, 'retrieve') else None
+                    if not answer:
+                        answer = "I'm not sure about that. Could you rephrase your question or ask about courses, programs, registration, or staff contacts?"
+                    skip_llm = True
+                
+                if not skip_llm:
                     llm_client = get_llm_client()
                     print(f"DEBUG: Calling LLM with agent '{agent_id}'")
                     
-                    # Increased max_tokens to allow well-formatted, summarized responses with line breaks
-                    max_tokens = 400 if agent_id == 'staff' else 600
-                    llm_response = llm_client.chat(messages, max_tokens=max_tokens, temperature=0.3)
+                    # PERFORMANCE OPTIMIZATION: Reduced max_tokens for faster responses
+                    max_tokens = 300 if agent_id == 'staff' else 400  # Reduced from 400/600
+                    # Lower temperature for faster, more deterministic generation
+                    llm_response = llm_client.chat(messages, max_tokens=max_tokens, temperature=0.2)
                     answer = llm_response.content
+                    
+                    # Clean up unwanted disclaimers and meta-commentary from LLM responses
+                    if answer:
+                        # Remove patterns like "The final answer to your question is not explicitly stated..."
+                        import re
+                        answer = re.sub(
+                            r'^(The final answer to your question is not explicitly stated[^\n]*\.?\s*However,?\s*)?(According to|Based on|From) (the )?(FAQ section|provided context|the context)[^\n]*:?\s*',
+                            '',
+                            answer,
+                            flags=re.IGNORECASE | re.MULTILINE
+                        )
+                        # Remove similar patterns with variations
+                        answer = re.sub(
+                            r'^(However,?\s*)?(According to|Based on|From) (the )?(FAQ section|provided context|the context)[^\n]*:?\s*',
+                            '',
+                            answer,
+                            flags=re.IGNORECASE | re.MULTILINE
+                        )
+                        # Clean up any leading/trailing whitespace
+                        answer = answer.strip()
+                    
                     print(f"DEBUG: LLM response length: {len(answer) if answer else 0} characters")
                 
                 # Fallback: If LLM returns empty or very short response for staff queries, use staff data directly
@@ -318,49 +472,101 @@ def chat_api(request):
                         answer_parts.append("Would you like contact information (email, phone, office) for any of these staff members?")
                         answer = '\n'.join(answer_parts)
             except LLMError as e:
-                print(f"LLMError in chat_api: {e}")
-                # Fallback to staff data if available
+                # Log error only in debug mode (reduce console noise)
+                error_msg = str(e)
+                if "Could not reach LLM provider" in error_msg or "connection" in error_msg.lower():
+                    print(f"DEBUG: LLM unavailable (Ollama not running) - using fallback")
+                else:
+                    print(f"DEBUG: LLMError in chat_api: {e}")
+                
+                # Smart fallback based on agent type
                 if agent_id == 'staff':
                     staff_docs = agent_context.get('staff', [])
                     if staff_docs:
-                        print("DEBUG: LLM failed, using fallback from staff data")
+                        print("DEBUG: Using staff data fallback")
                         answer = "Here are some staff members you can contact:\n\n"
                         for staff in staff_docs[:5]:
                             if staff.get('name'):
-                                answer += f"• {staff.get('name')}\n"
+                                answer += f"• {staff.get('name')}"
+                                if staff.get('department'):
+                                    answer += f" ({staff.get('department')})"
+                                answer += "\n"
                         answer += "\nWould you like contact information (email, phone, office) for any of these staff members?"
                     else:
+                        # Fallback to knowledge base for staff queries
+                        kb_answer = knowledge_base.get_answer(intent, user_message) if hasattr(knowledge_base, 'get_answer') else None
+                        if kb_answer:
+                            answer = kb_answer
+                        else:
+                            answer = (
+                                "I can help you find staff contact information. "
+                                "Please try asking about specific departments (AI, Cybersecurity, Data Science) or staff roles."
+                            )
+                elif agent_id == 'faq':
+                    # For FAQ queries, fallback to knowledge base
+                    print("DEBUG: LLM failed, using knowledge base fallback")
+                    kb_answer = knowledge_base.get_answer(intent, user_message) if hasattr(knowledge_base, 'get_answer') else None
+                    if kb_answer:
+                        answer = kb_answer
+                    else:
                         answer = (
-                            "I'm having trouble reaching the AI assistant right now. "
-                            "Please try again in a moment or contact the FAIX office for help."
+                            "I can help you with information about FAIX programs, courses, registration, and more. "
+                            "Could you rephrase your question or ask about specific topics?"
                         )
                 else:
-                    answer = (
-                        "I'm having trouble reaching the AI assistant right now. "
-                        "Please try again in a moment or contact the FAIX office for help."
-                    )
+                    # Generic fallback
+                    kb_answer = knowledge_base.get_answer(intent, user_message) if hasattr(knowledge_base, 'get_answer') else None
+                    if kb_answer:
+                        answer = kb_answer
+                    else:
+                        answer = (
+                            "I'm here to help! You can ask me about:\n"
+                            "• FAIX programs and courses\n"
+                            "• Registration procedures\n"
+                            "• Staff contacts\n"
+                            "• Academic schedules\n"
+                            "• Fees and tuition\n\n"
+                            "What would you like to know?"
+                        )
             except Exception as e:
-                print(f"Unexpected error in chat_api LLM path: {e}")
-                # Fallback to staff data if available
+                print(f"DEBUG: Unexpected error in chat_api LLM path: {e}")
+                import traceback
+                traceback.print_exc()  # Log full traceback for debugging
+                
+                # Smart fallback based on agent type
                 if agent_id == 'staff':
                     staff_docs = agent_context.get('staff', [])
                     if staff_docs:
-                        print("DEBUG: Exception occurred, using fallback from staff data")
+                        print("DEBUG: Exception occurred, using staff data fallback")
                         answer = "Here are some staff members you can contact:\n\n"
                         for staff in staff_docs[:5]:
                             if staff.get('name'):
-                                answer += f"• {staff.get('name')}\n"
+                                answer += f"• {staff.get('name')}"
+                                if staff.get('department'):
+                                    answer += f" ({staff.get('department')})"
+                                answer += "\n"
                         answer += "\nWould you like contact information (email, phone, office) for any of these staff members?"
                     else:
-                        answer = (
-                            "An unexpected error occurred while generating a response. "
-                            "Please try again or contact the FAIX office for assistance."
-                        )
+                        # Try knowledge base fallback
+                        try:
+                            kb_answer = knowledge_base.get_answer(intent, user_message)
+                            answer = kb_answer if kb_answer else "I can help you find staff information. Please try asking about specific departments."
+                        except Exception:
+                            answer = "I'm here to help with staff contacts. Please try asking about specific departments or roles."
+                elif agent_id == 'faq':
+                    # For FAQ queries, always try knowledge base
+                    try:
+                        kb_answer = knowledge_base.get_answer(intent, user_message)
+                        answer = kb_answer if kb_answer else "I can help with FAIX information. Please try rephrasing your question."
+                    except Exception:
+                        answer = "I'm here to help! Ask me about programs, courses, registration, or other FAIX information."
                 else:
-                    answer = (
-                        "An unexpected error occurred while generating a response. "
-                        "Please try again or contact the FAIX office for assistance."
-                    )
+                    # Try knowledge base first, then generic message
+                    try:
+                        kb_answer = knowledge_base.get_answer(intent, user_message)
+                        answer = kb_answer if kb_answer else "I can help you. Please try rephrasing your question."
+                    except Exception:
+                        answer = "I'm here to help! Please try asking your question again or ask about FAIX programs, courses, or registration."
 
             # For handbook queries, still attach PDF information if available
             if intent == 'program_info' or is_handbook_query:
@@ -386,7 +592,11 @@ def chat_api(request):
                 print(f"DEBUG: Fee query detected (non-agent path) - returning link directly")
                 answer = "https://bendahari.utem.edu.my/ms/jadual-yuran-pelajar.html"
             elif intent and intent != 'general_query':
-                answer = knowledge_base.get_answer(intent, user_message)
+                try:
+                    answer = knowledge_base.get_answer(intent, user_message)
+                except Exception as e:
+                    print(f"Warning: Knowledge base retrieval error: {e}")
+                    answer = None
                 
                 # Validate answer is not None, empty, or invalid type
                 if not answer or not isinstance(answer, str) or not answer.strip():
@@ -443,35 +653,11 @@ def chat_api(request):
         session.context = context
         session.save(update_fields=['context', 'updated_at'])
         
-        # Save messages to database
-        with transaction.atomic():
-            # Save user message
-            user_msg = Message.objects.create(
-                conversation=conversation,
-                role='user',
-                content=user_message,
-                intent=intent,
-                confidence=confidence,
-                entities=entities,
-            )
-            
-            # Save bot response
-            bot_msg = Message.objects.create(
-                conversation=conversation,
-                role='bot',
-                content=answer,
-                intent=intent,
-                confidence=confidence,
-            )
-            
-            # Update conversation
-            conversation.updated_at = timezone.now()
-            if not conversation.title or conversation.title == "New Conversation":
-                # Set title from first user message
-                conversation.title = user_message[:50] + ("..." if len(user_message) > 50 else "")
-            conversation.save()
+        # PERFORMANCE OPTIMIZATION: Save messages asynchronously to avoid blocking response
+        save_messages_async(conversation, user_message, answer, intent, confidence, entities)
         
-        return JsonResponse({
+        # Build response data
+        response_data = {
             'response': answer,
             'session_id': session.session_id,
             'conversation_id': conversation.id,
@@ -480,7 +666,13 @@ def chat_api(request):
             'entities': entities,
             'timestamp': timezone.now().isoformat(),
             'pdf_url': pdf_url,  # Add PDF URL to response
-        })
+        }
+        
+        # PERFORMANCE OPTIMIZATION: Cache the response (TTL: 1 hour for general queries, 24 hours for static responses)
+        cache_timeout = 86400 if (is_fee_query or intent in ['general_query']) else 3600  # 24h for static, 1h for others
+        cache.set(cache_key, response_data, timeout=cache_timeout)
+        
+        return JsonResponse(response_data)
     
     except json.JSONDecodeError:
         return JsonResponse({

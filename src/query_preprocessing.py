@@ -6,6 +6,7 @@ import pandas as pd
 from typing import Dict, List, Tuple, Any, Optional
 from datetime import datetime
 from collections import defaultdict
+from functools import lru_cache
 
 # Suppress warnings
 os.environ['TF_ENABLE_ONEDNN_OPTS'] = '0'
@@ -31,6 +32,8 @@ class LanguageDetector:
     """Enhanced language detection for English, Malay, Chinese, Arabic"""
     
     def __init__(self):
+        # Initialize cache
+        self._detect_cache = {}
         # Language-specific keywords
         # Words that appear in both languages are weighted lower
         self.language_patterns = {
@@ -71,8 +74,8 @@ class LanguageDetector:
             'program', 'semester', 'course', 'programme'
         }
     
-    def detect(self, text: str) -> str:
-        """Detect language of input text with confidence"""
+    def _detect_logic(self, text: str) -> str:
+        """Internal language detection logic (extracted for caching)"""
         text = text.strip()
         
         # Check for Chinese characters first (most reliable)
@@ -117,6 +120,23 @@ class LanguageDetector:
         
         # Return language with highest score
         return max(scores.items(), key=lambda x: x[1])[0]
+    
+    def detect(self, text: str) -> str:
+        """Detect language of input text with confidence (cached)"""
+        # Use simple in-memory cache (faster than lru_cache for methods)
+        text_key = text.strip()[:100]  # Limit key length
+        text_hash = hash(text_key)
+        
+        if text_hash in self._detect_cache:
+            return self._detect_cache[text_hash]
+        
+        result = self._detect_logic(text)
+        # Cache last 1000 results (simple LRU by limiting cache size)
+        if len(self._detect_cache) > 1000:
+            # Clear oldest entries (simple approach: clear half)
+            self._detect_cache = dict(list(self._detect_cache.items())[500:])
+        self._detect_cache[text_hash] = result
+        return result
     
     def _has_chinese(self, text: str) -> bool:
         """Check if text contains Chinese characters"""
@@ -580,6 +600,10 @@ class QueryProcessor:
         self.use_database = use_database
         self.use_nlp = use_nlp
         self.data_path = data_path
+        
+        # Initialize caches for performance optimization
+        self._intent_cache = {}
+        self._preprocess_cache = {}
 
         # Ensure logger exists early
         self.setup_logging()
@@ -871,8 +895,8 @@ class QueryProcessor:
             }
         }
     
-    def preprocess_text(self, text: str, language: str = 'en') -> str:
-        """Clean and normalize the input text for specific language"""
+    def _preprocess_logic(self, text: str, language: str) -> str:
+        """Internal text preprocessing logic (extracted for caching)"""
         text = text.strip()
         
         # Keep original Chinese/Arabic characters, clean others
@@ -908,6 +932,25 @@ class QueryProcessor:
             text = re.sub(r'[.,!]+$', '', text).strip()
         
         return text
+    
+    # Cache text preprocessing results
+    _preprocess_cache = {}
+    
+    def preprocess_text(self, text: str, language: str = 'en') -> str:
+        """Clean and normalize the input text for specific language (cached)"""
+        # Use simple in-memory cache
+        text_key = text.strip()[:200]  # Limit key length
+        cache_key = hash((text_key, language))
+        
+        if cache_key in self._preprocess_cache:
+            return self._preprocess_cache[cache_key]
+        
+        result = self._preprocess_logic(text, language)
+        # Cache last 5000 results
+        if len(self._preprocess_cache) > 5000:
+            self._preprocess_cache = dict(list(self._preprocess_cache.items())[2500:])
+        self._preprocess_cache[cache_key] = result
+        return result
     
     def tokenize_text(self, text: str, language: str = 'en') -> List[str]:
         """Split text into tokens and remove stop words for specific language"""
@@ -962,7 +1005,12 @@ class QueryProcessor:
         return lang_names.get(lang_code, lang_names['en'])
     
     def detect_intent_keyword(self, text: str, language: str) -> Tuple[str, float]:
-        """Keyword-based intent detection for specific language"""
+        """Keyword-based intent detection for specific language (cached)"""
+        # Cache intent detection results
+        cache_key = hash((text.strip()[:200], language))
+        if cache_key in self._intent_cache:
+            return self._intent_cache[cache_key]
+        
         if language not in self.patterns:
             language = 'en'  # Default to English
         
@@ -1019,10 +1067,21 @@ class QueryProcessor:
             if language in ['zh', 'ar'] and confidence < 0.3:
                 confidence = 0.3
             
-            return intent_name, confidence
+            result = (intent_name, confidence)
+            # Cache the result
+            if len(self._intent_cache) > 2000:
+                # Clear half when cache gets too large
+                self._intent_cache = dict(list(self._intent_cache.items())[1000:])
+            self._intent_cache[cache_key] = result
+            return result
         
         # Default to general query with low confidence
-        return 'general_query', 0.2 if language == 'zh' else 0.1
+        result = ('general_query', 0.2 if language == 'zh' else 0.1)
+        # Cache the result
+        if len(self._intent_cache) > 2000:
+            self._intent_cache = dict(list(self._intent_cache.items())[1000:])
+        self._intent_cache[cache_key] = result
+        return result
     
     def detect_intent(self, text: str, language: str) -> Tuple[str, float]:
         """
@@ -1139,6 +1198,9 @@ class QueryProcessor:
         try:
             from django.db.models import Q
             
+            # PERFORMANCE OPTIMIZATION: Limit keywords to top 5 most important
+            keywords = keywords[:5] if len(keywords) > 5 else keywords
+            
             # Build search query
             search_query = Q(is_active=True)
             
@@ -1163,8 +1225,10 @@ class QueryProcessor:
             if category:
                 search_query &= Q(category=category)
             
-            # Execute query
-            results = self.faq_model.objects.filter(search_query).order_by('-view_count')[:10]
+            # PERFORMANCE OPTIMIZATION: Use .only() to fetch only needed fields and limit results
+            results = self.faq_model.objects.filter(search_query)\
+                .only('id', 'question', 'answer', 'category', 'keywords', 'view_count')\
+                .order_by('-view_count')[:10]
             
             # Format results
             matches = []

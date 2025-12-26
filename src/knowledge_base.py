@@ -53,6 +53,9 @@ class KnowledgeBase:
         self.use_semantic_search = use_semantic_search and SEMANTIC_SEARCH_AVAILABLE
         self.semantic_search = None
         
+        # PERFORMANCE OPTIMIZATION: Initialize cache for retrieval results
+        self._retrieve_cache = {}
+        
         # Initialize semantic search if available
         if self.use_semantic_search:
             try:
@@ -156,7 +159,7 @@ class KnowledgeBase:
     
     def retrieve(self, intent: Optional[str], user_text: str) -> Optional[str]:
         """
-        Retrieve answer based on intent and user text.
+        Retrieve answer based on intent and user text (cached for performance).
         
         Args:
             intent: Detected intent/category
@@ -168,14 +171,34 @@ class KnowledgeBase:
         if not intent or not isinstance(intent, str):
             return None
         
+        # PERFORMANCE OPTIMIZATION: Check cache first
+        cache_key = hash((intent.lower(), user_text.strip()[:200]))
+        if cache_key in self._retrieve_cache:
+            return self._retrieve_cache[cache_key]
+        
         intent = intent.lower()
         user_clean = self.preprocess(user_text)
         user_keywords = self.extract_keywords(user_clean)
         
-        if self.use_database:
-            return self._retrieve_from_database(intent, user_text, user_keywords, user_clean)
-        else:
-            return self._retrieve_from_csv(intent, user_text, user_keywords, user_clean)
+        result = None
+        try:
+            if self.use_database:
+                result = self._retrieve_from_database(intent, user_text, user_keywords, user_clean)
+            else:
+                result = self._retrieve_from_csv(intent, user_text, user_keywords, user_clean)
+        except Exception as e:
+            print(f"Warning: Error in knowledge base retrieval: {e}")
+            import traceback
+            traceback.print_exc()
+            result = None
+        
+        # Cache the result (limit cache size to 2000 entries)
+        if len(self._retrieve_cache) > 2000:
+            # Clear half when cache gets too large (simple LRU)
+            self._retrieve_cache = dict(list(self._retrieve_cache.items())[1000:])
+        self._retrieve_cache[cache_key] = result
+        
+        return result
     
     def _retrieve_from_database(self, intent: str, user_text: str, 
                                 user_keywords: List[str], user_clean: str) -> Optional[str]:
@@ -250,10 +273,16 @@ class KnowledgeBase:
         
         if subset.empty:
             # Semantic fallback
-            query_vec = self.vectorizer.transform([user_clean])
-            similarity = cosine_similarity(query_vec, self.question_vectors)[0]
-            best_idx = similarity.argmax()
-            return self.df.iloc[best_idx]["answer"]
+            try:
+                if self.question_vectors is None or not hasattr(self, 'vectorizer'):
+                    return None
+                query_vec = self.vectorizer.transform([user_clean])
+                similarity = cosine_similarity(query_vec, self.question_vectors)[0]
+                best_idx = similarity.argmax()
+                return self.df.iloc[best_idx]["answer"]
+            except Exception as e:
+                print(f"Warning: Semantic fallback failed in CSV mode: {e}")
+                return None
         
         scores = []
         for idx, row in subset.iterrows():
@@ -268,10 +297,16 @@ class KnowledgeBase:
         
         # Semantic fallback if no keyword match
         if kw_score == 0:
-            query_vec = self.vectorizer.transform([user_clean])
-            similarity = cosine_similarity(query_vec, self.question_vectors)[0]
-            best_idx = similarity.argmax()
-            return self.df.iloc[best_idx]["answer"]
+            try:
+                if self.question_vectors is None or not hasattr(self, 'vectorizer'):
+                    return self.df.iloc[best_keyword_idx]["answer"]  # Fallback to keyword match
+                query_vec = self.vectorizer.transform([user_clean])
+                similarity = cosine_similarity(query_vec, self.question_vectors)[0]
+                best_idx = similarity.argmax()
+                return self.df.iloc[best_idx]["answer"]
+            except Exception as e:
+                print(f"Warning: Semantic fallback failed in CSV mode: {e}")
+                return self.df.iloc[best_keyword_idx]["answer"]  # Fallback to keyword match
         
         return self.df.iloc[best_keyword_idx]["answer"]
     
@@ -316,12 +351,29 @@ class KnowledgeBase:
                 print(f"Warning: Semantic search failed, using TF-IDF: {e}")
         
         # Fallback to TF-IDF cosine similarity
-        if self.question_vectors is None or len(self.question_vectors) == 0:
+        # Fix: Use shape[0] for sparse matrices instead of len() (sparse matrices don't support len())
+        if self.question_vectors is None:
             return None
         
-        query_vec = self.vectorizer.transform([user_clean])
-        similarity = cosine_similarity(query_vec, self.question_vectors)[0]
-        best_idx = similarity.argmax()
+        # Check if sparse matrix is empty using shape[0] instead of len()
+        # This prevents "sparse array length is ambiguous" error
+        try:
+            if hasattr(self.question_vectors, 'shape'):
+                if self.question_vectors.shape[0] == 0:
+                    return None
+            else:
+                return None
+        except Exception as e:
+            print(f"Warning: Error checking question_vectors: {e}")
+            return None
+        
+        try:
+            query_vec = self.vectorizer.transform([user_clean])
+            similarity = cosine_similarity(query_vec, self.question_vectors)[0]
+            best_idx = similarity.argmax()
+        except Exception as e:
+            print(f"Warning: Error in TF-IDF similarity calculation: {e}")
+            return None
         
         if self.use_database:
             if best_idx < len(self.entries):
@@ -429,7 +481,14 @@ class KnowledgeBase:
                     print(f"Warning: Semantic search for documents failed: {e}")
 
             # TF-IDF fallback across all entries
-            if not getattr(self, "question_vectors", None) is not None:
+            # Fix: Check if question_vectors exists properly
+            if not hasattr(self, "question_vectors") or self.question_vectors is None:
+                return []
+            # Check if sparse matrix is empty using shape[0] instead of len()
+            try:
+                if hasattr(self.question_vectors, 'shape') and self.question_vectors.shape[0] == 0:
+                    return []
+            except Exception:
                 return []
 
             query_vec = self.vectorizer.transform([user_clean])

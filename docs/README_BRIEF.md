@@ -29,14 +29,14 @@ agent with Retrieval-Augmented Generation (RAG).
 - Install and run Ollama with a Llama model, for example:
 
 ```bash
-ollama pull llama3.1
+ollama pull llama3.2:3b
 ollama serve
 ```
 
 - Configure the backend with environment variables:
   - `LLM_PROVIDER=ollama`
   - `OLLAMA_BASE_URL=http://localhost:11434`
-  - `OLLAMA_MODEL=llama3.1:8b` (or another model tag you have installed)
+  - `OLLAMA_MODEL=llama3.2:3b` (or another model tag you have installed)
   - `LLM_ENABLED=1` (optional, defaults to enabled)
 
 The Django chat API (`/api/chat/`) now accepts:
