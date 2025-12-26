@@ -68,7 +68,7 @@ class LLMClient:
         self,
         messages: List[Dict[str, str]],
         temperature: float = 0.3,
-        max_tokens: int = 512,
+        max_tokens: int = 200,  # Reduced for shorter, more concise responses
     ) -> LLMResponse:
         """
         Send a chat completion request to the LLM.

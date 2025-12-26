@@ -56,7 +56,15 @@
       "professor",
       "lecturer",
       "staff",
-      "faculty"
+      "faculty",
+      "administration",
+      "admin",
+      "registrar",
+      "secretary",
+      "academic staff",
+      "who works",
+      "work in",
+      "dean"
     ],
     "facility_info": [
       "lab",

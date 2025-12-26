@@ -296,23 +296,47 @@ def build_messages(
     if staff_docs:
         staff_text = _format_staff_context(staff_docs)
         if staff_text:
-            context_lines.append("--- Staff Contacts Context ---")
+            context_lines.append("--- Staff Contacts Context (ONLY SOURCE - USE THIS LIST ONLY) ---")
+            context_lines.append(f"Total staff members available: {len(staff_docs)}")
+            context_lines.append("You MUST ONLY use staff from this list. Do NOT invent or create any staff members.")
+            context_lines.append("")
             context_lines.append(staff_text)
 
     # FAIX comprehensive data context (programs, admission, facilities, etc.)
+    # NOTE: For staff queries, do NOT use this context to invent staff positions
     faix_data = context.get("faix_data")
     if faix_data:
         faix_text = _format_faix_data_context(faix_data)
         if faix_text:
-            context_lines.append("--- FAIX Information Context ---")
+            context_lines.append("--- FAIX Information Context (DO NOT USE FOR STAFF QUERIES) ---")
+            context_lines.append("NOTE: This context contains general faculty information. "
+                               "For staff-related queries, ONLY use the Staff Contacts Context above. "
+                               "Do NOT invent staff positions based on this general information.")
             context_lines.append(faix_text)
 
     if context_lines:
+        # For staff agent, add extra emphasis about using only the provided list
+        content_prefix = "Here is reference context you can use:\n\n"
+        if "staff" in context and context.get("staff"):
+            staff_count = len(context.get("staff", []))
+            content_prefix = (
+                "Here is reference context you can use:\n\n"
+                "CRITICAL: For staff-related queries, you MUST ONLY use staff members "
+                "from the 'Staff Contacts Context' section below. "
+                "Do NOT invent, create, or mention any staff members outside of this list.\n"
+                f"You have access to {staff_count} staff members in the database. "
+                "Each staff member has a NAME, POSITION, and EMAIL.\n"
+                "IMPORTANT: ONLY list people whose names appear in the Staff Contacts Context. "
+                "Do NOT list generic roles (like 'Office Manager', 'Human Resources Officer') without names. "
+                "Do NOT list department names as if they were people. "
+                "Do NOT create organizational charts or invent positions.\n"
+                "When staff matching the query exist in this list, present them confidently with their actual names and positions. "
+                "Do NOT say 'I am not sure' or add disclaimers when the data is available.\n\n"
+            )
         messages.append(
             {
                 "role": "assistant",
-                "content": "Here is reference context you can use:\n\n"
-                + "\n".join(context_lines),
+                "content": content_prefix + "\n".join(context_lines),
             }
         )
 

@@ -238,7 +238,9 @@ def chat_api(request):
             'contact', 'email', 'phone', 'professor', 'lecturer', 'staff', 'faculty', 
             'who can i', 'who can', 'reach', 'get in touch', 'call', 'number', 
             'office', 'address', 'dean', 'head of', 'department head', 'ai', 'artificial intelligence',
-            'cybersecurity', 'data science', 'machine learning', 'nlp', 'deep learning'
+            'cybersecurity', 'data science', 'machine learning', 'nlp', 'deep learning',
+            'administration', 'admin', 'registrar', 'secretary', 'academic staff', 'who works',
+            'work in', 'works in', 'working in'
         ]
         matched_keywords = [kw for kw in staff_keywords if kw in user_message_lower]
         print(f"DEBUG: Staff keyword matching - Matched: {matched_keywords}")
@@ -414,8 +416,9 @@ def chat_api(request):
                     llm_client = get_llm_client()
                     print(f"DEBUG: Calling LLM with agent '{agent_id}'")
                     
-                    # PERFORMANCE OPTIMIZATION: Reduced max_tokens for faster responses
-                    max_tokens = 300 if agent_id == 'staff' else 400  # Reduced from 400/600
+                    # PERFORMANCE OPTIMIZATION: Reduced max_tokens for shorter, faster responses
+                    # Keep responses concise and focused
+                    max_tokens = 150 if agent_id == 'staff' else 200  # Reduced for shorter conversations
                     # Lower temperature for faster, more deterministic generation
                     llm_response = llm_client.chat(messages, max_tokens=max_tokens, temperature=0.2)
                     answer = llm_response.content

@@ -499,15 +499,23 @@ class ShortFormProcessor:
             clean_word = re.sub(r'[^\w]', '', word.lower())
             
             if clean_word in self.short_forms[language]:
-                # Preserve original capitalization/punctuation
+                # Exact match - replace the whole word
                 expanded = self.short_forms[language][clean_word]
                 expanded_words.append(expanded)
             else:
-                # Check for number substitutions (like 2day, 4ever)
+                # Check for number substitutions (like 2day, 4ever) or short forms at word boundaries
                 expanded_word = word
                 for short, long in self.short_forms[language].items():
-                    if len(short) > 1 and short in expanded_word.lower():
-                        expanded_word = expanded_word.lower().replace(short, long)
+                    if len(short) > 1:
+                        # Only replace if short form is at word boundaries (start or end of word)
+                        # or if it's a number substitution pattern (like 2, 4)
+                        pattern = r'\b' + re.escape(short) + r'\b'
+                        if re.search(pattern, expanded_word, re.IGNORECASE):
+                            expanded_word = re.sub(pattern, long, expanded_word, flags=re.IGNORECASE)
+                        # Also handle number substitutions (2day -> today, 4ever -> forever)
+                        elif short.isdigit() or (len(short) == 1 and short.isdigit()):
+                            if short in expanded_word.lower():
+                                expanded_word = expanded_word.lower().replace(short, long)
                 expanded_words.append(expanded_word)
         
         return ' '.join(expanded_words)
