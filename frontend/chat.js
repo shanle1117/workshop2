@@ -8,6 +8,17 @@
 // For production, update this to your deployed backend URL.
 const API_BASE_URL = 'http://localhost:8000';
 
+// Configure marked.js for markdown parsing
+if (typeof marked !== 'undefined') {
+    marked.setOptions({
+        breaks: true,      // Convert \n to <br>
+        gfm: true,         // GitHub Flavored Markdown
+        headerIds: false,  // Don't add IDs to headers
+        mangle: false,     // Don't mangle email addresses
+        sanitize: false,   // We handle sanitization separately
+    });
+}
+
 class Chatbot {
     constructor() {
         this.sessionId = this.getOrCreateSessionId();
@@ -309,15 +320,33 @@ class Chatbot {
         const messageContent = document.createElement('div');
         messageContent.className = 'message-content';
         
-        const text = document.createElement('p');
-        // Convert newlines to <br> tags to preserve line breaks in responses
-        // First escape any HTML to prevent XSS, then convert newlines and URLs to links
-        const escapedContent = content.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-        // Convert URLs to clickable links
-        const urlRegex = /(https?:\/\/[^\s]+)/g;
-        const contentWithLinks = escapedContent.replace(urlRegex, '<a href="$1" target="_blank" rel="noopener noreferrer" style="color: #007bff; text-decoration: underline;">$1</a>');
-        text.innerHTML = contentWithLinks.replace(/\n/g, '<br>');
-        messageContent.appendChild(text);
+        const textContainer = document.createElement('div');
+        textContainer.className = 'message-text';
+        
+        if (role === 'bot' && typeof marked !== 'undefined') {
+            // Use marked.js for bot messages to render markdown
+            // Sanitize by escaping script tags first
+            const sanitized = content
+                .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '')
+                .replace(/javascript:/gi, '');
+            
+            // Parse markdown
+            let htmlContent = marked.parse(sanitized);
+            
+            // Add target="_blank" to all links for security
+            htmlContent = htmlContent.replace(/<a /g, '<a target="_blank" rel="noopener noreferrer" ');
+            
+            textContainer.innerHTML = htmlContent;
+        } else {
+            // For user messages, escape HTML and convert newlines
+            const escapedContent = content.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+            // Convert URLs to clickable links
+            const urlRegex = /(https?:\/\/[^\s]+)/g;
+            const contentWithLinks = escapedContent.replace(urlRegex, '<a href="$1" target="_blank" rel="noopener noreferrer">$1</a>');
+            textContainer.innerHTML = contentWithLinks.replace(/\n/g, '<br>');
+        }
+        
+        messageContent.appendChild(textContainer);
         
         // Add PDF link/embed if provided
         if (pdfUrl) {

@@ -38,23 +38,30 @@ class AgentRegistry:
                 description="Answers general questions using the FAQ knowledge base and comprehensive FAIX data.",
                 system_prompt=(
                     "You are the FAIX FAQ assistant. Answer student questions using "
-                    "the provided FAQ context and comprehensive FAIX information.\n\n"
+                    "the provided FAQ context and comprehensive FAIX information from the merged JSON data.\n\n"
                     "CRITICAL RULES:\n"
-                    "1. ONLY answer if the context DIRECTLY addresses the user's question\n"
-                    "2. Do NOT guess or provide unrelated information\n"
-                    "3. If the question is vague or unclear, ask for clarification\n"
-                    "4. If asking about chatbot capabilities, explain what you can help with\n\n"
+                    "1. Use the FAIX Information Context as your PRIMARY source - it contains all merged data\n"
+                    "2. ONLY answer if the context DIRECTLY addresses the user's question\n"
+                    "3. Do NOT guess or provide unrelated information\n"
+                    "4. If the question is vague or unclear, ask for clarification\n"
+                    "5. For dean queries: Use the exact name from Faculty Information (Dean: ...)\n"
+                    "6. For programme queries (BCSAI, BCSCS, etc.): Use the exact details from Programmes section\n"
+                    "7. For admission: Use requirements from Admission Information section\n"
+                    "8. If asking about chatbot capabilities, explain what you can help with\n\n"
                     "RELEVANCE CHECK:\n"
-                    "- If user asks 'what can you do' - describe your capabilities, don't give random FAQ answers\n"
-                    "- If user's question doesn't match any FAQ topic - say you're not sure about that specific topic\n"
-                    "- NEVER return an answer about topic X when user asked about topic Y\n\n"
+                    "- If user asks 'what can you do' - describe your capabilities\n"
+                    "- If user's question doesn't match any context topic - say you're not sure about that specific topic\n"
+                    "- NEVER return an answer about topic X when user asked about topic Y\n"
+                    "- NEVER invent or hallucinate information not in the context\n\n"
                     "RESPONSE FORMATTING:\n"
                     "- Keep responses SHORT (2-3 sentences max for simple queries)\n"
-                    "- Use bullet points (•) when listing items (max 3-5 items)\n"
+                    "- Use markdown formatting when listing items (use - or * for bullet points, max 3-5 items)\n"
+                    "- Use **bold** for emphasis and `code` for technical terms\n"
                     "- For fee-related queries: Provide ONLY the link, nothing else\n"
+                    "- For programme queries: Include code (BCSAI, BCSCS, etc.), duration, and key focus areas\n"
                     "- Be direct - no unnecessary introductions\n\n"
                     "If the answer is not clearly in the context, say: 'I don't have specific information about that. "
-                    "Please contact the FAIX office for assistance.'"
+                    "Please contact the FAIX office at faix@utem.edu.my for assistance.'"
                 ),
                 default_intent=None,
             )
@@ -69,7 +76,8 @@ class AgentRegistry:
                     "CRITICAL: Keep responses SHORT (2-3 sentences or a brief list).\n\n"
                     "RESPONSE FORMATTING:\n"
                     "- Be brief and direct\n"
-                    "- Use bullet points (•) for dates/events (max 3-5 items)\n"
+                    "- Use markdown lists (- or *) for dates/events (max 3-5 items)\n"
+                    "- Use **bold** for important dates\n"
                     "- No lengthy introductions or conclusions\n\n"
                     "If details are missing, briefly suggest checking the official schedule."
                 ),
@@ -82,19 +90,22 @@ class AgentRegistry:
                 display_name="Staff Contact Assistant",
                 description="Provides staff and faculty contact information.",
                 system_prompt=(
-                    "You are the FAIX staff contact assistant. ONLY use staff from 'Staff Contacts Context'.\n\n"
+                    "You are the FAIX staff contact assistant. Use staff from 'Staff Contacts Context'.\n\n"
                     "CRITICAL: Keep responses SHORT. List max 5 staff members.\n\n"
+                    "SPECIAL HANDLING:\n"
+                    "- If user asks 'who is dean' or 'who is the dean': Use the Dean name from FAIX Information Context (Faculty Information section)\n"
+                    "- For all other staff queries: ONLY use staff from Staff Contacts Context\n\n"
                     "RULES:\n"
                     "1. ONLY list staff with FULL NAMES from the Staff Contacts Context\n"
                     "2. NEVER invent staff or list generic roles without names\n"
                     "3. NEVER list departments as people\n"
                     "4. Be confident when data exists - no disclaimers\n"
                     "5. If no match found, say: 'No matching staff found in database.'\n\n"
-                    "FORMAT:\n"
-                    "• Name - Position\n"
-                    "• Name - Position\n"
+                    "FORMAT (use markdown):\n"
+                    "- **Name** - Position\n"
+                    "- **Name** - Position\n"
                     "(max 5 staff, then ask if user wants contact details)\n\n"
-                    "IGNORE dean/department info from other contexts - ONLY use Staff Contacts Context."
+                    "NOTE: Dean information is in Faculty Information section of FAIX Information Context, not in Staff Contacts."
                 ),
                 default_intent="staff_contact",
             )
@@ -145,9 +156,18 @@ def _get_project_data_dir() -> Path:
 
 
 def _get_schedule_documents() -> List[Dict[str, str]]:
-    """Load schedule entries from data/schedule.json if present."""
+    """Load schedule entries from data/faix_json_data.json (schedule section)."""
     data_dir = _get_project_data_dir()
-    data = _load_json_file(data_dir / "schedule.json")
+    # Try to load from merged faix_json_data.json first
+    faix_data = _load_json_file(data_dir / "faix_json_data.json")
+    data = None
+    
+    if faix_data and isinstance(faix_data, dict) and "schedule" in faix_data:
+        data = faix_data["schedule"]
+    else:
+        # Fallback: try separate schedule.json file
+        data = _load_json_file(data_dir / "schedule.json")
+    
     docs: List[Dict[str, str]] = []
     if isinstance(data, list):
         for item in data:
@@ -165,15 +185,24 @@ def _get_schedule_documents() -> List[Dict[str, str]]:
 
 
 def _get_staff_documents() -> List[Dict[str, str]]:
-    """Load staff contact entries from data/staff_contacts.json if present."""
+    """Load staff contact entries from data/faix_json_data.json (staff_contacts section)."""
     data_dir = _get_project_data_dir()
-    data = _load_json_file(data_dir / "staff_contacts.json")
+    # Try to load from merged faix_json_data.json first
+    faix_data = _load_json_file(data_dir / "faix_json_data.json")
+    data = None
+    
+    if faix_data and isinstance(faix_data, dict) and "staff_contacts" in faix_data:
+        data = faix_data["staff_contacts"]
+    else:
+        # Fallback: try separate staff_contacts.json file
+        data = _load_json_file(data_dir / "staff_contacts.json")
+    
     docs: List[Dict[str, str]] = []
     
     if not data or not isinstance(data, dict):
         return docs
     
-    # Handle new nested structure with departments
+    # Handle nested structure with departments
     if "departments" in data and isinstance(data["departments"], dict):
         for dept_key, dept_info in data["departments"].items():
             if not isinstance(dept_info, dict):
@@ -195,7 +224,7 @@ def _get_staff_documents() -> List[Dict[str, str]]:
                 docs.append(
                     {
                         "name": str(staff_item.get("name", "")),
-                        "role": str(staff_item.get("position", "")),  # Using "position" from new structure
+                        "role": str(staff_item.get("position", "")),
                         "email": str(staff_item.get("email", "")),
                         "phone": str(staff_item.get("phone", "")),
                         "office": str(staff_item.get("office", "")),
@@ -228,19 +257,19 @@ def _get_staff_documents() -> List[Dict[str, str]]:
 
 
 def check_staff_data_available() -> bool:
-    """Check if staff data is available in data/staff_contacts.json"""
+    """Check if staff data is available in data/faix_json_data.json (staff_contacts section)"""
     docs = _get_staff_documents()
     return len(docs) > 0
 
 
 def check_schedule_data_available() -> bool:
-    """Check if schedule data is available in data/schedule.json"""
+    """Check if schedule data is available in data/faix_json_data.json (schedule section)"""
     docs = _get_schedule_documents()
     return len(docs) > 0
 
 
 def _get_faix_data_documents() -> Dict[str, Any]:
-    """Load FAIX comprehensive data from data/faix_json_data.json if present."""
+    """Load FAIX comprehensive data from data/faix_json_data.json (merged single source)."""
     data_dir = _get_project_data_dir()
     data = _load_json_file(data_dir / "faix_json_data.json")
     
@@ -248,6 +277,7 @@ def _get_faix_data_documents() -> Dict[str, Any]:
         return {}
     
     # Return structured data organized by sections
+    # Note: staff_contacts and schedule are now in the same file
     structured_data = {}
     
     # Faculty information
@@ -289,6 +319,18 @@ def _get_faix_data_documents() -> Dict[str, Any]:
     # Research focus
     if "research_focus" in data:
         structured_data["research_focus"] = data["research_focus"]
+    
+    # Staff contacts (now merged)
+    if "staff_contacts" in data:
+        structured_data["staff_contacts"] = data["staff_contacts"]
+    
+    # Schedule (now merged)
+    if "schedule" in data:
+        structured_data["schedule"] = data["schedule"]
+    
+    # Course info (now merged)
+    if "course_info" in data:
+        structured_data["course_info"] = data["course_info"]
     
     return structured_data
 

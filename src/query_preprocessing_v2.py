@@ -132,7 +132,10 @@ class QueryProcessor:
             'advising': 'Academic advising and counseling',
             'documents': 'Transcripts and official documents',
             'admin': 'Feedback and administrative matters',
-            'general_query': 'General inquiry'
+            'about_faix': 'General information about FAIX faculty',
+            'career': 'Career opportunities and job prospects',
+            'greeting': 'Greetings from user',
+            'farewell': 'Farewell from user'
         }
         
         # Language-specific patterns for intent detection
@@ -424,7 +427,7 @@ class QueryProcessor:
                     'correction': 'fees'
                 }
             ],
-            'general_query': [
+            'about_faix': [
                 {
                     'keywords': ['program', 'course', 'degree', 'study'],
                     'correction': 'programs'
@@ -444,6 +447,10 @@ class QueryProcessor:
                 {
                     'keywords': ['library', 'lab', 'facility'],
                     'correction': 'facilities'
+                },
+                {
+                    'keywords': ['career', 'job', 'work', 'employment'],
+                    'correction': 'career'
                 }
             ]
         }
@@ -496,7 +503,7 @@ class QueryProcessor:
             'staff_contact': 'staff',
             'facility_info': 'facilities',
             'program_info': 'programs',
-            'general_query': 'general_query',
+            'admission': 'admission',
             'fees': 'fees',
             'financial': 'financial_aid',
             'technical': 'technical',
@@ -512,7 +519,10 @@ class QueryProcessor:
             'admin': 'admin',
             'financial_aid': 'financial_aid',
             'student_life': 'student_life',
-            'academic_policy': 'academic_policy'
+            'academic_policy': 'academic_policy',
+            'about_faix': 'about_faix',
+            'greeting': 'greeting',
+            'farewell': 'farewell'
         }
         
         # Try advanced classifier first if available
@@ -521,7 +531,7 @@ class QueryProcessor:
                 intent, confidence, details = self.intent_classifier.classify(query)
                 
                 # Map to our categories
-                mapped_intent = enhanced_category_mapping.get(intent, 'general_query')
+                mapped_intent = enhanced_category_mapping.get(intent, 'about_faix')
                 
                 # Apply correction rules for common misclassifications
                 corrected_intent = self._correct_intent_misclassification(mapped_intent, query_lower)
@@ -620,7 +630,7 @@ class QueryProcessor:
             if len(query.split()) >= 4:  # Longer queries are usually more specific
                 confidence = min(confidence * 1.2, 0.95)
         else:
-            intent_name = 'general_query'
+            intent_name = 'about_faix'
             confidence = 0.15  # Slightly higher baseline for keyword method
         
         result = {
@@ -644,7 +654,7 @@ class QueryProcessor:
     
     def _match_faix_categories(self, query: str) -> Tuple[str, float]:
         """Match query against FAIX data categories"""
-        best_match = 'general_query'
+        best_match = 'about_faix'
         best_score = 0.0
         
         for _, row in self.faix_data.iterrows():

@@ -801,7 +801,12 @@ class QueryProcessor:
             'advising': {'en': 'Academic advising and counseling', 'zh': '学术咨询和辅导'},
             'documents': {'en': 'Transcripts and official documents', 'zh': '成绩单和官方文件'},
             'admin': {'en': 'Feedback and administrative matters', 'zh': '反馈和行政事务'},
-            'general_query': {'en': 'General inquiry', 'zh': '一般查询'}
+            'about_faix': {'en': 'General information about FAIX', 'zh': '关于FAIX的一般信息'},
+            'career': {'en': 'Career opportunities', 'zh': '职业机会'},
+            'research': {'en': 'Research areas', 'zh': '研究领域'},
+            'academic_resources': {'en': 'Academic handbook, uLearn, resources', 'zh': '学术手册, uLearn, 资源'},
+            'greeting': {'en': 'Greeting', 'zh': '问候'},
+            'farewell': {'en': 'Farewell', 'zh': '告别'}
         }
 
         # Language-specific patterns for intent detection
@@ -880,44 +885,68 @@ class QueryProcessor:
         """Initialize comprehensive language-specific patterns"""
         return {
             'en': {
-                'course_info': ['course', 'courses', 'subject', 'subjects', 'module', 'modules', 'curriculum', 'class', 'classes', 'lecture', 'lectures', 'tutorial', 'tutorials', 'lab', 'labs'],
-                'program_info': ['program', 'programs', 'programme', 'programmes', 'degree', 'degrees', 'bachelor', 'masters', 'master', 'phd', 'doctorate', 'major', 'majors', 'study', 'studies', 'offer', 'offers', 'offered'],
-                'registration': ['register', 'registration', 'enroll', 'enrollment', 'enrolling', 'admission', 'admissions', 'apply', 'applying', 'application', 'applications', 'sign up', 'signup'],
+                'course_info': ['course', 'courses', 'subject', 'subjects', 'module', 'modules', 'curriculum', 'class', 'classes', 'lecture', 'lectures', 'tutorial', 'tutorials'],
+                'program_info': ['program', 'programs', 'programme', 'programmes', 'degree', 'degrees', 'bachelor', 'masters', 'master', 'phd', 'doctorate', 'major', 'majors', 'study', 'studies', 'offer', 'offers', 'offered', 'BCSAI', 'BCSCS', 'undergraduate', 'postgraduate'],
+                'registration': ['register', 'registration', 'enroll', 'enrollment', 'enrolling', 'sign up', 'signup'],
+                'admission': ['admission', 'admissions', 'apply', 'applying', 'application', 'applications', 'entry', 'requirements', 'criteria', 'international student', 'local student', 'CGPA', 'MUET', 'SPM', 'STPM'],
                 'academic_schedule': ['schedule', 'schedules', 'timetable', 'timetables', 'calendar', 'when', 'time', 'times', 'date', 'dates', 'deadline', 'deadlines', 'semester', 'semesters', 'starting', 'starts', 'start'],
                 'staff_contact': ['contact', 'contacts', 'email', 'emails', 'phone', 'telephone', 'number', 'numbers', 'professor', 'professors', 'lecturer', 'lecturers', 'staff', 'faculty', 'dean', 'who'],
-                'facility_info': ['facility', 'facilities', 'lab', 'laboratory', 'laboratories', 'equipment', 'room', 'rooms', 'building', 'buildings', 'campus', 'library', 'libraries', 'available'],
+                'facility_info': ['facility', 'facilities', 'lab', 'laboratory', 'laboratories', 'equipment', 'room', 'rooms', 'building', 'buildings', 'campus', 'library', 'libraries', 'available', 'booking'],
                 'fees': ['tuition', 'fee', 'fees', 'cost', 'costs', 'payment', 'payments', 'price', 'prices', 'financial', 'money', 'scholarship', 'scholarships', 'how much'],
-                'general_query': ['hello', 'hi', 'help', 'information', 'about', 'tell me', 'what is', 'how to']
+                'career': ['career', 'careers', 'job', 'jobs', 'employment', 'work', 'opportunity', 'opportunities', 'graduate', 'after graduation', 'profession', 'salary', 'industry'],
+                'about_faix': ['about', 'FAIX', 'faculty', 'history', 'established', 'founded', 'vision', 'mission', 'objective', 'objectives', 'what is FAIX', 'tell me about', 'UTeM'],
+                'research': ['research', 'project', 'projects', 'focus area', 'study', 'thesis', 'dissertation', 'publication', 'publications'],
+                'academic_resources': ['handbook', 'academic handbook', 'student handbook', 'ulearn', 'portal', 'timetable', 'forms', 'certification', 'professional certification', 'education fund', 'resources'],
+                'greeting': ['hello', 'hi', 'hey', 'good morning', 'good afternoon', 'good evening'],
+                'farewell': ['bye', 'goodbye', 'thanks', 'thank you', 'thank', 'see you']
             },
             'ms': {
-                'course_info': ['kursus', 'kursus-kursus', 'subjek', 'subjek-subjek', 'modul', 'modul-modul', 'kurikulum', 'kelas', 'kelas-kelas', 'kuliah', 'kuliah-kuliah', 'tutorial', 'tutorial-tutorial', 'makmal'],
-                'program_info': ['program', 'program-program', 'programme', 'ijazah', 'ijazah-ijazah', 'sarjana', 'doktor', 'pengajian', 'bidang', 'tawarkan', 'ditawarkan', 'menawarkan'],
-                'registration': ['daftar', 'mendaftar', 'pendaftaran', 'kemasukan', 'memohon', 'permohonan', 'mohon'],
+                'course_info': ['kursus', 'kursus-kursus', 'subjek', 'subjek-subjek', 'modul', 'modul-modul', 'kurikulum', 'kelas', 'kelas-kelas', 'kuliah', 'kuliah-kuliah', 'tutorial', 'tutorial-tutorial'],
+                'program_info': ['program', 'program-program', 'programme', 'ijazah', 'ijazah-ijazah', 'sarjana', 'doktor', 'pengajian', 'bidang', 'tawarkan', 'ditawarkan', 'menawarkan', 'prasiswazah', 'pascasiswazah'],
+                'registration': ['daftar', 'mendaftar', 'pendaftaran'],
+                'admission': ['kemasukan', 'memohon', 'permohonan', 'mohon', 'syarat', 'kelayakan', 'pelajar antarabangsa', 'pelajar tempatan'],
                 'academic_schedule': ['jadual', 'jadual-jadual', 'kalendar', 'bila', 'masa', 'tarikh', 'tarikh-tarikh', 'had masa', 'semester', 'semester-semester', 'bermula', 'mula'],
                 'staff_contact': ['hubungi', 'menghubungi', 'emel', 'telefon', 'nombor', 'profesor', 'pensyarah', 'kakitangan', 'fakulti', 'dekan', 'siapa'],
-                'facility_info': ['makmal', 'laboratori', 'kemudahan', 'kemudahan-kemudahan', 'peralatan', 'bilik', 'bilik-bilik', 'bangunan', 'bangunan-bangunan', 'kampus', 'perpustakaan', 'tersedia'],
+                'facility_info': ['makmal', 'laboratori', 'kemudahan', 'kemudahan-kemudahan', 'peralatan', 'bilik', 'bilik-bilik', 'bangunan', 'bangunan-bangunan', 'kampus', 'perpustakaan', 'tersedia', 'tempahan'],
                 'fees': ['yuran', 'yuran-yuran', 'kos', 'bayaran', 'bayaran-bayaran', 'harga', 'harga-harga', 'kewangan', 'wang', 'biasiswa', 'berapakah'],
-                'general_query': ['helo', 'hai', 'bantuan', 'maklumat', 'tentang', 'beritahu saya', 'apa itu', 'bagaimana']
+                'career': ['kerjaya', 'pekerjaan', 'kerja', 'peluang', 'graduan', 'selepas tamat', 'profesion', 'gaji', 'industri'],
+                'about_faix': ['tentang', 'FAIX', 'fakulti', 'sejarah', 'ditubuhkan', 'visi', 'misi', 'objektif', 'apa itu FAIX', 'beritahu saya tentang', 'UTeM'],
+                'research': ['penyelidikan', 'projek', 'projek-projek', 'bidang fokus', 'kajian', 'tesis', 'disertasi', 'penerbitan'],
+                'academic_resources': ['buku panduan', 'buku panduan akademik', 'buku panduan pelajar', 'ulearn', 'portal', 'jadual waktu', 'borang', 'sijil', 'sijil profesional', 'dana pendidikan', 'sumber'],
+                'greeting': ['helo', 'hai', 'selamat pagi', 'selamat petang', 'selamat malam', 'apa khabar'],
+                'farewell': ['selamat tinggal', 'jumpa lagi', 'terima kasih', 'bye']
             },
             'zh': {
-                'course_info': ['课程', '科目', '模块', '课堂', '讲座', '辅导', '实验室', '有哪些课程', '什么课程'],
-                'program_info': ['专业', '项目', '学位', '学士', '硕士', '博士', '主修', '学习', '项目的信息', '关于项目', '项目信息', '提供', '提供什么', '提供哪些', '提供什么课程', '提供什么项目'],
-                'registration': ['注册', '报名', '登记', '入学', '申请', '申请表', '注册表', '如何注册'],
+                'course_info': ['课程', '科目', '模块', '课堂', '讲座', '辅导', '有哪些课程', '什么课程'],
+                'program_info': ['专业', '项目', '学位', '学士', '硕士', '博士', '主修', '学习', '项目的信息', '关于项目', '项目信息', '提供', '提供什么', '提供哪些', '提供什么课程', '提供什么项目', '本科', '研究生'],
+                'registration': ['注册', '报名', '登记', '注册表', '如何注册'],
+                'admission': ['入学', '申请', '申请表', '要求', '标准', '国际学生', '本地学生'],
                 'academic_schedule': ['时间表', '日历', '什么时候', '时间', '日期', '截止日期', '学期', '开始'],
                 'staff_contact': ['联系', '电邮', '电话', '号码', '教授', '讲师', '员工', '学院', '院长'],
-                'facility_info': ['实验室', '设备', '设施', '房间', '建筑', '校园', '图书馆', '有哪些设施'],
+                'facility_info': ['实验室', '设备', '设施', '房间', '建筑', '校园', '图书馆', '有哪些设施', '预订'],
                 'fees': ['学费', '费用', '成本', '付款', '价格', '财务', '钱', '奖学金', '是多少'],
-                'general_query': ['你好', '嗨', '帮助', '信息', '关于', '告诉我', '是什么', '如何']
+                'career': ['职业', '工作', '就业', '机会', '毕业生', '毕业后', '专业', '薪水', '行业'],
+                'about_faix': ['关于', 'FAIX', '学院', '历史', '成立', '愿景', '使命', '目标', '什么是FAIX', '告诉我关于'],
+                'research': ['研究', '项目', '焦点领域', '论文', '出版物'],
+                'academic_resources': ['手册', '学术手册', '学生手册', 'ulearn', '门户', '时间表', '表格', '证书', '专业认证', '教育基金', '资源'],
+                'greeting': ['你好', '嗨', '早上好', '下午好', '晚上好'],
+                'farewell': ['再见', '拜拜', '谢谢', '感谢']
             },
             'ar': {
                 'course_info': ['دورة', 'دورات', 'الدورات', 'مادة', 'مواد', 'وحدة', 'وحدات', 'منهج', 'مناهج', 'فصل', 'فصول', 'محاضرة', 'محاضرات', 'دروس', 'ما هي الدورات', 'الدورات المتاحة'],
-                'program_info': ['برنامج', 'برامج', 'البرامج', 'درجة', 'درجات', 'بكالوريوس', 'ماجستير', 'دكتوراه', 'تخصص', 'تخصصات', 'دراسة', 'دراسات', 'تقدم', 'تقدمها', 'عن البرامج'],
-                'registration': ['تسجيل', 'التسجيل', 'التحاق', 'قبول', 'تطبيق', 'طلب', 'استمارة', 'استمارات', 'سجل', 'أسجل', 'كيف أسجل'],
+                'program_info': ['برنامج', 'برامج', 'البرامج', 'درجة', 'درجات', 'بكالوريوس', 'ماجستير', 'دكتوراه', 'تخصص', 'تخصصات', 'دراسة', 'دراسات', 'تقدم', 'تقدمها', 'عن البرامج', 'جامعية', 'دراسات عليا'],
+                'registration': ['تسجيل', 'التسجيل', 'سجل', 'أسجل', 'كيف أسجل'],
+                'admission': ['التحاق', 'قبول', 'تطبيق', 'طلب', 'استمارة', 'استمارات', 'متطلبات', 'معايير', 'طالب دولي', 'طالب محلي'],
                 'academic_schedule': ['جدول', 'جداول', 'تقويم', 'تقاويم', 'متى', 'وقت', 'أوقات', 'تاريخ', 'تواريخ', 'موعد نهائي', 'فصل دراسي', 'فصول دراسية', 'يبدأ', 'تبدأ'],
                 'staff_contact': ['اتصال', 'اتصالات', 'بريد إلكتروني', 'هاتف', 'هواتف', 'رقم', 'أرقام', 'أستاذ', 'أساتذة', 'محاضر', 'محاضرون', 'موظف', 'موظفون', 'كلية', 'عميد'],
-                'facility_info': ['معدات', 'مرافق', 'المرافق', 'غرفة', 'غرف', 'مبنى', 'مبان', 'حرم', 'مكتبة', 'مكتبات', 'ما هي المرافق', 'المرافق المتاحة'],
+                'facility_info': ['معدات', 'مرافق', 'المرافق', 'غرفة', 'غرف', 'مبنى', 'مبان', 'حرم', 'مكتبة', 'مكتبات', 'ما هي المرافق', 'المرافق المتاحة', 'حجز'],
                 'fees': ['رسوم', 'الرسوم', 'تكلفة', 'تكاليف', 'دفع', 'مدفوعات', 'سعر', 'أسعار', 'مالي', 'مال', 'منحة', 'منح', 'كم'],
-                'general_query': ['مرحبا', 'أهلا', 'مساعدة', 'معلومات', 'حول', 'أخبرني', 'ما هو', 'كيف']
+                'career': ['مهنة', 'وظيفة', 'عمل', 'فرصة', 'فرص', 'خريج', 'بعد التخرج', 'راتب', 'صناعة'],
+                'about_faix': ['حول', 'عن', 'FAIX', 'كلية', 'تاريخ', 'تأسست', 'رؤية', 'رسالة', 'هدف', 'أهداف', 'ما هو FAIX', 'أخبرني عن'],
+                'research': ['بحث', 'أبحاث', 'مشروع', 'مشاريع', 'مجال التركيز', 'أطروحة', 'منشورات'],
+                'academic_resources': ['دليل', 'دليل أكاديمي', 'دليل الطالب', 'ulearn', 'بوابة', 'جدول زمني', 'نماذج', 'شهادة', 'شهادة مهنية', 'صندوق التعليم', 'موارد'],
+                'greeting': ['مرحبا', 'أهلا', 'صباح الخير', 'مساء الخير'],
+                'farewell': ['مع السلامة', 'وداعا', 'شكرا', 'إلى اللقاء']
             }
         }
     
@@ -1069,12 +1098,10 @@ class QueryProcessor:
             if score > 0:
                 intent_scores[intent] = score
         
-        # If we have specific intents, reduce general_query score significantly
+        # Remove general_query from scores if we have any specific intents
+        # Greetings and farewells are handled as specific intents now
         if 'general_query' in intent_scores:
-            specific_intents = [i for i in intent_scores.keys() if i != 'general_query']
-            if specific_intents:
-                # Reduce general_query score by half if there are specific intents
-                intent_scores['general_query'] = max(1, intent_scores['general_query'] // 2)
+            del intent_scores['general_query']
         
         if intent_scores:
             # Get best intent
@@ -1098,8 +1125,8 @@ class QueryProcessor:
             self._intent_cache[cache_key] = result
             return result
         
-        # Default to general query with low confidence
-        result = ('general_query', 0.2 if language == 'zh' else 0.1)
+        # Default to about_faix (general FAIX info) with low confidence when no match
+        result = ('about_faix', 0.2 if language == 'zh' else 0.1)
         # Cache the result
         if len(self._intent_cache) > INTENT_CACHE_SIZE:
             self._intent_cache = dict(list(self._intent_cache.items())[INTENT_CACHE_SIZE // 2:])
@@ -1125,10 +1152,15 @@ class QueryProcessor:
                     'staff': 'staff_contact',
                     'facilities': 'facility_info',
                     'fees': 'fees',
-                    'general': 'general_query'
+                    'admission': 'admission',
+                    'career': 'career',
+                    'about': 'about_faix',
+                    'research': 'research',
+                    'greeting': 'greeting',
+                    'farewell': 'farewell'
                 }
                 
-                mapped_intent = intent_mapping.get(intent, 'general_query')
+                mapped_intent = intent_mapping.get(intent, 'about_faix')
                 
                 # Use NLP result if confidence is reasonable
                 if confidence >= 0.3:
@@ -1241,7 +1273,10 @@ class QueryProcessor:
                 'staff_contact': 'staff_contact',
                 'facility_info': 'facility_info',
                 'fees': 'fees',
-                'general_query': 'general'
+                'admission': 'admission',
+                'career': 'career',
+                'about_faix': 'about',
+                'research': 'research'
             }
             
             category = intent_category_map.get(intent)
@@ -1391,7 +1426,7 @@ class QueryProcessor:
         
         # Get intent description in correct language
         intent_description = self.intent_categories.get(intent, {}).get(language_code, 
-                             self.intent_categories.get('general_query', {}).get(language_code, 'General inquiry'))
+                             self.intent_categories.get('about_faix', {}).get(language_code, 'General information about FAIX'))
         
         # Prepare comprehensive output
         processed_data = {

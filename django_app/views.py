@@ -62,38 +62,38 @@ MULTILANG_FAREWELLS = {
 MULTILANG_FALLBACK_HELP = {
     'en': (
         "I'm here to help! You can ask me about:\n"
-        "• FAIX programs and courses\n"
-        "• Registration procedures\n"
-        "• Staff contacts\n"
-        "• Academic schedules\n"
-        "• Fees and tuition\n\n"
+        "- FAIX programs and courses\n"
+        "- Registration procedures\n"
+        "- Staff contacts\n"
+        "- Academic schedules\n"
+        "- Fees and tuition\n\n"
         "What would you like to know?"
     ),
     'ms': (
         "Saya di sini untuk membantu! Anda boleh bertanya tentang:\n"
-        "• Program dan kursus FAIX\n"
-        "• Prosedur pendaftaran\n"
-        "• Hubungan kakitangan\n"
-        "• Jadual akademik\n"
-        "• Yuran dan bayaran\n\n"
+        "- Program dan kursus FAIX\n"
+        "- Prosedur pendaftaran\n"
+        "- Hubungan kakitangan\n"
+        "- Jadual akademik\n"
+        "- Yuran dan bayaran\n\n"
         "Apa yang anda ingin tahu?"
     ),
     'zh': (
         "我在这里帮助您！您可以询问：\n"
-        "• FAIX项目和课程\n"
-        "• 注册程序\n"
-        "• 教职员工联系方式\n"
-        "• 学术日程\n"
-        "• 学费和费用\n\n"
+        "- FAIX项目和课程\n"
+        "- 注册程序\n"
+        "- 教职员工联系方式\n"
+        "- 学术日程\n"
+        "- 学费和费用\n\n"
         "您想了解什么？"
     ),
     'ar': (
         "أنا هنا لمساعدتك! يمكنك السؤال عن:\n"
-        "• برامج ودورات FAIX\n"
-        "• إجراءات التسجيل\n"
-        "• جهات اتصال الموظفين\n"
-        "• الجداول الأكاديمية\n"
-        "• الرسوم الدراسية\n\n"
+        "- برامج ودورات FAIX\n"
+        "- إجراءات التسجيل\n"
+        "- جهات اتصال الموظفين\n"
+        "- الجداول الأكاديمية\n"
+        "- الرسوم الدراسية\n\n"
         "ماذا تريد أن تعرف؟"
     ),
 }
@@ -152,42 +152,42 @@ MULTILANG_FAREWELL_KEYWORDS = {
 MULTILANG_CAPABILITIES = {
     'en': (
         "I'm the FAIX AI Chatbot! Here's what I can help you with:\n\n"
-        "• **Programs & Courses** - Information about FAIX degree programs, courses, and curriculum\n"
-        "• **Registration** - How to register, add/drop subjects, enrollment procedures\n"
-        "• **Staff Contacts** - Find professors, lecturers, and department contacts\n"
-        "• **Academic Schedule** - Semester dates, deadlines, timetables\n"
-        "• **Fees & Tuition** - Fee schedules and payment information\n"
-        "• **Facilities** - Labs, libraries, and campus resources\n\n"
+        "- **Programs & Courses** - Information about FAIX degree programs, courses, and curriculum\n"
+        "- **Registration** - How to register, add/drop subjects, enrollment procedures\n"
+        "- **Staff Contacts** - Find professors, lecturers, and department contacts\n"
+        "- **Academic Schedule** - Semester dates, deadlines, timetables\n"
+        "- **Fees & Tuition** - Fee schedules and payment information\n"
+        "- **Facilities** - Labs, libraries, and campus resources\n\n"
         "Just ask me anything about FAIX! 😊"
     ),
     'ms': (
         "Saya FAIX AI Chatbot! Ini yang boleh saya bantu:\n\n"
-        "• **Program & Kursus** - Maklumat tentang program ijazah FAIX, kursus, dan kurikulum\n"
-        "• **Pendaftaran** - Cara mendaftar, tambah/gugur subjek, prosedur pendaftaran\n"
-        "• **Hubungan Kakitangan** - Cari profesor, pensyarah, dan hubungan jabatan\n"
-        "• **Jadual Akademik** - Tarikh semester, tarikh akhir, jadual waktu\n"
-        "• **Yuran & Bayaran** - Jadual yuran dan maklumat pembayaran\n"
-        "• **Kemudahan** - Makmal, perpustakaan, dan sumber kampus\n\n"
+        "- **Program & Kursus** - Maklumat tentang program ijazah FAIX, kursus, dan kurikulum\n"
+        "- **Pendaftaran** - Cara mendaftar, tambah/gugur subjek, prosedur pendaftaran\n"
+        "- **Hubungan Kakitangan** - Cari profesor, pensyarah, dan hubungan jabatan\n"
+        "- **Jadual Akademik** - Tarikh semester, tarikh akhir, jadual waktu\n"
+        "- **Yuran & Bayaran** - Jadual yuran dan maklumat pembayaran\n"
+        "- **Kemudahan** - Makmal, perpustakaan, dan sumber kampus\n\n"
         "Tanya saya apa sahaja tentang FAIX! 😊"
     ),
     'zh': (
         "我是FAIX AI聊天机器人！以下是我可以帮助您的：\n\n"
-        "• **项目和课程** - FAIX学位项目、课程和课程安排信息\n"
-        "• **注册** - 如何注册、选课/退课、入学程序\n"
-        "• **教职员工联系** - 查找教授、讲师和部门联系方式\n"
-        "• **学术日程** - 学期日期、截止日期、时间表\n"
-        "• **学费和费用** - 费用表和付款信息\n"
-        "• **设施** - 实验室、图书馆和校园资源\n\n"
+        "- **项目和课程** - FAIX学位项目、课程和课程安排信息\n"
+        "- **注册** - 如何注册、选课/退课、入学程序\n"
+        "- **教职员工联系** - 查找教授、讲师和部门联系方式\n"
+        "- **学术日程** - 学期日期、截止日期、时间表\n"
+        "- **学费和费用** - 费用表和付款信息\n"
+        "- **设施** - 实验室、图书馆和校园资源\n\n"
         "有任何关于FAIX的问题都可以问我！😊"
     ),
     'ar': (
         "أنا روبوت FAIX للدردشة! إليك ما يمكنني مساعدتك به:\n\n"
-        "• **البرامج والدورات** - معلومات حول برامج درجات FAIX والدورات والمناهج\n"
-        "• **التسجيل** - كيفية التسجيل، إضافة/حذف المواد، إجراءات الالتحاق\n"
-        "• **جهات اتصال الموظفين** - البحث عن الأساتذة والمحاضرين وجهات اتصال الأقسام\n"
-        "• **الجدول الأكاديمي** - تواريخ الفصل الدراسي، المواعيد النهائية، الجداول\n"
-        "• **الرسوم والتعليم** - جداول الرسوم ومعلومات الدفع\n"
-        "• **المرافق** - المختبرات والمكتبات وموارد الحرم الجامعي\n\n"
+        "- **البرامج والدورات** - معلومات حول برامج درجات FAIX والدورات والمناهج\n"
+        "- **التسجيل** - كيفية التسجيل، إضافة/حذف المواد، إجراءات الالتحاق\n"
+        "- **جهات اتصال الموظفين** - البحث عن الأساتذة والمحاضرين وجهات اتصال الأقسام\n"
+        "- **الجدول الأكاديمي** - تواريخ الفصل الدراسي، المواعيد النهائية، الجداول\n"
+        "- **الرسوم والتعليم** - جداول الرسوم ومعلومات الدفع\n"
+        "- **المرافق** - المختبرات والمكتبات وموارد الحرم الجامعي\n\n"
         "اسألني أي شيء عن FAIX! 😊"
     ),
 }
@@ -301,8 +301,8 @@ def update_conversation_memory(context: dict, entities: dict, intent: str) -> di
         # Keep only last 5
         memory['mentioned_courses'] = memory['mentioned_courses'][-5:]
     
-    # Store discussed topics (intents)
-    if intent and intent != 'general_query':
+    # Store discussed topics (intents) - skip greetings/farewells
+    if intent and intent not in ['greeting', 'farewell']:
         if intent not in memory['discussed_topics']:
             memory['discussed_topics'].append(intent)
         memory['discussed_topics'] = memory['discussed_topics'][-5:]
@@ -476,7 +476,7 @@ def chat_api(request):
                 answer = get_multilang_response(MULTILANG_GREETINGS, early_lang_code)
                 cache.set(cache_key_greeting, answer, timeout=86400)  # Cache for 24 hours
             
-            intent = 'general_query'
+            intent = 'greeting'
             confidence = 0.9
             entities = {}
             
@@ -516,7 +516,7 @@ def chat_api(request):
                 answer = get_multilang_response(MULTILANG_FAREWELLS, early_lang_code)
                 cache.set(cache_key_farewell, answer, timeout=86400)
             
-            intent = 'general_query'
+            intent = 'farewell'
             confidence = 0.9
             entities = {}
             
@@ -614,7 +614,7 @@ def chat_api(request):
         
         # STEP 2: Process query with NLP (as secondary check/confirmation)
         processed_query = query_processor.process_query(user_message)
-        intent = processed_query.get('detected_intent', 'general_query')
+        intent = processed_query.get('detected_intent', 'about_faix')
         confidence = processed_query.get('confidence_score', 0.0)
         entities = processed_query.get('extracted_entities', {})
         language_info = processed_query.get('language', {'code': 'en', 'name': 'English'})
@@ -648,16 +648,16 @@ def chat_api(request):
             )
             return JsonResponse(cached_response)
         
-        # IMPROVEMENT: For general_query with very low confidence, return helpful response
+        # IMPROVEMENT: For about_faix with very low confidence, return helpful response
         # This prevents returning irrelevant FAQ answers for vague/unclear queries
-        if intent == 'general_query' and confidence < 0.25 and not agent_id:
+        if intent == 'about_faix' and confidence < 0.25 and not agent_id:
             # Check if it's not a specific topic query
             specific_topic_keywords = [
                 'program', 'course', 'fee', 'staff', 'contact', 'schedule', 'register',
                 'admission', 'facility', 'department', 'yuran', 'kursus', 'pendaftaran'
             ]
             if not any(kw in user_message_lower for kw in specific_topic_keywords):
-                logger.info("Low confidence general_query - returning helpful response")
+                logger.info("Low confidence about_faix - returning helpful response")
                 answer = get_multilang_response(MULTILANG_FALLBACK_HELP, language_code)
                 
                 save_messages_async(conversation, user_message, answer, intent, confidence, entities)
@@ -677,26 +677,42 @@ def chat_api(request):
         
         # Use NLP intent as confirmation if agent not already set by data-first routing
         if not agent_id:
-            # Map intents to agent IDs
+            # Map intents to agent IDs - all FAIX data intents go to 'faq' agent
             intent_to_agent = {
                 'staff_contact': 'staff',
                 'academic_schedule': 'schedule',
-                'program_info': 'faq',  # Route program queries to FAQ (has FAIX data)
-                'course_info': 'faq',   # Route course queries to FAQ (has FAIX data)
-                'facility_info': 'faq', # Route facility queries to FAQ (has FAIX data)
-                'fees': 'faq',          # Route fee queries to FAQ (has fee information)
-                # For other intents, use 'faq' agent or keep None for fallback
+                'program_info': 'faq',       # Route program queries to FAQ (has FAIX data)
+                'course_info': 'faq',        # Route course queries to FAQ (has FAIX data)
+                'facility_info': 'faq',      # Route facility queries to FAQ (has FAIX data)
+                'fees': 'faq',               # Route fee queries to FAQ (has fee information)
+                'admission': 'faq',          # Route admission queries to FAQ (has FAIX data)
+                'career': 'faq',             # Route career queries to FAQ (has FAIX data)
+                'about_faix': 'faq',         # Route FAIX info queries to FAQ (has FAIX data)
+                'research': 'faq',           # Route research queries to FAQ (has FAIX data)
+                'academic_resources': 'faq', # Route academic resources to FAQ (has FAIX data)
+                'registration': 'faq',       # Route registration queries to FAQ
             }
             agent_id = intent_to_agent.get(intent)
             
-            # Check for program/admission/facility keywords and route to FAQ agent
+            # Check for FAIX-related keywords and route to FAQ agent
             if not agent_id:
                 faix_keywords = [
-                    'program', 'programme', 'degree', 'course', 'admission', 'admit',
-                    'facility', 'facilities', 'department', 'departments', 'vision', 'mission',
-                    'undergraduate', 'postgraduate', 'master', 'bachelor', 'research',
-                    'key highlight', 'objective', 'objectives', 'fee', 'fees', 'tuition',
-                    'yuran', 'bayaran', 'diploma fee', 'degree fee', 'payment', 'cost'
+                    # Programs
+                    'program', 'programme', 'degree', 'course', 'bcsai', 'bcscs', 'mtdsa', 'mcsss',
+                    'undergraduate', 'postgraduate', 'master', 'bachelor', 'ai programme', 'cybersecurity',
+                    # Admission
+                    'admission', 'admit', 'apply', 'application', 'cgpa', 'muet', 'spm', 'stpm', 'eligibility',
+                    'entry requirement', 'international student', 'local student',
+                    # Fees
+                    'fee', 'fees', 'tuition', 'yuran', 'bayaran', 'diploma fee', 'degree fee', 'payment', 'cost', 'scholarship',
+                    # About FAIX
+                    'about faix', 'faix', 'vision', 'mission', 'objective', 'objectives', 'dean', 'established',
+                    'history', 'key highlight', 'department', 'departments', 'utem',
+                    # Facilities & Resources
+                    'facility', 'facilities', 'lab', 'laboratory', 'booking', 'ulearn', 'handbook', 'academic resource',
+                    # Career & Research
+                    'career', 'job', 'employment', 'opportunity', 'research', 'focus area', 'machine learning',
+                    'data science', 'digital forensics', 'intelligent system'
                 ]
                 if any(kw in user_message_lower for kw in faix_keywords):
                     # Check if FAIX data is available
@@ -724,7 +740,38 @@ def chat_api(request):
                     history_messages.append({'role': role, 'content': content.strip()})
 
         # Agent-based path: use LLM + RAG when an agent_id is provided
+        # BUT first try knowledge base for specific FAIX queries to avoid LLM hallucinations
         if agent_id:
+            # For specific queries, try knowledge base first before LLM
+            specific_queries = ['dean', 'bcsai', 'bcscs', 'mcsss', 'mtdsa', 'what is', 'who is']
+            if any(kw in user_message_lower for kw in specific_queries):
+                kb_answer = knowledge_base.get_answer(intent, user_message)
+                if kb_answer and kb_answer.strip() and 'couldn\'t find' not in kb_answer.lower():
+                    logger.info("Using knowledge base answer for specific query")
+                    save_messages_async(conversation, user_message, kb_answer, intent, confidence, entities)
+                    session.context = context
+                    session.save(update_fields=['context', 'updated_at'])
+                    
+                    # Check for PDF URL for program queries
+                    pdf_url = None
+                    if intent == 'program_info' or 'handbook' in user_message_lower:
+                        import os
+                        from django.conf import settings
+                        pdf_path = os.path.join(settings.MEDIA_ROOT, 'Academic_Handbook.pdf')
+                        if os.path.exists(pdf_path):
+                            pdf_url = settings.MEDIA_URL + 'Academic_Handbook.pdf'
+                    
+                    return JsonResponse({
+                        'response': kb_answer,
+                        'session_id': session.session_id,
+                        'conversation_id': conversation.id,
+                        'intent': intent,
+                        'confidence': confidence,
+                        'entities': entities,
+                        'timestamp': timezone.now().isoformat(),
+                        'pdf_url': pdf_url,
+                    })
+            
             agent = get_agent(agent_id)
             if not agent:
                 return JsonResponse(
@@ -768,7 +815,7 @@ def chat_api(request):
                     logger.info("Fee query - returning direct link")
                     answer = "https://bendahari.utem.edu.my/ms/jadual-yuran-pelajar.html"
                     skip_llm = True
-                elif intent == 'general_query' and confidence < 0.3:
+                elif intent == 'about_faix' and confidence < 0.3:
                     # Use knowledge base directly for low-confidence queries
                     logger.debug("Low confidence query - using knowledge base")
                     answer = knowledge_base.retrieve(intent, user_message) if hasattr(knowledge_base, 'retrieve') else None
@@ -833,7 +880,7 @@ def chat_api(request):
                         answer_parts = ["Here are some staff members you can contact:\n"]
                         for staff in relevant_staff[:5]:  # Limit to 5
                             if staff.get('name'):
-                                answer_parts.append(f"• {staff['name']}")
+                                answer_parts.append(f"- **{staff['name']}**")
                         
                         answer_parts.append("")
                         answer_parts.append("Would you like contact information (email, phone, office) for any of these staff members?")
@@ -854,7 +901,7 @@ def chat_api(request):
                         answer = "Here are some staff members you can contact:\n\n"
                         for staff in staff_docs[:5]:
                             if staff.get('name'):
-                                answer += f"• {staff.get('name')}"
+                                answer += f"- **{staff.get('name')}**"
                                 if staff.get('department'):
                                     answer += f" ({staff.get('department')})"
                                 answer += "\n"
@@ -892,7 +939,7 @@ def chat_api(request):
                         answer = "Here are some staff members you can contact:\n\n"
                         for staff in staff_docs[:5]:
                             if staff.get('name'):
-                                answer += f"• {staff.get('name')}"
+                                answer += f"- **{staff.get('name')}**"
                                 if staff.get('department'):
                                     answer += f" ({staff.get('department')})"
                                 answer += "\n"
@@ -942,7 +989,7 @@ def chat_api(request):
             if is_fee_query:
                 logger.info("Fee query (non-agent) - returning direct link")
                 answer = "https://bendahari.utem.edu.my/ms/jadual-yuran-pelajar.html"
-            elif intent and intent != 'general_query':
+            elif intent and intent not in ['greeting', 'farewell']:
                 try:
                     answer = knowledge_base.get_answer(intent, user_message)
                 except Exception as e:
@@ -1011,7 +1058,7 @@ def chat_api(request):
         }
         
         # PERFORMANCE OPTIMIZATION: Cache the response (TTL: 1 hour for general queries, 24 hours for static responses)
-        cache_timeout = 86400 if (is_fee_query or intent in ['general_query']) else 3600  # 24h for static, 1h for others
+        cache_timeout = 86400 if (is_fee_query or intent in ['greeting', 'farewell', 'about_faix']) else 3600  # 24h for static, 1h for others
         cache.set(cache_key, response_data, timeout=cache_timeout)
         
         return JsonResponse(response_data)

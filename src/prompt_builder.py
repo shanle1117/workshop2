@@ -92,6 +92,25 @@ def _format_faix_data_context(faix_data: Dict[str, Any]) -> str:
             lines.append(f"Dean: {info['dean']}")
         if info.get("established"):
             lines.append(f"Established: {info['established']}")
+        if info.get("staff_count"):
+            staff_count = info["staff_count"]
+            if staff_count.get("academic"):
+                lines.append(f"Academic Staff: {staff_count['academic']}")
+            if staff_count.get("administrative"):
+                lines.append(f"Administrative Staff: {staff_count['administrative']}")
+        if info.get("address"):
+            address = info["address"]
+            addr_parts = []
+            if address.get("street"):
+                addr_parts.append(address["street"])
+            if address.get("postcode"):
+                addr_parts.append(address["postcode"])
+            if address.get("city"):
+                addr_parts.append(address["city"])
+            if address.get("state"):
+                addr_parts.append(address["state"])
+            if addr_parts:
+                lines.append(f"Address: {', '.join(addr_parts)}")
         if info.get("contact"):
             contact = info["contact"]
             if contact.get("email"):
@@ -113,7 +132,7 @@ def _format_faix_data_context(faix_data: Dict[str, Any]) -> str:
         if vm.get("objectives") and isinstance(vm["objectives"], list):
             lines.append("Objectives:")
             for obj in vm["objectives"]:
-                lines.append(f"  • {obj}")
+                lines.append(f"  - {obj}")
         lines.append("")
     
     # Programmes
@@ -126,11 +145,17 @@ def _format_faix_data_context(faix_data: Dict[str, Any]) -> str:
             lines.append("Undergraduate Programs:")
             for prog in programs["undergraduate"]:
                 if prog.get("name"):
-                    lines.append(f"  • {prog['name']} ({prog.get('code', 'N/A')})")
+                    lines.append(f"  - {prog['name']} ({prog.get('code', 'N/A')})")
                     if prog.get("duration"):
                         lines.append(f"    Duration: {prog['duration']}")
                     if prog.get("focus_areas") and isinstance(prog["focus_areas"], list):
-                        lines.append(f"    Focus Areas: {', '.join(prog['focus_areas'][:5])}")
+                        lines.append(f"    Focus Areas: {', '.join(prog['focus_areas'][:6])}")
+                    if prog.get("career_opportunities") and isinstance(prog["career_opportunities"], list):
+                        careers = prog["career_opportunities"][:5]
+                        lines.append(f"    Career Opportunities: {', '.join(careers)}")
+                    if prog.get("learning_distribution"):
+                        dist = prog["learning_distribution"]
+                        lines.append(f"    Learning: {dist.get('coursework', 'N/A')} coursework, {dist.get('practical_projects', 'N/A')} practical")
             lines.append("")
         
         # Postgraduate
@@ -138,9 +163,11 @@ def _format_faix_data_context(faix_data: Dict[str, Any]) -> str:
             lines.append("Postgraduate Programs:")
             for prog in programs["postgraduate"]:
                 if prog.get("name"):
-                    lines.append(f"  • {prog['name']} ({prog.get('code', 'N/A')})")
+                    lines.append(f"  - {prog['name']} ({prog.get('code', 'N/A')})")
                     if prog.get("type"):
                         lines.append(f"    Type: {prog['type']}")
+                    if prog.get("focus"):
+                        lines.append(f"    Focus: {prog['focus']}")
             lines.append("")
     
     # Admission
@@ -148,22 +175,63 @@ def _format_faix_data_context(faix_data: Dict[str, Any]) -> str:
         admission = faix_data["admission"]
         lines.append("=== ADMISSION INFORMATION ===")
         
-        if "postgraduate" in admission and "entry_requirements" in admission["postgraduate"]:
+        # Undergraduate - Local
+        if "undergraduate_local" in admission:
+            local = admission["undergraduate_local"]
+            lines.append("Undergraduate (Local) Entry Requirements:")
+            reqs = local.get("requirements", {})
+            if reqs.get("spm_stpm"):
+                lines.append(f"  - {reqs['spm_stpm']}")
+            if reqs.get("minimum_requirements"):
+                lines.append(f"  - {reqs['minimum_requirements']}")
+            links = local.get("application_links", {})
+            if links.get("entry_requirements"):
+                lines.append(f"  - More info: {links['entry_requirements']}")
+            if links.get("fees"):
+                lines.append(f"  - Fee schedule: {links['fees']}")
+            lines.append("")
+        
+        # Undergraduate - International
+        if "undergraduate_international" in admission:
+            intl = admission["undergraduate_international"]
+            lines.append("Undergraduate (International) Entry Requirements:")
+            reqs = intl.get("requirements", {})
+            if reqs.get("description"):
+                lines.append(f"  - {reqs['description']}")
+            if reqs.get("academic"):
+                lines.append(f"  - Academic: {reqs['academic']}")
+            if intl.get("learning_approach"):
+                lines.append(f"  - Learning approach: {intl['learning_approach']}")
+            links = intl.get("application_links", {})
+            if links.get("entry_requirements"):
+                lines.append(f"  - More info: {links['entry_requirements']}")
+            lines.append("")
+        
+        # Postgraduate
+        if "postgraduate" in admission:
+            pg = admission["postgraduate"]
             lines.append("Postgraduate Entry Requirements:")
-            for req in admission["postgraduate"]["entry_requirements"]:
-                if isinstance(req, dict):
-                    lines.append(f"  • {req.get('category', '')}: {req.get('requirement', '')}")
-            if "language_requirements" in admission["postgraduate"]:
-                lang_req = admission["postgraduate"]["language_requirements"]
-                lines.append(f"  • Language: MUET {lang_req.get('muet', 'N/A')} or CEFR {lang_req.get('cefr', 'N/A')}")
-        lines.append("")
+            if "entry_requirements" in pg and isinstance(pg["entry_requirements"], list):
+                for req in pg["entry_requirements"]:
+                    if isinstance(req, dict):
+                        lines.append(f"  - {req.get('category', '')}: {req.get('requirement', '')}")
+            if "language_requirements" in pg:
+                lang_req = pg["language_requirements"]
+                lines.append(f"  - Language: MUET {lang_req.get('muet', 'N/A')} or CEFR {lang_req.get('cefr', 'N/A')}")
+            if "contact" in pg:
+                contact = pg["contact"]
+                if contact.get("coordinator"):
+                    lines.append(f"  - Coordinator: {contact['coordinator']}")
+                if contact.get("email"):
+                    lines.append(f"  - Contact: {contact['email']}")
+            lines.append("")
     
     # Departments
     if "departments" in faix_data and isinstance(faix_data["departments"], list):
         lines.append("=== DEPARTMENTS ===")
         for dept in faix_data["departments"]:
             if isinstance(dept, dict) and dept.get("name"):
-                lines.append(f"  • {dept['name']}")
+                lines.append(f"  - {dept['name']}")
                 if dept.get("focus"):
                     lines.append(f"    Focus: {dept['focus']}")
         lines.append("")
@@ -174,7 +242,7 @@ def _format_faix_data_context(faix_data: Dict[str, Any]) -> str:
         if "available" in facilities and isinstance(facilities["available"], list):
             lines.append("=== FACILITIES ===")
             for facility in facilities["available"]:
-                lines.append(f"  • {facility}")
+                lines.append(f"  - {facility}")
             if facilities.get("booking_system"):
                 lines.append(f"Booking System: {facilities['booking_system']}")
             lines.append("")
@@ -188,21 +256,65 @@ def _format_faix_data_context(faix_data: Dict[str, Any]) -> str:
         if resources.get("resources") and isinstance(resources["resources"], list):
             lines.append("Available Resources:")
             for res in resources["resources"]:
-                lines.append(f"  • {res}")
+                lines.append(f"  - {res}")
         lines.append("")
     
     # Key Highlights
     if "key_highlights" in faix_data and isinstance(faix_data["key_highlights"], list):
         lines.append("=== KEY HIGHLIGHTS ===")
         for highlight in faix_data["key_highlights"]:
-            lines.append(f"  • {highlight}")
+            lines.append(f"  - {highlight}")
         lines.append("")
     
     # Research Focus
     if "research_focus" in faix_data and isinstance(faix_data["research_focus"], list):
         lines.append("=== RESEARCH FOCUS ===")
         for focus in faix_data["research_focus"]:
-            lines.append(f"  • {focus}")
+            lines.append(f"  - {focus}")
+        lines.append("")
+    
+    # Staff Contacts (now merged - provide summary)
+    if "staff_contacts" in faix_data:
+        staff_data = faix_data["staff_contacts"]
+        if "departments" in staff_data and isinstance(staff_data["departments"], dict):
+            lines.append("=== STAFF CONTACTS (Summary) ===")
+            depts = staff_data["departments"]
+            for dept_key, dept_info in depts.items():
+                if isinstance(dept_info, dict):
+                    dept_name = dept_info.get("name", dept_key)
+                    staff_list = dept_info.get("staff", [])
+                    if isinstance(staff_list, list):
+                        lines.append(f"{dept_name}: {len(staff_list)} staff members")
+            lines.append("Note: Full staff details available in Staff Contacts Context section.")
+            lines.append("")
+    
+    # Schedule (now merged - if has data)
+    if "schedule" in faix_data and isinstance(faix_data["schedule"], list) and len(faix_data["schedule"]) > 0:
+        lines.append("=== ACADEMIC SCHEDULE ===")
+        for item in faix_data["schedule"][:10]:  # Limit to first 10 items
+            if isinstance(item, dict):
+                parts = []
+                if item.get("title"):
+                    parts.append(item["title"])
+                if item.get("time"):
+                    parts.append(f"Time: {item['time']}")
+                if item.get("description"):
+                    parts.append(item["description"])
+                if parts:
+                    lines.append(f"  - {' | '.join(parts)}")
+        lines.append("")
+    
+    # Course Info (now merged - if has data)
+    if "course_info" in faix_data and isinstance(faix_data["course_info"], list) and len(faix_data["course_info"]) > 0:
+        lines.append("=== COURSE INFORMATION ===")
+        for item in faix_data["course_info"][:10]:  # Limit to first 10 items
+            if isinstance(item, dict):
+                parts = []
+                for key, value in item.items():
+                    if value:
+                        parts.append(f"{key}: {value}")
+                if parts:
+                    lines.append(f"  - {' | '.join(parts)}")
         lines.append("")
     
     return "\n".join(lines).strip()
@@ -277,10 +389,12 @@ def build_messages(
     if intent:
         system_parts.append(f"The detected intent for this query is: '{intent}'.")
     system_parts.append(
-        "Use the provided context sections when answering. Format your response with proper "
-        "line breaks (\\n) between paragraphs and sections. Summarize information clearly "
-        "and use bullet points with line breaks for lists. Ensure your response is well-formatted "
-        "and easy to read.\n\n"
+        "Use the provided context sections when answering. Format your response using markdown:\n"
+        "- Use **bold** for emphasis\n"
+        "- Use `code` for technical terms\n"
+        "- Use - or * for bullet lists (NOT •)\n"
+        "- Use proper line breaks between paragraphs\n"
+        "Ensure your response is well-formatted and easy to read.\n\n"
         "IMPORTANT: Always preserve and include URLs/links from the context in your response, "
         "especially for fee schedules, official resources, or payment information. Links should "
         "be displayed as clickable URLs.\n\n"
@@ -292,7 +406,7 @@ def build_messages(
     # Add reminder for staff queries to keep it short
     if agent.id == "staff":
         system_parts.append(
-            "REMINDER: Show ONLY staff names first (bullet list, 3-5 max), each on a new line. "
+            "REMINDER: Show ONLY staff names first using markdown list format (- **Name** - Position), 3-5 max. "
             "Then ask if the user needs contact information. "
             "Only provide full details (email, phone, office) when specifically requested, "
             "and format them with line breaks between each detail."
@@ -334,15 +448,22 @@ def build_messages(
             context_lines.append(staff_text)
 
     # FAIX comprehensive data context (programs, admission, facilities, etc.)
-    # NOTE: For staff queries, do NOT use this context to invent staff positions
+    # This is the PRIMARY source for all FAIX information (merged JSON)
     faix_data = context.get("faix_data")
     if faix_data:
         faix_text = _format_faix_data_context(faix_data)
         if faix_text:
-            context_lines.append("--- FAIX Information Context (DO NOT USE FOR STAFF QUERIES) ---")
-            context_lines.append("NOTE: This context contains general faculty information. "
-                               "For staff-related queries, ONLY use the Staff Contacts Context above. "
-                               "Do NOT invent staff positions based on this general information.")
+            context_lines.append("--- FAIX Information Context (PRIMARY DATA SOURCE - Use This First) ---")
+            context_lines.append("This section contains all merged FAIX data including:")
+            context_lines.append("- Faculty Information (dean, contact, address, staff count)")
+            context_lines.append("- Programmes (BCSAI, BCSCS, Masters - with codes, duration, focus areas, career opportunities)")
+            context_lines.append("- Admission Requirements (undergraduate local/international, postgraduate)")
+            context_lines.append("- Facilities, Academic Resources, Research Focus, Departments")
+            context_lines.append("")
+            context_lines.append("IMPORTANT: For dean queries, use the Dean name from Faculty Information section.")
+            context_lines.append("For programme queries (BCSAI, BCSCS, etc.), use exact details from Programmes section.")
+            context_lines.append("For staff member queries (not dean), use Staff Contacts Context above.")
+            context_lines.append("")
             context_lines.append(faix_text)
 
     if context_lines:

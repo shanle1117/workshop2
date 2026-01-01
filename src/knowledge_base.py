@@ -1,11 +1,12 @@
 import os
 import sys
 import django
+import json
 from pathlib import Path
 import re
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
-from typing import Optional, List, Dict
+from typing import Optional, List, Dict, Any
 
 # Import semantic search
 try:
@@ -35,8 +36,8 @@ except Exception as e:
 
 class KnowledgeBase:
     """
-    Knowledge Base module that retrieves answers from database or CSV.
-    Supports both database-backed and CSV-based modes.
+    Knowledge Base module that retrieves answers from database, CSV, and FAIX JSON data.
+    Supports both database-backed and CSV-based modes, with FAIX JSON as primary data source.
     """
     
     def __init__(self, csv_path: Optional[str] = None, use_database: bool = True, use_semantic_search: bool = True):
@@ -55,6 +56,9 @@ class KnowledgeBase:
         
         # PERFORMANCE OPTIMIZATION: Initialize cache for retrieval results
         self._retrieve_cache = {}
+        
+        # Load FAIX JSON data as primary data source
+        self.faix_data = self._load_faix_json_data()
         
         # Initialize semantic search if available
         if self.use_semantic_search:
@@ -79,7 +83,391 @@ class KnowledgeBase:
                 if default_path.exists():
                     self._init_csv(str(default_path))
                 else:
-                    raise FileNotFoundError("No CSV file provided and default not found")
+                    print("Warning: No CSV file found, using FAIX JSON data only")
+                    self.entries = []
+                    self.vectorizer = TfidfVectorizer()
+                    self.question_vectors = None
+    
+    def _load_faix_json_data(self) -> Dict[str, Any]:
+        """Load FAIX comprehensive data from faix_json_data.json"""
+        try:
+            json_path = Path(__file__).parent.parent / 'data' / 'faix_json_data.json'
+            if json_path.exists():
+                with open(json_path, 'r', encoding='utf-8') as f:
+                    data = json.load(f)
+                print(f"✓ Loaded FAIX JSON data from {json_path}")
+                return data
+        except Exception as e:
+            print(f"Warning: Could not load FAIX JSON data: {e}")
+        return {}
+    
+    def get_faix_answer(self, intent: str, user_text: str) -> Optional[str]:
+        """
+        Get answer directly from FAIX JSON data based on intent.
+        This is the primary data source for structured information.
+        Also checks user text directly for keywords if intent routing doesn't work.
+        """
+        if not self.faix_data:
+            return None
+        
+        intent = intent.lower() if intent else ""
+        user_lower = user_text.lower() if user_text else ""
+        
+        # Priority 1: Check for specific keywords in user text regardless of intent
+        # This handles cases where intent detection is wrong
+        
+        # Dean queries (can come from staff_contact or about_faix intent)
+        if any(kw in user_lower for kw in ['who is dean', 'who is the dean', 'dean', 'head of faculty']):
+            faculty_info = self.faix_data.get('faculty_info', {})
+            dean = faculty_info.get('dean', '')
+            if dean:
+                return f"The Dean of FAIX is **{dean}**."
+        
+        # BCSAI/BCSCS program code queries
+        if any(kw in user_lower for kw in ['bcsai', 'bcscs', 'mcsss', 'mtdsa']):
+            return self._get_program_answer(user_lower)
+        
+        # Map intents to FAIX JSON sections
+        if intent == 'about_faix':
+            return self._get_about_faix_answer(user_lower)
+        elif intent == 'program_info':
+            return self._get_program_answer(user_lower)
+        elif intent == 'admission':
+            return self._get_admission_answer(user_lower)
+        elif intent == 'fees':
+            return self._get_fees_answer(user_lower)
+        elif intent == 'career':
+            return self._get_career_answer(user_lower)
+        elif intent == 'facility_info':
+            return self._get_facility_answer(user_lower)
+        elif intent == 'academic_resources':
+            return self._get_academic_resources_answer(user_lower)
+        elif intent == 'research':
+            return self._get_research_answer(user_lower)
+        elif intent == 'staff_contact':
+            # Check for dean queries first (dean is in staff_contact context)
+            if any(kw in user_lower for kw in ['dean', 'head', 'leader']):
+                faculty_info = self.faix_data.get('faculty_info', {})
+                dean = faculty_info.get('dean', '')
+                if dean:
+                    return f"The Dean of FAIX is **{dean}**."
+            return self._get_contact_answer(user_lower)
+        
+        # Check FAQs in FAIX data
+        return self._search_faix_faqs(user_lower)
+    
+    def _get_about_faix_answer(self, user_text: str) -> Optional[str]:
+        """Get answer about FAIX faculty info, vision, mission, etc."""
+        faculty_info = self.faix_data.get('faculty_info', {})
+        vision_mission = self.faix_data.get('vision_mission', {})
+        departments = self.faix_data.get('departments', [])
+        highlights = self.faix_data.get('key_highlights', [])
+        
+        # Check for specific questions
+        if any(kw in user_text for kw in ['dean', 'head', 'leader']):
+            dean = faculty_info.get('dean', '')
+            if dean:
+                return f"The Dean of FAIX is **{dean}**."
+        
+        if any(kw in user_text for kw in ['when', 'establish', 'founded', 'created', 'start']):
+            established = faculty_info.get('established', '')
+            if established:
+                return f"FAIX was established on **{established}**."
+        
+        if any(kw in user_text for kw in ['vision']):
+            vision = vision_mission.get('vision', '')
+            if vision:
+                return f"**FAIX Vision:**\n\n{vision}"
+        
+        if any(kw in user_text for kw in ['mission']):
+            mission = vision_mission.get('mission', '')
+            if mission:
+                return f"**FAIX Mission:**\n\n{mission}"
+        
+        if any(kw in user_text for kw in ['objective']):
+            objectives = vision_mission.get('objectives', [])
+            if objectives:
+                obj_list = '\n'.join([f"- {obj}" for obj in objectives])
+                return f"**FAIX Objectives:**\n\n{obj_list}"
+        
+        if any(kw in user_text for kw in ['department']):
+            if departments:
+                dept_list = '\n'.join([f"- **{d.get('name', '')}**: {d.get('focus', '')}" for d in departments])
+                return f"**FAIX Departments:**\n\n{dept_list}"
+        
+        if any(kw in user_text for kw in ['highlight', 'key', 'special', 'unique']):
+            if highlights:
+                hl_list = '\n'.join([f"- {h}" for h in highlights[:5]])
+                return f"**Key Highlights of FAIX:**\n\n{hl_list}"
+        
+        # General about FAIX
+        name = faculty_info.get('name', 'Faculty of Artificial Intelligence and Cyber Security (FAIX)')
+        university = faculty_info.get('university', 'Universiti Teknikal Malaysia Melaka (UTeM)')
+        established = faculty_info.get('established', '')
+        dean = faculty_info.get('dean', '')
+        
+        answer = f"**{name}**\n\n"
+        answer += f"- **University:** {university}\n"
+        if established:
+            answer += f"- **Established:** {established}\n"
+        if dean:
+            answer += f"- **Dean:** {dean}\n"
+        
+        if vision_mission.get('vision'):
+            answer += f"\n**Vision:** {vision_mission['vision']}"
+        
+        return answer
+    
+    def _get_program_answer(self, user_text: str) -> Optional[str]:
+        """Get answer about programmes offered"""
+        programmes = self.faix_data.get('programmes', {})
+        undergraduate = programmes.get('undergraduate', [])
+        postgraduate = programmes.get('postgraduate', [])
+        
+        # Check for specific programme code questions first (most specific)
+        if 'bcsai' in user_text.lower():
+            for prog in undergraduate:
+                if prog.get('code', '').upper() == 'BCSAI':
+                    return self._format_program_details(prog)
+        
+        if 'bcscs' in user_text.lower():
+            for prog in undergraduate:
+                if prog.get('code', '').upper() == 'BCSCS':
+                    return self._format_program_details(prog)
+        
+        if 'mcsss' in user_text.lower():
+            for prog in postgraduate:
+                if prog.get('code', '').upper() == 'MCSSS':
+                    return self._format_program_details(prog)
+        
+        if 'mtdsa' in user_text.lower():
+            for prog in postgraduate:
+                if 'MTDSA' in prog.get('code', '').upper():
+                    return self._format_program_details(prog)
+        
+        # Check for specific programme questions by name/keywords
+        if any(kw in user_text for kw in ['artificial intelligence', 'ai programme', 'ai program', 'ai degree']):
+            for prog in undergraduate:
+                if 'artificial intelligence' in prog.get('name', '').lower():
+                    return self._format_program_details(prog)
+        
+        if any(kw in user_text for kw in ['security', 'cyber', 'computer security']):
+            for prog in undergraduate:
+                if 'security' in prog.get('name', '').lower():
+                    return self._format_program_details(prog)
+        
+        if any(kw in user_text for kw in ['master', 'postgraduate', 'graduate']):
+            if postgraduate:
+                prog_list = []
+                for prog in postgraduate:
+                    prog_list.append(f"- **{prog.get('name', '')}** ({prog.get('code', '')})\n  - Type: {prog.get('type', '')}\n  - Focus: {prog.get('focus', '')}")
+                return f"**Postgraduate Programmes at FAIX:**\n\n" + '\n'.join(prog_list)
+        
+        if any(kw in user_text for kw in ['undergraduate', 'bachelor', 'degree']):
+            if undergraduate:
+                prog_list = []
+                for prog in undergraduate:
+                    prog_list.append(f"- **{prog.get('name', '')}** ({prog.get('code', '')})\n  - Duration: {prog.get('duration', '')}")
+                return f"**Undergraduate Programmes at FAIX:**\n\n" + '\n'.join(prog_list)
+        
+        # General programmes listing
+        answer = "**Programmes Offered at FAIX:**\n\n"
+        if undergraduate:
+            answer += "**Undergraduate:**\n"
+            for prog in undergraduate:
+                answer += f"- {prog.get('name', '')} ({prog.get('code', '')})\n"
+        if postgraduate:
+            answer += "\n**Postgraduate:**\n"
+            for prog in postgraduate:
+                answer += f"- {prog.get('name', '')} ({prog.get('code', '')})\n"
+        
+        return answer
+    
+    def _format_program_details(self, prog: Dict) -> str:
+        """Format detailed programme information"""
+        answer = f"**{prog.get('name', '')}** ({prog.get('code', '')})\n\n"
+        if prog.get('duration'):
+            answer += f"- **Duration:** {prog['duration']}\n"
+        if prog.get('focus_areas'):
+            answer += f"- **Focus Areas:** {', '.join(prog['focus_areas'][:5])}\n"
+        if prog.get('learning_distribution'):
+            dist = prog['learning_distribution']
+            answer += f"- **Learning:** {dist.get('coursework', '')} coursework, {dist.get('practical_projects', '')} practical\n"
+        if prog.get('career_opportunities'):
+            careers = prog['career_opportunities'][:5]
+            answer += f"\n**Career Opportunities:** {', '.join(careers)}"
+        return answer
+    
+    def _get_admission_answer(self, user_text: str) -> Optional[str]:
+        """Get admission requirements information"""
+        admission = self.faix_data.get('admission', {})
+        
+        if any(kw in user_text for kw in ['international', 'foreign', 'overseas']):
+            intl = admission.get('undergraduate_international', {})
+            if intl:
+                answer = "**International Student Admission:**\n\n"
+                reqs = intl.get('requirements', {})
+                answer += f"- {reqs.get('description', '')}\n"
+                links = intl.get('application_links', {})
+                if links.get('entry_requirements'):
+                    answer += f"\nMore info: {links['entry_requirements']}"
+                return answer
+        
+        if any(kw in user_text for kw in ['postgraduate', 'master', 'graduate']):
+            pg = admission.get('postgraduate', {})
+            if pg:
+                answer = "**Postgraduate Entry Requirements:**\n\n"
+                for req in pg.get('entry_requirements', []):
+                    answer += f"- **{req.get('category', '')}:** {req.get('requirement', '')}\n"
+                lang = pg.get('language_requirements', {})
+                if lang:
+                    answer += f"\n**Language Requirements:**\n- MUET: Minimum Band {lang.get('muet', '4')}\n- CEFR: {lang.get('cefr', 'Low B2')}"
+                return answer
+        
+        # Local undergraduate
+        local = admission.get('undergraduate_local', {})
+        if local:
+            answer = "**Local Undergraduate Admission:**\n\n"
+            reqs = local.get('requirements', {})
+            answer += f"- {reqs.get('spm_stpm', '')}\n"
+            answer += f"- {reqs.get('minimum_requirements', '')}\n"
+            links = local.get('application_links', {})
+            if links.get('entry_requirements'):
+                answer += f"\nMore info: {links['entry_requirements']}"
+            return answer
+        
+        return None
+    
+    def _get_fees_answer(self, user_text: str) -> Optional[str]:
+        """Get fee information with direct link"""
+        admission = self.faix_data.get('admission', {})
+        local = admission.get('undergraduate_local', {})
+        links = local.get('application_links', {})
+        fee_url = links.get('fees', 'https://bendahari.utem.edu.my/ms/jadual-yuran-pelajar.html')
+        
+        return f"For fee schedules and tuition information, please visit:\n\n**{fee_url}**"
+    
+    def _get_career_answer(self, user_text: str) -> Optional[str]:
+        """Get career opportunities information"""
+        programmes = self.faix_data.get('programmes', {})
+        undergraduate = programmes.get('undergraduate', [])
+        
+        all_careers = []
+        for prog in undergraduate:
+            careers = prog.get('career_opportunities', [])
+            prog_name = prog.get('name', '')
+            for career in careers:
+                all_careers.append((career, prog_name))
+        
+        if any(kw in user_text for kw in ['ai', 'artificial intelligence']):
+            for prog in undergraduate:
+                if 'artificial intelligence' in prog.get('name', '').lower():
+                    careers = prog.get('career_opportunities', [])
+                    if careers:
+                        career_list = '\n'.join([f"- {c}" for c in careers])
+                        return f"**Career Opportunities for AI Graduates:**\n\n{career_list}"
+        
+        if any(kw in user_text for kw in ['security', 'cyber']):
+            for prog in undergraduate:
+                if 'security' in prog.get('name', '').lower():
+                    careers = prog.get('career_opportunities', [])
+                    if careers:
+                        career_list = '\n'.join([f"- {c}" for c in careers])
+                        return f"**Career Opportunities for Cybersecurity Graduates:**\n\n{career_list}"
+        
+        # General career info
+        if all_careers:
+            unique_careers = list(set([c[0] for c in all_careers]))[:10]
+            career_list = '\n'.join([f"- {c}" for c in unique_careers])
+            return f"**Career Opportunities for FAIX Graduates:**\n\n{career_list}"
+        
+        return None
+    
+    def _get_facility_answer(self, user_text: str) -> Optional[str]:
+        """Get facility information"""
+        facilities = self.faix_data.get('facilities', {})
+        available = facilities.get('available', [])
+        booking = facilities.get('booking_system', '')
+        
+        answer = "**FAIX Facilities:**\n\n"
+        for f in available:
+            answer += f"- {f}\n"
+        if booking:
+            answer += f"\n**Room Booking System:** {booking}"
+        
+        return answer
+    
+    def _get_academic_resources_answer(self, user_text: str) -> Optional[str]:
+        """Get academic resources information"""
+        resources = self.faix_data.get('academic_resources', {})
+        portal = resources.get('ulearn_portal', '')
+        available = resources.get('resources', [])
+        
+        answer = "**Academic Resources:**\n\n"
+        for r in available:
+            answer += f"- {r}\n"
+        if portal:
+            answer += f"\n**uLearn Portal:** {portal}"
+        
+        return answer
+    
+    def _get_research_answer(self, user_text: str) -> Optional[str]:
+        """Get research focus information"""
+        research = self.faix_data.get('research_focus', [])
+        
+        if research:
+            answer = "**FAIX Research Focus Areas:**\n\n"
+            for r in research:
+                answer += f"- {r}\n"
+            return answer
+        
+        return None
+    
+    def _get_contact_answer(self, user_text: str) -> Optional[str]:
+        """Get contact information"""
+        faculty_info = self.faix_data.get('faculty_info', {})
+        contact = faculty_info.get('contact', {})
+        address = faculty_info.get('address', {})
+        
+        if contact:
+            answer = "**FAIX Contact Information:**\n\n"
+            if contact.get('email'):
+                answer += f"- **Email:** {contact['email']}\n"
+            if contact.get('phone'):
+                answer += f"- **Phone:** {contact['phone']}\n"
+            if contact.get('website'):
+                answer += f"- **Website:** {contact['website']}\n"
+            
+            if address:
+                addr_str = f"{address.get('street', '')}, {address.get('postcode', '')} {address.get('city', '')}, {address.get('state', '')}"
+                answer += f"\n**Address:** {addr_str}"
+            
+            return answer
+        
+        return None
+    
+    def _search_faix_faqs(self, user_text: str) -> Optional[str]:
+        """Search through FAQs in FAIX data"""
+        faqs = self.faix_data.get('faqs', [])
+        
+        best_match = None
+        best_score = 0
+        
+        for faq in faqs:
+            question = faq.get('question', '').lower()
+            # Simple keyword matching
+            keywords = question.split()
+            user_keywords = user_text.split()
+            
+            matches = sum(1 for kw in user_keywords if kw in question)
+            if matches > best_score:
+                best_score = matches
+                best_match = faq
+        
+        if best_match and best_score >= 2:
+            return best_match.get('answer', '')
+        
+        return None
     
     def _init_database(self):
         """Initialize database-backed knowledge base"""
@@ -394,6 +782,7 @@ class KnowledgeBase:
     def get_answer(self, intent: Optional[str], user_text: str) -> str:
         """
         Get answer for the query, with fallback message if not found.
+        Prioritizes FAIX JSON data, then falls back to database/CSV only if needed.
         
         Args:
             intent: Detected intent/category
@@ -402,15 +791,39 @@ class KnowledgeBase:
         Returns:
             Answer string
         """
+        user_text_lower = user_text.lower() if user_text else ""
+        
+        # Try FAIX JSON data first (primary data source)
+        faix_answer = self.get_faix_answer(intent, user_text)
+        if faix_answer:
+            # Add handbook note for program_info queries
+            if intent == 'program_info' or 'handbook' in user_text_lower:
+                faix_answer += "\n\n📚 The complete Academic Handbook PDF is available below with detailed program information."
+            return faix_answer
+        
+        # For specific FAIX-related queries, don't fall back to database to avoid wrong answers
+        # Only fall back for general queries
+        faix_keywords = [
+            'faix', 'program', 'programme', 'bcsai', 'bcscs', 'dean', 'vision', 'mission',
+            'admission', 'fee', 'tuition', 'career', 'facility', 'research', 'department'
+        ]
+        
+        # If query contains FAIX keywords but we didn't get an answer, provide helpful message
+        if any(kw in user_text_lower for kw in faix_keywords):
+            return (
+                "I couldn't find specific information about that in the FAIX database. "
+                "Please try rephrasing your question or contact the FAIX office directly at faix@utem.edu.my for assistance."
+            )
+        
+        # Fall back to database/CSV retrieval only for non-FAIX-specific queries
         answer = self.retrieve(intent, user_text)
         if answer is None:
             return (
                 "I couldn't find the exact information. "
-                "Try asking about course info, registration, or staff contacts."
+                "Try asking about FAIX programmes, admission, fees, career opportunities, or contact information."
             )
         
         # Add handbook note for program_info queries
-        user_text_lower = user_text.lower()
         if intent == 'program_info' or 'handbook' in user_text_lower:
             answer += "\n\n📚 The complete Academic Handbook PDF is available below with detailed program information."
         

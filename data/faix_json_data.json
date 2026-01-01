@@ -254,10 +254,380 @@
     "Intelligent systems",
     "Industry-relevant research with societal impact"
   ],
+  "staff_contacts": {
+    "faculty": "Faculty of Artificial Intelligence and Cyber Security (FAIX)",
+    "university": "Universiti Teknikal Malaysia Melaka (UTeM)",
+    "departments": {
+      "administration": {
+        "name": "Faculty Administration",
+        "staff": [
+          {
+            "id": 1,
+            "name": "Nur Azriah Binti Amir",
+            "position": "Deputy Registrar",
+            "email": "azriah@utem.edu.my",
+            "phone": "-",
+            "office": "-",
+            "keywords": ["registrar", "amir", "nur"]
+          },
+          {
+            "id": 2,
+            "name": "Hazrin Binti Kasim",
+            "position": "Senior Assistant Registrar",
+            "email": "hazrin@utem.edu.my",
+            "phone": "-",
+            "office": "-",
+            "keywords": ["hazrin", "registrar", "kasim"]
+          },
+          {
+            "id": 3,
+            "name": "Muhammad Abdullah Zubair Bin Abdul Sukor",
+            "position": "Assistant Administrative Officer",
+            "email": "zubair@utem.edu.my",
+            "phone": "-",
+            "office": "-",
+            "keywords": ["admin", "sukor", "muhammad"]
+          },
+          {
+            "id": 4,
+            "name": "Aidatul Azuin Binti Sarifuddin",
+            "position": "Senior Administrative Assistant",
+            "email": "azuin@utem.edu.my",
+            "phone": "-",
+            "office": "-",
+            "keywords": ["admin", "aidatul", "sarifuddin"]
+          },
+          {
+            "id": 5,
+            "name": "Hazleen Binti Kaharudin",
+            "position": "Office Secretary",
+            "email": "hazleen@utem.edu.my",
+            "phone": "-",
+            "office": "-",
+            "keywords": ["hazleen", "secretary", "kaharudin"]
+          },
+          {
+            "id": 6,
+            "name": "Suhana Binti Arifin",
+            "position": "Senior Administrative Assistant",
+            "email": "suhana@utem.edu.my",
+            "phone": "-",
+            "office": "-",
+            "keywords": ["suhana", "admin", "arifin"]
+          },
+          {
+            "id": 7,
+            "name": "Zainal Bin Baharim",
+            "position": "General Office Assistant",
+            "email": "zainal.baharim@utem.edu.my",
+            "phone": "-",
+            "office": "-",
+            "keywords": ["baharim", "zainal"]
+          }
+        ]
+      },
+      "academic": {
+        "name": "Academic Staff",
+        "staff": [
+          {
+            "id": 8,
+            "name": "Professor Ts. Dr. Burhanuddin Bin Mohd Aboobaider",
+            "position": "Professor",
+            "email": "burhanuddin@utem.edu.my",
+            "phone": "-",
+            "office": "-",
+            "keywords": ["aboobaider", "professor"]
+          },
+          {
+            "id": 9,
+            "name": "Associate Professor Ts. Dr. Choo Yun Huoy",
+            "position": "Associate Professor",
+            "email": "huoy@utem.edu.my",
+            "phone": "-",
+            "office": "-",
+            "keywords": ["associate", "associate professor", "professor", "huoy"]
+          },
+          {
+            "id": 10,
+            "name": "Associate Professor Ts. Dr. Sharifah Sakinah Binti Syed Ahmad",
+            "position": "Associate Professor",
+            "email": "sakinah@utem.edu.my",
+            "phone": "-",
+            "office": "-",
+            "keywords": ["associate", "associate professor", "professor", "ahmad"]
+          },
+          {
+            "id": 11,
+            "name": "Associate Professor Ts. Dr. Siti Rahayu Binti Selamat",
+            "position": "Associate Professor",
+            "email": "sitirahayu@utem.edu.my",
+            "phone": "-",
+            "office": "-",
+            "keywords": ["associate", "associate professor", "professor", "selamat"]
+          },
+          {
+            "id": 12,
+            "name": "Associate Professor Ts. Dr. Zeratul Izzah Bin Mohd Yusoh",
+            "position": "Associate Professor",
+            "email": "zeratul@utem.edu.my",
+            "phone": "-",
+            "office": "-",
+            "keywords": ["associate", "associate professor", "professor", "yusoh"]
+          },
+          {
+            "id": 13,
+            "name": "Associate Professor Gs. Dr. Asmala Bin Ahmad",
+            "position": "Associate Professor",
+            "email": "asmala@utem.edu.my",
+            "phone": "-",
+            "office": "-",
+            "keywords": ["associate", "associate professor", "professor", "ahmad"]
+          },
+          {
+            "id": 14,
+            "name": "Associate Professor Ts. Dr. Mohd Faizal Bin Abdollah",
+            "position": "Associate Professor",
+            "email": "faizalabdollah@utem.edu.my",
+            "phone": "-",
+            "office": "-",
+            "keywords": ["associate", "associate professor", "professor", "abdollah"]
+          },
+          {
+            "id": 15,
+            "name": "Associate Professor Dr. Nor Azman Bin Abu",
+            "position": "Associate Professor",
+            "email": "nura@utem.edu.my",
+            "phone": "-",
+            "office": "-",
+            "keywords": ["associate", "associate professor", "abu", "professor"]
+          },
+          {
+            "id": 16,
+            "name": "Ts. Dr. Abdul Syukor Bin Mohamad Jaya",
+            "position": "Senior Lecturer",
+            "email": "syukor@utem.edu.my",
+            "phone": "-",
+            "office": "-",
+            "keywords": ["jaya", "lecturer", "ts.", "senior lecturer"]
+          },
+          {
+            "id": 17,
+            "name": "Ts. Dr. Norfadzlia Binti Mohd Yusof",
+            "position": "Senior Lecturer",
+            "email": "norfadzlia@utem.edu.my",
+            "phone": "-",
+            "office": "-",
+            "keywords": ["yusof", "lecturer", "ts.", "senior lecturer"]
+          },
+          {
+            "id": 18,
+            "name": "Ts. Dr. Raihana Syahirah Binti Abdullah",
+            "position": "Senior Lecturer",
+            "email": "raihana.syahirah@utem.edu.my",
+            "phone": "-",
+            "office": "-",
+            "keywords": ["abdullah", "lecturer", "ts.", "senior lecturer"]
+          },
+          {
+            "id": 19,
+            "name": "Ts. Dr. Sazalinsyah Bin Razali",
+            "position": "Senior Lecturer",
+            "email": "sazalinsyah@utem.edu.my",
+            "phone": "-",
+            "office": "-",
+            "keywords": ["razali", "lecturer", "ts.", "senior lecturer"]
+          },
+          {
+            "id": 20,
+            "name": "Ts. Dr. S.M. Warusia Mohamed Bin S.M.M Yassin",
+            "position": "Senior Lecturer",
+            "email": "s.m.warusia@utem.edu.my",
+            "phone": "-",
+            "office": "-",
+            "keywords": ["yassin", "lecturer", "ts.", "senior lecturer"]
+          },
+          {
+            "id": 21,
+            "name": "Dr. Yogan A/L Jaya Kumar",
+            "position": "Senior Lecturer",
+            "email": "yogan@utem.edu.my",
+            "phone": "-",
+            "office": "-",
+            "keywords": ["kumar", "lecturer", "dr.", "senior lecturer"]
+          },
+          {
+            "id": 22,
+            "name": "Ts. Dr. Zulkiflee Bin Muslim",
+            "position": "Senior Lecturer",
+            "email": "zulkiflee@utem.edu.my",
+            "phone": "-",
+            "office": "-",
+            "keywords": ["muslim", "lecturer", "ts.", "senior lecturer"]
+          },
+          {
+            "id": 23,
+            "name": "Ts. Dr. Ngo Hea Choon",
+            "position": "Senior Lecturer",
+            "email": "heachoon@utem.edu.my",
+            "phone": "-",
+            "office": "-",
+            "keywords": ["choon", "lecturer", "ts.", "senior lecturer"]
+          },
+          {
+            "id": 24,
+            "name": "Ts. Dr. Sek Yong Wee",
+            "position": "Senior Lecturer",
+            "email": "ywsek@utem.edu.my",
+            "phone": "-",
+            "office": "-",
+            "keywords": ["wee", "lecturer", "ts.", "senior lecturer"]
+          },
+          {
+            "id": 25,
+            "name": "Ts. Dr. Wan Mohd Ya'akob Bin Wan Bejuri",
+            "position": "Senior Lecturer",
+            "email": "yaakob@utem.edu.my",
+            "phone": "-",
+            "office": "-",
+            "keywords": ["bejuri", "lecturer", "ts.", "senior lecturer"]
+          },
+          {
+            "id": 26,
+            "name": "Dr. Shekh Faisal Bin Abdul Latip",
+            "position": "Senior Lecturer",
+            "email": "shekhfaisal@utem.edu.my",
+            "phone": "-",
+            "office": "-",
+            "keywords": ["latip", "lecturer", "dr.", "senior lecturer"]
+          },
+          {
+            "id": 27,
+            "name": "Dr. Fauziah Binti Kasmin",
+            "position": "Senior Lecturer",
+            "email": "fauziah@utem.edu.my",
+            "phone": "-",
+            "office": "-",
+            "keywords": ["kasmin", "lecturer", "dr.", "senior lecturer"]
+          },
+          {
+            "id": 28,
+            "name": "Dr. Nur Zareen Binti Zulkarnain",
+            "position": "Senior Lecturer",
+            "email": "zareen@utem.edu.my",
+            "phone": "-",
+            "office": "-",
+            "keywords": ["zulkarnain", "lecturer", "dr.", "senior lecturer"]
+          },
+          {
+            "id": 29,
+            "name": "Dr. Nur Fadzilah Binti Othman",
+            "position": "Senior Lecturer",
+            "email": "fadzilah.othman@utem.edu.my",
+            "phone": "-",
+            "office": "-",
+            "keywords": ["othman", "lecturer", "dr.", "senior lecturer"]
+          },
+          {
+            "id": 30,
+            "name": "Dr. Mohammad Soleimani Amiri",
+            "position": "Senior Lecturer",
+            "email": "soleimani@utem.edu.my",
+            "phone": "-",
+            "office": "-",
+            "keywords": ["amiri", "lecturer", "dr.", "senior lecturer"]
+          },
+          {
+            "id": 31,
+            "name": "Ts. Dr. Halizah Binti Basiron",
+            "position": "Senior Lecturer",
+            "email": "halizah@utem.edu.my",
+            "phone": "-",
+            "office": "-",
+            "keywords": ["basiron", "lecturer", "ts.", "senior lecturer"]
+          },
+          {
+            "id": 32,
+            "name": "Ts. Dr. Mohd Zaki Bin Mas'ud",
+            "position": "Senior Lecturer",
+            "email": "zaki.masud@utem.edu.my",
+            "phone": "-",
+            "office": "-",
+            "keywords": ["mas'ud", "lecturer", "ts.", "senior lecturer"]
+          },
+          {
+            "id": 33,
+            "name": "Ts. Dr. Muhammad Noorazlan Shah Bin Zainudin",
+            "position": "Senior Lecturer",
+            "email": "noorazlan@utem.edu.my",
+            "phone": "-",
+            "office": "-",
+            "keywords": ["zainudin", "lecturer", "ts.", "senior lecturer"]
+          },
+          {
+            "id": 34,
+            "name": "Dr. Zaheera Binti Zainal Abidin",
+            "position": "Senior Lecturer",
+            "email": "zaheera@utem.edu.my",
+            "phone": "-",
+            "office": "-",
+            "keywords": ["abidin", "lecturer", "dr.", "senior lecturer"]
+          },
+          {
+            "id": 35,
+            "name": "Dr. Norhazwani Binti Md Yunos",
+            "position": "Senior Lecturer",
+            "email": "wanie.my@utem.edu.my",
+            "phone": "-",
+            "office": "-",
+            "keywords": ["yunos", "lecturer", "dr.", "senior lecturer"]
+          },
+          {
+            "id": 36,
+            "name": "Dr. Kharismi Bin Burhanuddin",
+            "position": "Senior Lecturer",
+            "email": "kharismi@utem.edu.my",
+            "phone": "-",
+            "office": "-",
+            "keywords": ["burhanuddin", "lecturer", "dr.", "senior lecturer"]
+          },
+          {
+            "id": 37,
+            "name": "Dr. Noor Fazilla Binti Abd. Yusof",
+            "position": "Senior Lecturer",
+            "email": "elle@utem.edu.my",
+            "phone": "-",
+            "office": "-",
+            "keywords": ["yusof", "lecturer", "dr.", "senior lecturer"]
+          },
+          {
+            "id": 38,
+            "name": "Ts. Nurhashikin Binti Mohd Salleh",
+            "position": "Lecturer",
+            "email": "nurhashikin@utem.edu.my",
+            "phone": "-",
+            "office": "-",
+            "keywords": ["salleh", "lecturer", "ts."]
+          },
+          {
+            "id": 39,
+            "name": "Puan Nur Diana Izzani Binti Masdzarif",
+            "position": "Lecturer",
+            "email": "diana.izzani@utem.edu.my",
+            "phone": "-",
+            "office": "-",
+            "keywords": ["masdzarif", "puan", "lecturer"]
+          }
+        ]
+      }
+    }
+  },
+  "schedule": [],
+  "course_info": [],
   "metadata": {
     "last_updated": "2024-12-26",
     "data_source": "FAIX Official Website",
     "website": "https://faix.utem.edu.my/en/",
-    "scraped_by": "FAIX Chatbot Project"
+    "scraped_by": "FAIX Chatbot Project",
+    "note": "All data consolidated into single JSON file (staff_contacts, schedule, course_info, FAQs merged)"
   }
 }

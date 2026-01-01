@@ -110,30 +110,52 @@ class IntentClassifier:
         """Return default configuration if config file is not available"""
         return {
             'intent_categories': [
+                'program_info',
+                'admission',
+                'fees',
+                'career',
+                'about_faix',
+                'staff_contact',
+                'facility_info',
+                'academic_resources',
+                'research',
                 'course_info',
                 'registration',
                 'academic_schedule',
-                'staff_contact',
-                'facility_info',
-                'program_info',
-                'general_query',
+                'greeting',
+                'farewell',
             ],
             'intent_descriptions': {
-                'course_info': 'Questions about specific courses, course content, course requirements, or course details',
-                'registration': 'Questions about course registration, enrollment, application process, or registration deadlines',
-                'academic_schedule': 'Questions about academic calendar, semester dates, class schedules, or timetable',
-                'staff_contact': 'Questions about contacting staff members, faculty, professors, or getting contact information',
-                'facility_info': 'Questions about campus facilities, laboratories, buildings, or equipment',
-                'program_info': 'Questions about academic programs, degrees, requirements, program details, academic handbook, or student handbook',
-                'general_query': 'General questions, greetings, or unclear queries that don\'t fit other categories',
+                'program_info': 'Questions about FAIX programmes - BCSAI, BCSCS, Master degrees, undergraduate and postgraduate programs',
+                'admission': 'Questions about admission requirements, entry criteria, CGPA, MUET, international students',
+                'fees': 'Questions about tuition fees, payment schedules, fee structure, scholarships',
+                'career': 'Questions about career opportunities, job prospects, employment after graduation',
+                'about_faix': 'Questions about FAIX faculty info, history, vision, mission, objectives, dean, departments',
+                'staff_contact': 'Questions about contacting staff members, faculty, professors, email, phone',
+                'facility_info': 'Questions about campus facilities, laboratories, room booking, buildings',
+                'academic_resources': 'Questions about academic handbook, uLearn portal, timetable, forms, certifications',
+                'research': 'Questions about research areas, AI, cybersecurity, data science, machine learning projects',
+                'course_info': 'Questions about specific courses, subjects, modules, curriculum, class content',
+                'registration': 'Questions about course registration, enrollment, add/drop subjects',
+                'academic_schedule': 'Questions about academic calendar, semester dates, class schedules, timetable',
+                'greeting': 'Greetings like hello, hi, hey, good morning',
+                'farewell': 'Farewells like goodbye, bye, thanks, thank you',
             },
             'keyword_patterns': {
-                'course_info': ['course', 'subject', 'module', 'curriculum', 'class', 'lecture'],
-                'registration': ['register', 'enroll', 'enrollment', 'admission', 'apply', 'sign up', 'deadline'],
-                'academic_schedule': ['schedule', 'timetable', 'calendar', 'when', 'time', 'date', 'semester'],
-                'staff_contact': ['contact', 'email', 'phone', 'number', 'professor', 'lecturer', 'staff', 'faculty'],
-                'facility_info': ['lab', 'laboratory', 'facility', 'equipment', 'room', 'building', 'campus'],
-                'program_info': ['program', 'degree', 'bachelor', 'master', 'requirement', 'eligibility', 'duration'],
+                'program_info': ['program', 'programme', 'degree', 'bachelor', 'master', 'BCSAI', 'BCSCS', 'MCSSS', 'MTDSA', 'undergraduate', 'postgraduate', 'offer', 'duration', 'computer science', 'artificial intelligence', 'cyber security', 'data science'],
+                'admission': ['admission', 'apply', 'application', 'entry', 'requirements', 'criteria', 'CGPA', 'MUET', 'CEFR', 'SPM', 'STPM', 'eligibility', 'international student', 'prerequisite'],
+                'fees': ['fee', 'fees', 'tuition', 'cost', 'payment', 'price', 'scholarship', 'financial', 'how much', 'yuran', 'bayaran'],
+                'career': ['career', 'job', 'employment', 'work', 'opportunity', 'graduate', 'profession', 'salary', 'industry', 'knowledge engineer', 'developer', 'analyst'],
+                'about_faix': ['about', 'FAIX', 'faculty', 'history', 'established', 'vision', 'mission', 'objective', 'UTeM', 'dean', 'department', '2024', 'highlight'],
+                'staff_contact': ['contact', 'email', 'phone', 'number', 'professor', 'lecturer', 'staff', 'faculty', 'dean', 'coordinator'],
+                'facility_info': ['lab', 'laboratory', 'facility', 'equipment', 'room', 'building', 'campus', 'booking', 'research center'],
+                'academic_resources': ['handbook', 'academic handbook', 'ulearn', 'portal', 'timetable', 'forms', 'certification', 'education fund', 'resources'],
+                'research': ['research', 'project', 'focus area', 'thesis', 'dissertation', 'publication', 'AI applications', 'machine learning', 'digital forensics'],
+                'course_info': ['course', 'subject', 'module', 'curriculum', 'class', 'lecture', 'coursework', 'practical'],
+                'registration': ['register', 'enroll', 'enrollment', 'sign up', 'deadline', 'add subject', 'drop subject'],
+                'academic_schedule': ['schedule', 'timetable', 'calendar', 'when', 'time', 'date', 'semester', 'academic year'],
+                'greeting': ['hello', 'hi', 'hey', 'good morning', 'good afternoon', 'good evening', 'hai', 'helo'],
+                'farewell': ['bye', 'goodbye', 'thanks', 'thank you', 'see you', 'terima kasih'],
             },
             'model_config': {
                 'default_model': 'facebook/bart-large-mnli',
@@ -185,7 +207,7 @@ class IntentClassifier:
             Tuple of (best_intent, confidence, all_scores_dict)
         """
         if not text or not text.strip():
-            return 'general_query', 0.0, {'general_query': 0.0}
+            return 'about_faix', 0.0, {'about_faix': 0.0}
         
         # Clean text
         text = self._preprocess(text)
@@ -266,16 +288,16 @@ class IntentClassifier:
             score = sum(2 if keyword in text_lower else 0 for keyword in keywords)
             scores[intent] = min(score / 10.0, 1.0)  # Normalize to 0-1
         
-        # Add general_query if not present
-        if 'general_query' not in scores:
-            scores['general_query'] = 0.1
+        # Add about_faix as fallback if no scores
+        if not scores or all(s == 0 for s in scores.values()):
+            scores['about_faix'] = 0.1
         
         # Get best intent
         best_intent = max(scores.items(), key=lambda x: x[1])
         
-        # If confidence is too low, return general_query
+        # If confidence is too low, return about_faix
         if best_intent[1] < 0.2:
-            return 'general_query', 0.2, scores
+            return 'about_faix', 0.2, scores
         
         return best_intent[0], float(best_intent[1]), scores
     
