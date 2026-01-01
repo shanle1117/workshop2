@@ -160,12 +160,39 @@ workshop2/
 ### Prerequisites:
 - Python 3.10 or higher
 - pip (Python package manager)
-- Django 4.0+ (for web deployment)
+- Ollama (for LLM/RAG features) - Download from [ollama.ai](https://ollama.ai)
 - Chrome or Edge browser (for Speech-to-Text feature)
 - PostgreSQL (optional, for production database)
 - Firebase account (optional, for cloud storage)
 
-### Steps:
+### Quick Start (Recommended):
+
+```bash
+# 1. Clone the repository
+git clone https://github.com/shanle1117/workshop2.git
+cd workshop2
+
+# 2. Create and activate virtual environment
+python -m venv venv
+venv\Scripts\activate        # Windows
+# source venv/bin/activate   # Linux/Mac
+
+# 3. Install dependencies
+pip install -r requirements.txt
+
+# 4. Download spaCy model
+python -m spacy download en_core_web_sm
+
+# 5. Run database migrations
+python manage.py migrate
+
+# 6. Start the server (auto-starts Ollama if installed)
+python start_server.py
+```
+
+The chatbot will be available at `http://127.0.0.1:8000`
+
+### Manual Setup (Step-by-Step):
 
 1. **Clone the repository:**
    ```bash
@@ -173,47 +200,86 @@ workshop2/
    cd workshop2
    ```
 
-2. **Create a virtual environment (recommended):**
+2. **Create a virtual environment:**
    ```bash
    python -m venv venv
-   venv\Scripts\activate
    ```
 
-3. **Install dependencies:**
+3. **Activate the virtual environment:**
+   ```bash
+   # Windows (CMD)
+   venv\Scripts\activate
+   
+   # Windows (PowerShell)
+   .\venv\Scripts\Activate.ps1
+   
+   # Linux/Mac
+   source venv/bin/activate
+   ```
+
+4. **Install dependencies:**
    ```bash
    pip install -r requirements.txt
    ```
-   
-   **Note**: For NLP features, you may need to download spaCy models:
+
+5. **Download spaCy model (for NLP features):**
    ```bash
    python -m spacy download en_core_web_sm
    ```
 
-4. **Set up environment variables (optional):**
-   Create a `.env` file in the root directory for Firebase credentials:
+6. **Set up Ollama (for LLM/RAG features):**
+   ```bash
+   # Install Ollama from https://ollama.ai
+   
+   # Pull the Llama model
+   ollama pull llama3.2:3b
+   
+   # Start Ollama server (runs in background)
+   ollama serve
    ```
+
+7. **Set up environment variables (optional):**
+   Create a `.env` file in the root directory:
+   ```env
+   # LLM Configuration
+   LLM_PROVIDER=ollama
+   OLLAMA_BASE_URL=http://localhost:11434
+   OLLAMA_MODEL=llama3.2:3b
+   LLM_ENABLED=1
+   
+   # Firebase (optional)
    FIREBASE_CREDENTIALS_PATH=path/to/firebase-credentials.json
    ```
 
-5. **Run database migrations:**
+8. **Run database migrations:**
    ```bash
    python manage.py migrate
    ```
 
-6. **Run tests:**
+9. **Start the Django development server:**
    ```bash
-   python tests/test_chatbot.py
-   python tests/test_speech_to_text.py
-   python tests/test_dynamic_features.py
-   python src/conversation_manager.py
-   ```
-
-7. **Start Django development server:**
-   ```bash
+   # Option 1: Use the start script (auto-starts Ollama)
+   python start_server.py
+   
+   # Option 2: Manual start
    python manage.py runserver
    ```
-   
-   The chatbot will be available at `http://localhost:8000`
+
+10. **Access the chatbot:**
+    - Open browser: `http://127.0.0.1:8000`
+    - API endpoint: `http://127.0.0.1:8000/api/chat/`
+
+### Running Tests:
+
+```bash
+# Run all tests
+python tests/test_chatbot.py
+python tests/test_speech_to_text.py
+python tests/test_dynamic_features.py
+
+# Run CLI interface
+python -X utf8 src/chatbot_cli.py
+```
 
 ---
 
@@ -446,6 +512,162 @@ def chat(request):
 
 ---
 
+## 🔄 Chatbot Workflow
+
+### How the Chatbot Processes Messages
+
+```
+┌─────────────────────────────────────────────────────────────────────────┐
+│                          USER INPUT                                     │
+│                    (Text or Voice Message)                              │
+└─────────────────────────────┬───────────────────────────────────────────┘
+                              │
+                              ▼
+┌─────────────────────────────────────────────────────────────────────────┐
+│  STEP 1: INPUT PROCESSING                                               │
+│  ┌─────────────────────┐    ┌─────────────────────┐                     │
+│  │ Speech-to-Text      │ OR │ Text Input          │                     │
+│  │ (Web Speech API)    │    │ (Direct typing)     │                     │
+│  └─────────────────────┘    └─────────────────────┘                     │
+└─────────────────────────────┬───────────────────────────────────────────┘
+                              │
+                              ▼
+┌─────────────────────────────────────────────────────────────────────────┐
+│  STEP 2: LANGUAGE DETECTION                                             │
+│  • Detect Malay or English                                              │
+│  • Set response language accordingly                                    │
+└─────────────────────────────┬───────────────────────────────────────────┘
+                              │
+                              ▼
+┌─────────────────────────────────────────────────────────────────────────┐
+│  STEP 3: INTENT CLASSIFICATION                                          │
+│  ┌─────────────────────────────────────────────────────────────────┐    │
+│  │  NLP Intent Classifier (DistilBERT/RoBERTa)                     │    │
+│  │  • Zero-shot classification                                      │    │
+│  │  • Keyword pattern matching fallback                             │    │
+│  │  • Confidence scoring                                            │    │
+│  └─────────────────────────────────────────────────────────────────┘    │
+│                                                                         │
+│  Detected Intents: greeting | farewell | course_info | admission |     │
+│                    fees | career | staff_contact | facility_info |     │
+│                    research | registration | academic_schedule | help   │
+└─────────────────────────────┬───────────────────────────────────────────┘
+                              │
+                              ▼
+┌─────────────────────────────────────────────────────────────────────────┐
+│  STEP 4: AGENT ROUTING                                                  │
+│  Based on intent, route to specialized agent:                           │
+│  • FAQ Agent → General questions, programs, admission, facilities       │
+│  • Schedule Agent → Academic calendar, deadlines, timetables            │
+│  • Staff Agent → Contact information, faculty details                   │
+└─────────────────────────────┬───────────────────────────────────────────┘
+                              │
+                              ▼
+┌─────────────────────────────────────────────────────────────────────────┐
+│  STEP 5: RAG (Retrieval-Augmented Generation)                           │
+│  ┌─────────────────────────────────────────────────────────────────┐    │
+│  │  1. RETRIEVAL: Semantic search in knowledge base                │    │
+│  │     • faix_json_data.json (programs, admission, facilities)     │    │
+│  │     • staff_contacts.json (faculty & staff info)                │    │
+│  │     • intent_config.json (intent patterns)                      │    │
+│  │                                                                  │    │
+│  │  2. AUGMENTATION: Build context-aware prompt                    │    │
+│  │     • Agent-specific system prompt                               │    │
+│  │     • Retrieved knowledge context                                │    │
+│  │     • Conversation history                                       │    │
+│  │                                                                  │    │
+│  │  3. GENERATION: LLM response via Ollama (Llama 3.2)             │    │
+│  └─────────────────────────────────────────────────────────────────┘    │
+└─────────────────────────────┬───────────────────────────────────────────┘
+                              │
+                              ▼
+┌─────────────────────────────────────────────────────────────────────────┐
+│  STEP 6: RESPONSE FORMATTING                                            │
+│  • Line break preservation (\n → <br>)                                  │
+│  • URL detection and auto-linking                                       │
+│  • Markdown formatting (bullets, bold, headers)                         │
+│  • HTML escaping for security                                           │
+└─────────────────────────────┬───────────────────────────────────────────┘
+                              │
+                              ▼
+┌─────────────────────────────────────────────────────────────────────────┐
+│                          BOT RESPONSE                                   │
+│                    (Displayed in Chat UI)                               │
+└─────────────────────────────────────────────────────────────────────────┘
+```
+
+### Special Features Used
+
+| Feature | Technology | Description |
+|---------|------------|-------------|
+| **Speech-to-Text** | Web Speech API | Voice input with real-time transcription. Click mic, speak, auto-sends message. |
+| **Intent Classification** | DistilBERT/RoBERTa | Transformer-based NLP for understanding user intent with 95%+ accuracy. |
+| **Semantic Search** | Sentence-Transformers | Dense vector embeddings (all-MiniLM-L6-v2) for meaning-based document retrieval. |
+| **RAG Pipeline** | Ollama + Llama 3.2 | Retrieval-Augmented Generation combining knowledge base with LLM responses. |
+| **Multi-language** | Language Detection | Automatic Malay/English detection with localized responses. |
+| **Conversation Memory** | Django Sessions | Maintains context across multiple conversation turns. |
+| **Fee Query Shortcut** | Direct Link Response | Fee-related queries bypass LLM and return official fee schedule URL directly. |
+| **Agent Specialization** | Custom Agents | FAQ, Schedule, and Staff agents with tailored prompts and knowledge retrieval. |
+
+### Feature Details
+
+#### 🎤 Speech-to-Text
+```javascript
+// Activated via microphone button in chat UI
+// Uses Web Speech API (Chrome/Edge supported)
+recognition.onresult = (event) => {
+    const transcript = event.results[0][0].transcript;
+    sendMessage(transcript);  // Auto-sends on speech end
+};
+```
+
+#### 🧠 Intent Classification Pipeline
+```
+User Message → Preprocessing → Transformer Model → Intent + Confidence Score
+                    │                    │
+                    │                    └── If confidence < threshold
+                    │                              │
+                    └── Keyword Fallback ◄─────────┘
+```
+
+#### 🔍 Semantic Search Process
+```python
+# Query embedding
+query_vector = model.encode("What programs does FAIX offer?")
+
+# Find similar documents in knowledge base
+similarities = cosine_similarity(query_vector, document_vectors)
+top_results = get_top_k(similarities, k=5)
+```
+
+#### 🤖 RAG Response Generation
+```
+┌──────────────────────────────────────────────────────────┐
+│  System Prompt (Agent-specific)                          │
+│  + Retrieved Context (from knowledge base)               │
+│  + User Question                                         │
+│  + Conversation History                                  │
+└──────────────────────┬───────────────────────────────────┘
+                       │
+                       ▼
+              ┌────────────────┐
+              │  Llama 3.2     │
+              │  (via Ollama)  │
+              └────────┬───────┘
+                       │
+                       ▼
+              Formatted Response
+```
+
+#### 💰 Fee Query Handling (Special Case)
+```python
+# Fees intent detected → Skip LLM, return direct link
+if intent == "fees":
+    return "https://bendahari.utem.edu.my/ms/jadual-yuran-pelajar.html"
+```
+
+---
+
 ## 🔌 Integration Guide
 
 ### Using Llama via Ollama (Conversational Agents)
@@ -672,30 +894,48 @@ Bot: 💡 I can help you with registration questions...
 
 ## 🔮 Future Enhancements
 
-### Phase 2 (NLP Enhancements):
-- [x] ✅ Integrate transformer-based intent classification (DistilBERT/RoBERTa)
-- [x] ✅ Implement semantic similarity for better query matching
-- [ ] Add entity recognition for extracting course names, dates, etc.
-- [ ] Multi-language support (Malay, English)
-- [ ] Fine-tune models on domain-specific data
+### ✅ Completed Features
 
-### Phase 3 (Advanced Features):
-- [x] ✅ Speech-to-Text integration
-- [x] ✅ Database integration for conversation history
+| Feature | Status | Description |
+|---------|--------|-------------|
+| Transformer-based Intent Classification | ✅ Done | DistilBERT/RoBERTa for NLP intent detection |
+| Semantic Search | ✅ Done | Sentence-transformers for query matching |
+| Speech-to-Text | ✅ Done | Web Speech API integration for voice input |
+| Database Integration | ✅ Done | Django models for sessions & conversation history |
+| Multi-language Support | ✅ Done | Malay & English language detection (95.29% accuracy) |
+| RAG with Open LLMs | ✅ Done | Ollama integration with Llama models |
+| Conversational Agents | ✅ Done | FAQ, Schedule, Staff specialized agents |
+| Comprehensive FAIX Data | ✅ Done | Rich JSON data covering programs, admission, facilities |
+| Fee Query Handling | ✅ Done | Direct link responses to official fee schedules |
+| Admin Interface | ✅ Done | Staff management and data administration |
+
+### 🚧 In Progress
+
+| Feature | Priority | Notes |
+|---------|----------|-------|
+| Response Time Optimization | High | Reduce timeout issues (currently 4 failures due to 30s limit) |
+| Staff Contact Reliability | High | Improve staff query response consistency |
+
+### 📋 Planned Features
+
+#### Phase 3 (Advanced Features):
 - [ ] User authentication and personalization
-- [ ] Integration with university database systems
+- [ ] Integration with university database systems (UTeM portal)
 - [ ] Email notification capabilities
 - [ ] Analytics dashboard for admin
 - [ ] Sentiment analysis for feedback
 - [ ] Multi-modal support (images, documents)
+- [ ] Entity recognition for extracting course names, dates
+- [ ] Fine-tune models on domain-specific FAIX data
 
-### Phase 4 (Deployment):
+#### Phase 4 (Deployment & Scaling):
 - [ ] Docker containerization
 - [ ] CI/CD pipeline setup
-- [ ] Performance optimization
+- [ ] Performance optimization & caching
 - [ ] Load balancing for high traffic
-- [ ] Mobile app integration
+- [ ] Mobile app integration (React Native)
 - [ ] API rate limiting and security enhancements
+- [ ] Webhook integrations (Telegram, WhatsApp)
 
 ---
 
