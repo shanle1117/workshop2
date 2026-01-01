@@ -229,20 +229,51 @@ def build_messages(
     """
     messages: List[Dict[str, str]] = []
 
-    # Language-specific response instructions
+    # Language names for reference
+    language_names = {
+        'en': 'English',
+        'ms': 'Bahasa Malaysia (Malay)',
+        'zh': 'Chinese (Simplified)',
+        'ar': 'Arabic',
+    }
+    language_name = language_names.get(language_code, 'English')
+
+    # Language-specific response instructions - STRENGTHENED for strict language matching
     language_instructions = {
-        'en': "Respond in English.",
-        'ms': "Respond in Bahasa Malaysia (Malay). Use proper Malay grammar and vocabulary.",
-        'zh': "Respond in Chinese (Simplified). Use proper Chinese grammar and vocabulary.",
-        'ar': "Respond in Arabic. Use proper Arabic grammar and vocabulary. Write from right to left.",
+        'en': (
+            "You MUST respond entirely in English. "
+            "Use clear, professional English throughout your response."
+        ),
+        'ms': (
+            "ANDA WAJIB menjawab sepenuhnya dalam Bahasa Malaysia. "
+            "Gunakan tatabahasa dan perbendaharaan kata Melayu yang betul dan profesional. "
+            "JANGAN gunakan Bahasa Inggeris dalam jawapan anda. "
+            "Contoh: 'program' bukan 'program', 'pendaftaran' bukan 'registration', "
+            "'maklumat' bukan 'information', 'yuran' bukan 'fees'."
+        ),
+        'zh': (
+            "您必须完全使用简体中文回复。"
+            "使用正确的中文语法和词汇。"
+            "不要在回复中使用英文。"
+            "例如：使用'课程'而不是'course'，'注册'而不是'registration'，"
+            "'信息'而不是'information'，'学费'而不是'fees'。"
+        ),
+        'ar': (
+            "يجب أن ترد بالكامل باللغة العربية. "
+            "استخدم القواعد النحوية والمفردات العربية الصحيحة. "
+            "لا تستخدم اللغة الإنجليزية في ردك."
+        ),
     }
     language_instruction = language_instructions.get(language_code, language_instructions['en'])
 
     # System message with agent behaviour and RAG instructions
     system_parts: List[str] = [agent.system_prompt]
     
-    # Add language instruction
-    system_parts.append(f"LANGUAGE REQUIREMENT: {language_instruction}")
+    # Add CRITICAL language instruction at the beginning
+    system_parts.append(
+        f"CRITICAL LANGUAGE REQUIREMENT: The user is communicating in {language_name}. "
+        f"You MUST match the user's language exactly. {language_instruction}"
+    )
     if intent:
         system_parts.append(f"The detected intent for this query is: '{intent}'.")
     system_parts.append(

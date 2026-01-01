@@ -496,16 +496,24 @@ class KnowledgeBase:
 
             # Get indices sorted by similarity (descending)
             ranked_indices = similarity.argsort()[::-1][:top_k]
+            
+            # IMPROVEMENT: Minimum relevance threshold to avoid irrelevant matches
+            MIN_RELEVANCE_THRESHOLD = 0.15  # Reject matches below 15% similarity
+            
             docs: List[Dict] = []
             for idx in ranked_indices:
                 if 0 <= idx < len(self.entries):
+                    score = float(similarity[idx])
+                    # Skip low-relevance matches
+                    if score < MIN_RELEVANCE_THRESHOLD:
+                        continue
                     entry = self.entries[idx]
                     docs.append(
                         {
                             "question": entry.get("question", ""),
                             "answer": entry.get("answer", ""),
                             "category": entry.get("category", ""),
-                            "score": float(similarity[idx]),
+                            "score": score,
                         }
                     )
             return docs

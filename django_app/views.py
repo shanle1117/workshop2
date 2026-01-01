@@ -4,6 +4,7 @@ import json
 import uuid
 import hashlib
 import threading
+import logging
 from pathlib import Path
 from django.http import JsonResponse, HttpResponse
 from django.views.decorators.csrf import csrf_exempt
@@ -12,6 +13,18 @@ from django.utils import timezone
 from django.db import transaction
 from django.db.models import Q
 from django.core.cache import cache
+
+# Setup structured logging
+logger = logging.getLogger('faix_chatbot')
+logger.setLevel(logging.INFO)
+
+# Create console handler if not exists
+if not logger.handlers:
+    handler = logging.StreamHandler()
+    handler.setLevel(logging.INFO)
+    formatter = logging.Formatter('%(asctime)s | %(levelname)s | %(message)s', datefmt='%H:%M:%S')
+    handler.setFormatter(formatter)
+    logger.addHandler(handler)
 
 # Setup paths for imports
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -30,6 +43,274 @@ from src.prompt_builder import build_messages
 # Initialize global instances
 query_processor = QueryProcessor()
 knowledge_base = KnowledgeBase(use_database=True)
+
+# Multi-language response dictionaries
+MULTILANG_GREETINGS = {
+    'en': "Hello! I'm the FAIX AI Chatbot. How can I help you today?",
+    'ms': "Hai! Saya FAIX AI Chatbot. Bagaimana saya boleh membantu anda hari ini?",
+    'zh': "你好！我是FAIX AI聊天机器人。今天有什么可以帮助您的？",
+    'ar': "مرحباً! أنا روبوت FAIX للدردشة. كيف يمكنني مساعدتك اليوم؟",
+}
+
+MULTILANG_FAREWELLS = {
+    'en': "Thank you for using FAIX AI Chatbot! Have a great day!",
+    'ms': "Terima kasih kerana menggunakan FAIX AI Chatbot! Semoga hari anda menyenangkan!",
+    'zh': "感谢您使用FAIX AI聊天机器人！祝您有美好的一天！",
+    'ar': "شكراً لاستخدام روبوت FAIX للدردشة! أتمنى لك يوماً سعيداً!",
+}
+
+MULTILANG_FALLBACK_HELP = {
+    'en': (
+        "I'm here to help! You can ask me about:\n"
+        "• FAIX programs and courses\n"
+        "• Registration procedures\n"
+        "• Staff contacts\n"
+        "• Academic schedules\n"
+        "• Fees and tuition\n\n"
+        "What would you like to know?"
+    ),
+    'ms': (
+        "Saya di sini untuk membantu! Anda boleh bertanya tentang:\n"
+        "• Program dan kursus FAIX\n"
+        "• Prosedur pendaftaran\n"
+        "• Hubungan kakitangan\n"
+        "• Jadual akademik\n"
+        "• Yuran dan bayaran\n\n"
+        "Apa yang anda ingin tahu?"
+    ),
+    'zh': (
+        "我在这里帮助您！您可以询问：\n"
+        "• FAIX项目和课程\n"
+        "• 注册程序\n"
+        "• 教职员工联系方式\n"
+        "• 学术日程\n"
+        "• 学费和费用\n\n"
+        "您想了解什么？"
+    ),
+    'ar': (
+        "أنا هنا لمساعدتك! يمكنك السؤال عن:\n"
+        "• برامج ودورات FAIX\n"
+        "• إجراءات التسجيل\n"
+        "• جهات اتصال الموظفين\n"
+        "• الجداول الأكاديمية\n"
+        "• الرسوم الدراسية\n\n"
+        "ماذا تريد أن تعرف؟"
+    ),
+}
+
+MULTILANG_NOT_FOUND = {
+    'en': "I couldn't find the exact information for your query. Try asking about course info, registration, staff contacts, or program information.",
+    'ms': "Saya tidak dapat mencari maklumat tepat untuk pertanyaan anda. Cuba tanya tentang maklumat kursus, pendaftaran, hubungan kakitangan, atau maklumat program.",
+    'zh': "我找不到您查询的确切信息。请尝试询问课程信息、注册、教职员工联系方式或项目信息。",
+    'ar': "لم أتمكن من العثور على المعلومات المحددة لاستفسارك. حاول السؤال عن معلومات الدورة أو التسجيل أو جهات اتصال الموظفين أو معلومات البرنامج.",
+}
+
+MULTILANG_REPHRASE = {
+    'en': "I'm sorry, I couldn't process your query. Could you please rephrase your question?",
+    'ms': "Maaf, saya tidak dapat memproses pertanyaan anda. Bolehkah anda menyatakan semula soalan anda?",
+    'zh': "抱歉，我无法处理您的查询。您能否重新表述您的问题？",
+    'ar': "عذراً، لم أتمكن من معالجة استفسارك. هل يمكنك إعادة صياغة سؤالك؟",
+}
+
+MULTILANG_ERROR_FALLBACK = {
+    'en': "I apologize, but I'm having trouble processing your request. Please try rephrasing your question or contact the FAIX office for assistance.",
+    'ms': "Maaf, saya menghadapi masalah memproses permintaan anda. Sila cuba nyatakan semula soalan anda atau hubungi pejabat FAIX untuk bantuan.",
+    'zh': "抱歉，我在处理您的请求时遇到问题。请尝试重新表述您的问题或联系FAIX办公室寻求帮助。",
+    'ar': "أعتذر، ولكنني أواجه مشكلة في معالجة طلبك. يرجى محاولة إعادة صياغة سؤالك أو الاتصال بمكتب FAIX للحصول على المساعدة.",
+}
+
+MULTILANG_STAFF_FALLBACK = {
+    'en': "I can help you find staff contact information. Please try asking about specific departments (AI, Cybersecurity, Data Science) or staff roles.",
+    'ms': "Saya boleh membantu anda mencari maklumat hubungan kakitangan. Sila cuba tanya tentang jabatan tertentu (AI, Keselamatan Siber, Sains Data) atau peranan kakitangan.",
+    'zh': "我可以帮您找到教职员工联系信息。请尝试询问特定部门（人工智能、网络安全、数据科学）或员工角色。",
+    'ar': "يمكنني مساعدتك في العثور على معلومات الاتصال بالموظفين. حاول السؤال عن أقسام محددة (الذكاء الاصطناعي، الأمن السيبراني، علوم البيانات) أو أدوار الموظفين.",
+}
+
+MULTILANG_FAQ_FALLBACK = {
+    'en': "I can help you with information about FAIX programs, courses, registration, and more. Could you rephrase your question or ask about specific topics?",
+    'ms': "Saya boleh membantu anda dengan maklumat tentang program FAIX, kursus, pendaftaran, dan banyak lagi. Bolehkah anda menyatakan semula soalan anda atau bertanya tentang topik tertentu?",
+    'zh': "我可以帮您了解FAIX项目、课程、注册等信息。您能重新表述您的问题或询问特定话题吗？",
+    'ar': "يمكنني مساعدتك بمعلومات حول برامج FAIX والدورات والتسجيل والمزيد. هل يمكنك إعادة صياغة سؤالك أو السؤال عن مواضيع محددة؟",
+}
+
+# Multi-language greeting/farewell keywords
+MULTILANG_GREETING_KEYWORDS = {
+    'en': ['hello', 'hi', 'hey', 'good morning', 'good afternoon', 'good evening'],
+    'ms': ['hai', 'helo', 'selamat pagi', 'selamat petang', 'selamat malam', 'apa khabar'],
+    'zh': ['你好', '您好', '早上好', '下午好', '晚上好', '嗨'],
+    'ar': ['مرحبا', 'أهلا', 'صباح الخير', 'مساء الخير'],
+}
+
+MULTILANG_FAREWELL_KEYWORDS = {
+    'en': ['bye', 'goodbye', 'see you', 'thanks', 'thank you', 'thank'],
+    'ms': ['selamat tinggal', 'jumpa lagi', 'terima kasih', 'bye'],
+    'zh': ['再见', '拜拜', '谢谢', '感谢'],
+    'ar': ['مع السلامة', 'وداعا', 'شكرا', 'إلى اللقاء'],
+}
+
+# Multi-language "what can you do" / capabilities responses
+MULTILANG_CAPABILITIES = {
+    'en': (
+        "I'm the FAIX AI Chatbot! Here's what I can help you with:\n\n"
+        "• **Programs & Courses** - Information about FAIX degree programs, courses, and curriculum\n"
+        "• **Registration** - How to register, add/drop subjects, enrollment procedures\n"
+        "• **Staff Contacts** - Find professors, lecturers, and department contacts\n"
+        "• **Academic Schedule** - Semester dates, deadlines, timetables\n"
+        "• **Fees & Tuition** - Fee schedules and payment information\n"
+        "• **Facilities** - Labs, libraries, and campus resources\n\n"
+        "Just ask me anything about FAIX! 😊"
+    ),
+    'ms': (
+        "Saya FAIX AI Chatbot! Ini yang boleh saya bantu:\n\n"
+        "• **Program & Kursus** - Maklumat tentang program ijazah FAIX, kursus, dan kurikulum\n"
+        "• **Pendaftaran** - Cara mendaftar, tambah/gugur subjek, prosedur pendaftaran\n"
+        "• **Hubungan Kakitangan** - Cari profesor, pensyarah, dan hubungan jabatan\n"
+        "• **Jadual Akademik** - Tarikh semester, tarikh akhir, jadual waktu\n"
+        "• **Yuran & Bayaran** - Jadual yuran dan maklumat pembayaran\n"
+        "• **Kemudahan** - Makmal, perpustakaan, dan sumber kampus\n\n"
+        "Tanya saya apa sahaja tentang FAIX! 😊"
+    ),
+    'zh': (
+        "我是FAIX AI聊天机器人！以下是我可以帮助您的：\n\n"
+        "• **项目和课程** - FAIX学位项目、课程和课程安排信息\n"
+        "• **注册** - 如何注册、选课/退课、入学程序\n"
+        "• **教职员工联系** - 查找教授、讲师和部门联系方式\n"
+        "• **学术日程** - 学期日期、截止日期、时间表\n"
+        "• **学费和费用** - 费用表和付款信息\n"
+        "• **设施** - 实验室、图书馆和校园资源\n\n"
+        "有任何关于FAIX的问题都可以问我！😊"
+    ),
+    'ar': (
+        "أنا روبوت FAIX للدردشة! إليك ما يمكنني مساعدتك به:\n\n"
+        "• **البرامج والدورات** - معلومات حول برامج درجات FAIX والدورات والمناهج\n"
+        "• **التسجيل** - كيفية التسجيل، إضافة/حذف المواد، إجراءات الالتحاق\n"
+        "• **جهات اتصال الموظفين** - البحث عن الأساتذة والمحاضرين وجهات اتصال الأقسام\n"
+        "• **الجدول الأكاديمي** - تواريخ الفصل الدراسي، المواعيد النهائية، الجداول\n"
+        "• **الرسوم والتعليم** - جداول الرسوم ومعلومات الدفع\n"
+        "• **المرافق** - المختبرات والمكتبات وموارد الحرم الجامعي\n\n"
+        "اسألني أي شيء عن FAIX! 😊"
+    ),
+}
+
+# Keywords that indicate user is asking about chatbot capabilities
+MULTILANG_CAPABILITY_KEYWORDS = {
+    'en': ['what can you do', 'what do you do', 'what u can do', 'what u do', 'how can you help', 
+           'what are you', 'who are you', 'your capabilities', 'help me', 'what can u do',
+           'tell me what you can', 'show me what you can', 'what are your functions'],
+    'ms': ['apa boleh buat', 'apa yang boleh', 'apa kamu boleh', 'siapa kamu', 'siapa awak',
+           'apa fungsi', 'boleh tolong apa', 'macam mana boleh tolong', 'apa yang awak boleh'],
+    'zh': ['你能做什么', '你会什么', '你是谁', '你的功能', '能帮我什么', '可以做什么', '有什么功能'],
+    'ar': ['ماذا يمكنك أن تفعل', 'من أنت', 'ما هي قدراتك', 'كيف يمكنك مساعدتي'],
+}
+
+
+def detect_language_quick(text: str) -> str:
+    """Quick language detection for greeting/farewell handling."""
+    text_lower = text.lower()
+    
+    # Check for Chinese characters first (most reliable)
+    for char in text:
+        if '\u4e00' <= char <= '\u9fff':
+            return 'zh'
+    
+    # Check for Arabic characters
+    for char in text:
+        if '\u0600' <= char <= '\u06FF':
+            return 'ar'
+    
+    # Check Malay-specific keywords
+    malay_indicators = ['apa', 'bagaimana', 'saya', 'anda', 'hai', 'selamat', 'terima kasih', 
+                        'khabar', 'boleh', 'tolong', 'mahu', 'hendak', 'pagi', 'petang', 'malam']
+    for indicator in malay_indicators:
+        if indicator in text_lower:
+            return 'ms'
+    
+    # Default to English
+    return 'en'
+
+
+def get_multilang_response(response_dict: dict, language_code: str) -> str:
+    """Get response in the appropriate language, with English fallback."""
+    return response_dict.get(language_code, response_dict.get('en', ''))
+
+
+def check_rate_limit(session_id: str, limit: int = 30, window: int = 60) -> tuple:
+    """
+    Rate limiting: Allow 'limit' requests per 'window' seconds per session.
+    Returns (allowed: bool, error_message: str or None)
+    """
+    cache_key = f"rate_limit:{session_id}"
+    count = cache.get(cache_key, 0)
+    
+    if count >= limit:
+        logger.warning(f"Rate limit exceeded for session {session_id[:8]}...")
+        return False, "Too many requests. Please wait a moment before sending more messages."
+    
+    cache.set(cache_key, count + 1, timeout=window)
+    return True, None
+
+
+def get_language_with_persistence(context: dict, detected_lang: str, confidence: float) -> str:
+    """
+    Get language code with session persistence.
+    - If confidence is high (>0.7), update the preferred language
+    - If confidence is low (<0.5), use stored preference
+    - Otherwise, use detected language
+    """
+    stored_lang = context.get('preferred_language')
+    
+    # High confidence detection - update preference
+    if confidence > 0.7:
+        if stored_lang != detected_lang:
+            logger.info(f"Language preference updated: {stored_lang} -> {detected_lang}")
+        context['preferred_language'] = detected_lang
+        return detected_lang
+    
+    # Low confidence - use stored preference if available
+    if confidence < 0.5 and stored_lang:
+        logger.debug(f"Using stored language preference: {stored_lang}")
+        return stored_lang
+    
+    # Medium confidence or no stored preference - use detected
+    if not stored_lang:
+        context['preferred_language'] = detected_lang
+    return detected_lang
+
+
+def update_conversation_memory(context: dict, entities: dict, intent: str) -> dict:
+    """
+    Update conversation memory with extracted entities for context continuity.
+    Stores mentioned courses, staff, topics across the conversation.
+    """
+    # Initialize memory if not exists
+    if 'memory' not in context:
+        context['memory'] = {
+            'mentioned_courses': [],
+            'mentioned_staff': [],
+            'discussed_topics': [],
+            'last_intent': None,
+        }
+    
+    memory = context['memory']
+    
+    # Store course codes
+    if entities.get('course_codes'):
+        for code in entities['course_codes']:
+            if code not in memory['mentioned_courses']:
+                memory['mentioned_courses'].append(code)
+        # Keep only last 5
+        memory['mentioned_courses'] = memory['mentioned_courses'][-5:]
+    
+    # Store discussed topics (intents)
+    if intent and intent != 'general_query':
+        if intent not in memory['discussed_topics']:
+            memory['discussed_topics'].append(intent)
+        memory['discussed_topics'] = memory['discussed_topics'][-5:]
+    
+    memory['last_intent'] = intent
+    context['memory'] = memory
+    
+    return context
 
 
 def get_query_cache_key(user_message: str, agent_id: str, intent: str) -> str:
@@ -63,7 +344,7 @@ def save_messages_async(conversation, user_message, answer, intent, confidence, 
                     conversation.title = user_message[:50] + ("..." if len(user_message) > 50 else "")
                 conversation.save()
         except Exception as e:
-            print(f"Error saving messages async: {e}")
+            logger.error(f"Error saving messages async: {e}")
     
     thread = threading.Thread(target=_save)
     thread.daemon = True
@@ -149,6 +430,14 @@ def chat_api(request):
         # Get or create session
         session = get_or_create_session(session_id, user_id)
         
+        # Rate limiting check
+        allowed, rate_error = check_rate_limit(session.session_id)
+        if not allowed:
+            return JsonResponse({
+                'error': rate_error,
+                'rate_limited': True
+            }, status=429)
+        
         # Get or create conversation
         conversation = get_or_create_conversation(session, user_id)
         
@@ -164,22 +453,32 @@ def chat_api(request):
         )
         
         # PERFORMANCE OPTIMIZATION: Early exit for simple greeting/farewell queries
-        simple_greetings = ['hello', 'hi', 'hey', 'good morning', 'good afternoon', 'good evening']
-        simple_farewells = ['bye', 'goodbye', 'see you', 'thanks', 'thank you', 'thank']
-        if any(greeting in user_message_lower for greeting in simple_greetings):
-            # Return cached greeting response immediately
-            cached_greeting = cache.get('greeting_response')
+        # Detect language early for greeting/farewell handling
+        early_lang_code = detect_language_quick(user_message)
+        
+        # Check for greetings in all supported languages
+        is_greeting = False
+        for lang, keywords in MULTILANG_GREETING_KEYWORDS.items():
+            if any(kw in user_message_lower for kw in keywords):
+                is_greeting = True
+                # Use the language of the matched keyword
+                if lang != 'en':
+                    early_lang_code = lang
+                break
+        
+        if is_greeting:
+            # Get language-specific greeting with cache key per language
+            cache_key_greeting = f'greeting_response_{early_lang_code}'
+            cached_greeting = cache.get(cache_key_greeting)
             if cached_greeting:
                 answer = cached_greeting
-                intent = 'general_query'
-                confidence = 0.9
-                entities = {}
             else:
-                answer = "Hello! I'm the FAIX AI Chatbot. How can I help you today?"
-                cache.set('greeting_response', answer, timeout=86400)  # Cache for 24 hours
-                intent = 'general_query'
-                confidence = 0.9
-                entities = {}
+                answer = get_multilang_response(MULTILANG_GREETINGS, early_lang_code)
+                cache.set(cache_key_greeting, answer, timeout=86400)  # Cache for 24 hours
+            
+            intent = 'general_query'
+            confidence = 0.9
+            entities = {}
             
             # Save asynchronously and return immediately
             save_messages_async(conversation, user_message, answer, intent, confidence, entities)
@@ -197,13 +496,26 @@ def chat_api(request):
                 'pdf_url': None,
             })
         
-        if any(farewell in user_message_lower for farewell in simple_farewells):
-            cached_farewell = cache.get('farewell_response')
+        # Check for farewells in all supported languages
+        is_farewell = False
+        for lang, keywords in MULTILANG_FAREWELL_KEYWORDS.items():
+            if any(kw in user_message_lower for kw in keywords):
+                is_farewell = True
+                # Use the language of the matched keyword
+                if lang != 'en':
+                    early_lang_code = lang
+                break
+        
+        if is_farewell:
+            # Get language-specific farewell with cache key per language
+            cache_key_farewell = f'farewell_response_{early_lang_code}'
+            cached_farewell = cache.get(cache_key_farewell)
             if cached_farewell:
                 answer = cached_farewell
             else:
-                answer = "Thank you for using FAIX AI Chatbot! Have a great day!"
-                cache.set('farewell_response', answer, timeout=86400)
+                answer = get_multilang_response(MULTILANG_FAREWELLS, early_lang_code)
+                cache.set(cache_key_farewell, answer, timeout=86400)
+            
             intent = 'general_query'
             confidence = 0.9
             entities = {}
@@ -222,13 +534,52 @@ def chat_api(request):
                 'timestamp': timezone.now().isoformat(),
                 'pdf_url': None,
             })
+        
+        # Check for "what can you do" / capabilities queries in all languages
+        is_capability_query = False
+        for lang, keywords in MULTILANG_CAPABILITY_KEYWORDS.items():
+            if any(kw in user_message_lower for kw in keywords):
+                is_capability_query = True
+                # Use the language of the matched keyword
+                if lang != 'en':
+                    early_lang_code = lang
+                break
+        
+        if is_capability_query:
+            # Get language-specific capabilities response
+            cache_key_caps = f'capabilities_response_{early_lang_code}'
+            cached_caps = cache.get(cache_key_caps)
+            if cached_caps:
+                answer = cached_caps
+            else:
+                answer = get_multilang_response(MULTILANG_CAPABILITIES, early_lang_code)
+                cache.set(cache_key_caps, answer, timeout=86400)
+            
+            intent = 'help'
+            confidence = 0.95
+            entities = {}
+            
+            save_messages_async(conversation, user_message, answer, intent, confidence, entities)
+            session.context = context
+            session.save(update_fields=['context', 'updated_at'])
+            
+            logger.info(f"Capabilities query detected, lang={early_lang_code}")
+            
+            return JsonResponse({
+                'response': answer,
+                'session_id': session.session_id,
+                'conversation_id': conversation.id,
+                'intent': intent,
+                'confidence': confidence,
+                'entities': entities,
+                'timestamp': timezone.now().isoformat(),
+                'pdf_url': None,
+            })
 
         # STEP 1: Check data availability FIRST before NLP processing
         # This ensures we route to agents that have data available
         # NOTE: Frontend may send agent_id='faq' by default, but we override if query matches staff/schedule
-        print(f"DEBUG: Initial agent_id from request: {agent_id}")
-        print(f"DEBUG: User message: '{user_message}'")
-        print(f"DEBUG: User message (lowercase): '{user_message_lower}'")
+        logger.debug(f"Initial agent_id: {agent_id}, message: '{user_message[:50]}...'")
         
         # Always check for staff/schedule keywords and override agent_id if appropriate
         # (even if frontend sent a default agent_id like 'faq')
@@ -243,30 +594,23 @@ def chat_api(request):
             'work in', 'works in', 'working in'
         ]
         matched_keywords = [kw for kw in staff_keywords if kw in user_message_lower]
-        print(f"DEBUG: Staff keyword matching - Matched: {matched_keywords}")
         
         if matched_keywords:
             # Check if staff data actually exists
             staff_available = check_staff_data_available()
-            print(f"DEBUG: Staff data available check: {staff_available}")
             if staff_available:
-                staff_docs = _get_staff_documents()  # Get actual docs for logging
-                agent_id = 'staff'  # OVERRIDE any default agent_id from frontend
-                print(f"DEBUG: Data-first routing - Found {len(staff_docs)} staff members, OVERRIDING to staff agent")
-                print(f"DEBUG: Matched keywords: {matched_keywords}")
-            else:
-                print(f"DEBUG: Staff keywords detected but no staff data found in data/staff_contacts.json")
-        else:
-            print(f"DEBUG: No staff keywords matched in query")
+                staff_docs = _get_staff_documents()
+                agent_id = 'staff'
+                logger.info(f"Staff agent routing: {len(staff_docs)} staff, keywords={matched_keywords[:3]}")
         
         # Check for schedule-related keywords and verify schedule data exists
         if agent_id != 'staff':  # Don't override if we already set staff
             schedule_keywords = ['schedule', 'timetable', 'calendar', 'when', 'time', 'date', 'semester', 'deadline']
             if any(kw in user_message_lower for kw in schedule_keywords):
                 if check_schedule_data_available():
-                    schedule_docs = _get_schedule_documents()  # Get actual docs for logging
-                    agent_id = 'schedule'  # OVERRIDE any default agent_id from frontend
-                    print(f"DEBUG: Data-first routing - Found schedule data, OVERRIDING to schedule agent")
+                    schedule_docs = _get_schedule_documents()
+                    agent_id = 'schedule'
+                    logger.info("Schedule agent routing activated")
         
         # STEP 2: Process query with NLP (as secondary check/confirmation)
         processed_query = query_processor.process_query(user_message)
@@ -274,14 +618,22 @@ def chat_api(request):
         confidence = processed_query.get('confidence_score', 0.0)
         entities = processed_query.get('extracted_entities', {})
         language_info = processed_query.get('language', {'code': 'en', 'name': 'English'})
-        language_code = language_info.get('code', 'en')
+        detected_lang = language_info.get('code', 'en')
+        
+        # Apply language persistence - remember user's preferred language
+        language_code = get_language_with_persistence(context, detected_lang, confidence)
+        
+        # Update conversation memory with entities for context continuity
+        context = update_conversation_memory(context, entities, intent)
+        
+        logger.info(f"Query processed: intent={intent}, confidence={confidence:.2f}, lang={language_code}")
         
         # PERFORMANCE OPTIMIZATION: Check cache before expensive processing
         # Build cache key after we have intent (more accurate caching)
         cache_key = get_query_cache_key(user_message, agent_id or 'default', intent)
         cached_response = cache.get(cache_key)
         if cached_response:
-            print(f"DEBUG: Cache hit for query - returning cached response")
+            logger.debug("Cache hit - returning cached response")
             # Update session context asynchronously
             session.context = context
             session.save(update_fields=['context', 'updated_at'])
@@ -296,9 +648,35 @@ def chat_api(request):
             )
             return JsonResponse(cached_response)
         
+        # IMPROVEMENT: For general_query with very low confidence, return helpful response
+        # This prevents returning irrelevant FAQ answers for vague/unclear queries
+        if intent == 'general_query' and confidence < 0.25 and not agent_id:
+            # Check if it's not a specific topic query
+            specific_topic_keywords = [
+                'program', 'course', 'fee', 'staff', 'contact', 'schedule', 'register',
+                'admission', 'facility', 'department', 'yuran', 'kursus', 'pendaftaran'
+            ]
+            if not any(kw in user_message_lower for kw in specific_topic_keywords):
+                logger.info("Low confidence general_query - returning helpful response")
+                answer = get_multilang_response(MULTILANG_FALLBACK_HELP, language_code)
+                
+                save_messages_async(conversation, user_message, answer, intent, confidence, entities)
+                session.context = context
+                session.save(update_fields=['context', 'updated_at'])
+                
+                return JsonResponse({
+                    'response': answer,
+                    'session_id': session.session_id,
+                    'conversation_id': conversation.id,
+                    'intent': intent,
+                    'confidence': confidence,
+                    'entities': entities,
+                    'timestamp': timezone.now().isoformat(),
+                    'pdf_url': None,
+                })
+        
         # Use NLP intent as confirmation if agent not already set by data-first routing
         if not agent_id:
-            print(f"DEBUG: No agent set from data-first routing, checking NLP intent: '{intent}'")
             # Map intents to agent IDs
             intent_to_agent = {
                 'staff_contact': 'staff',
@@ -325,20 +703,14 @@ def chat_api(request):
                     from src.agents import check_faix_data_available
                     if check_faix_data_available():
                         agent_id = 'faq'
-                        print(f"DEBUG: Keyword-based routing - FAIX keywords detected, routing to FAQ agent with comprehensive FAIX data")
-            
-            if agent_id:
-                print(f"DEBUG: NLP-based routing - Intent '{intent}' mapped to agent '{agent_id}'")
-            else:
-                print(f"DEBUG: No agent mapping for intent '{intent}', will use default behavior")
+                        logger.info("FAQ agent routing: FAIX keywords detected")
         
         # Final check: if still no agent_id and we have staff keywords, force staff agent
         if not agent_id and any(kw in user_message_lower for kw in ['contact', 'who can', 'email', 'phone', 'professor', 'staff']):
             if check_staff_data_available():
                 agent_id = 'staff'
-                print(f"DEBUG: Final fallback - Forcing staff agent based on keywords and data availability")
         
-        print(f"DEBUG: Final agent_id before processing: {agent_id}")
+        logger.info(f"Final routing: agent={agent_id or 'default'}, intent={intent}")
 
         # Normalise history into a compact, safe format
         history_messages = []
@@ -369,12 +741,10 @@ def chat_api(request):
                 top_k=3,
             )
             
-            # Debug: Log staff context if available
+            # Log staff context if available
             if agent_id == 'staff':
                 staff_docs = agent_context.get('staff', [])
-                print(f"DEBUG: Staff agent - Loaded {len(staff_docs)} staff members")
-                if staff_docs:
-                    print(f"DEBUG: First staff member: {staff_docs[0].get('name', 'N/A')}")
+                logger.debug(f"Staff agent loaded {len(staff_docs)} members")
 
             # Build LLM messages and call Llama via Ollama
             messages = build_messages(
@@ -386,12 +756,6 @@ def chat_api(request):
                 language_code=language_code,
             )
             
-            # Debug: Print message count and check if staff context is in messages
-            if agent_id == 'staff':
-                print(f"DEBUG: Built {len(messages)} messages for LLM")
-                for i, msg in enumerate(messages):
-                    if 'Staff Contacts Context' in msg.get('content', ''):
-                        print(f"DEBUG: Staff context found in message {i}")
 
             try:
                 # PERFORMANCE OPTIMIZATION: Check if this is a fee query - return link directly without calling LLM
@@ -401,20 +765,20 @@ def chat_api(request):
                 # PERFORMANCE OPTIMIZATION: Skip LLM for low-confidence queries or simple queries
                 skip_llm = False
                 if is_fee_query:
-                    print(f"DEBUG: Fee query detected - returning link directly")
+                    logger.info("Fee query - returning direct link")
                     answer = "https://bendahari.utem.edu.my/ms/jadual-yuran-pelajar.html"
                     skip_llm = True
                 elif intent == 'general_query' and confidence < 0.3:
                     # Use knowledge base directly for low-confidence queries
-                    print(f"DEBUG: Low confidence query - using knowledge base directly")
+                    logger.debug("Low confidence query - using knowledge base")
                     answer = knowledge_base.retrieve(intent, user_message) if hasattr(knowledge_base, 'retrieve') else None
                     if not answer:
-                        answer = "I'm not sure about that. Could you rephrase your question or ask about courses, programs, registration, or staff contacts?"
+                        answer = get_multilang_response(MULTILANG_REPHRASE, language_code)
                     skip_llm = True
                 
                 if not skip_llm:
                     llm_client = get_llm_client()
-                    print(f"DEBUG: Calling LLM with agent '{agent_id}'")
+                    logger.info(f"LLM call: agent={agent_id}, lang={language_code}")
                     
                     # PERFORMANCE OPTIMIZATION: Reduced max_tokens for shorter, faster responses
                     # Keep responses concise and focused
@@ -443,13 +807,13 @@ def chat_api(request):
                         # Clean up any leading/trailing whitespace
                         answer = answer.strip()
                     
-                    print(f"DEBUG: LLM response length: {len(answer) if answer else 0} characters")
+                    logger.debug(f"LLM response: {len(answer) if answer else 0} chars")
                 
                 # Fallback: If LLM returns empty or very short response for staff queries, use staff data directly
                 if agent_id == 'staff' and (not answer or len(answer.strip()) < 20):
                     staff_docs = agent_context.get('staff', [])
                     if staff_docs:
-                        print("DEBUG: LLM response too short, generating fallback from staff data")
+                        logger.debug("LLM response too short, using staff fallback")
                         # Filter staff by query keywords if possible
                         query_words = set(user_message_lower.split())
                         relevant_staff = []
@@ -475,18 +839,18 @@ def chat_api(request):
                         answer_parts.append("Would you like contact information (email, phone, office) for any of these staff members?")
                         answer = '\n'.join(answer_parts)
             except LLMError as e:
-                # Log error only in debug mode (reduce console noise)
+                # Log error with structured logging
                 error_msg = str(e)
                 if "Could not reach LLM provider" in error_msg or "connection" in error_msg.lower():
-                    print(f"DEBUG: LLM unavailable (Ollama not running) - using fallback")
+                    logger.warning("LLM unavailable - using fallback")
                 else:
-                    print(f"DEBUG: LLMError in chat_api: {e}")
+                    logger.error(f"LLM error: {e}")
                 
                 # Smart fallback based on agent type
                 if agent_id == 'staff':
                     staff_docs = agent_context.get('staff', [])
                     if staff_docs:
-                        print("DEBUG: Using staff data fallback")
+                        logger.debug("Using staff data fallback")
                         answer = "Here are some staff members you can contact:\n\n"
                         for staff in staff_docs[:5]:
                             if staff.get('name'):
@@ -501,46 +865,30 @@ def chat_api(request):
                         if kb_answer:
                             answer = kb_answer
                         else:
-                            answer = (
-                                "I can help you find staff contact information. "
-                                "Please try asking about specific departments (AI, Cybersecurity, Data Science) or staff roles."
-                            )
+                            answer = get_multilang_response(MULTILANG_STAFF_FALLBACK, language_code)
                 elif agent_id == 'faq':
                     # For FAQ queries, fallback to knowledge base
-                    print("DEBUG: LLM failed, using knowledge base fallback")
+                    logger.debug("LLM failed, using knowledge base fallback")
                     kb_answer = knowledge_base.get_answer(intent, user_message) if hasattr(knowledge_base, 'get_answer') else None
                     if kb_answer:
                         answer = kb_answer
                     else:
-                        answer = (
-                            "I can help you with information about FAIX programs, courses, registration, and more. "
-                            "Could you rephrase your question or ask about specific topics?"
-                        )
+                        answer = get_multilang_response(MULTILANG_FAQ_FALLBACK, language_code)
                 else:
                     # Generic fallback
                     kb_answer = knowledge_base.get_answer(intent, user_message) if hasattr(knowledge_base, 'get_answer') else None
                     if kb_answer:
                         answer = kb_answer
                     else:
-                        answer = (
-                            "I'm here to help! You can ask me about:\n"
-                            "• FAIX programs and courses\n"
-                            "• Registration procedures\n"
-                            "• Staff contacts\n"
-                            "• Academic schedules\n"
-                            "• Fees and tuition\n\n"
-                            "What would you like to know?"
-                        )
+                        answer = get_multilang_response(MULTILANG_FALLBACK_HELP, language_code)
             except Exception as e:
-                print(f"DEBUG: Unexpected error in chat_api LLM path: {e}")
-                import traceback
-                traceback.print_exc()  # Log full traceback for debugging
+                logger.exception(f"Unexpected error in LLM path: {e}")
                 
-                # Smart fallback based on agent type
+                # Smart fallback based on agent type with multi-language support
                 if agent_id == 'staff':
                     staff_docs = agent_context.get('staff', [])
                     if staff_docs:
-                        print("DEBUG: Exception occurred, using staff data fallback")
+                        logger.debug("Exception occurred, using staff fallback")
                         answer = "Here are some staff members you can contact:\n\n"
                         for staff in staff_docs[:5]:
                             if staff.get('name'):
@@ -553,23 +901,23 @@ def chat_api(request):
                         # Try knowledge base fallback
                         try:
                             kb_answer = knowledge_base.get_answer(intent, user_message)
-                            answer = kb_answer if kb_answer else "I can help you find staff information. Please try asking about specific departments."
+                            answer = kb_answer if kb_answer else get_multilang_response(MULTILANG_STAFF_FALLBACK, language_code)
                         except Exception:
-                            answer = "I'm here to help with staff contacts. Please try asking about specific departments or roles."
+                            answer = get_multilang_response(MULTILANG_STAFF_FALLBACK, language_code)
                 elif agent_id == 'faq':
                     # For FAQ queries, always try knowledge base
                     try:
                         kb_answer = knowledge_base.get_answer(intent, user_message)
-                        answer = kb_answer if kb_answer else "I can help with FAIX information. Please try rephrasing your question."
+                        answer = kb_answer if kb_answer else get_multilang_response(MULTILANG_FAQ_FALLBACK, language_code)
                     except Exception:
-                        answer = "I'm here to help! Ask me about programs, courses, registration, or other FAIX information."
+                        answer = get_multilang_response(MULTILANG_FAQ_FALLBACK, language_code)
                 else:
                     # Try knowledge base first, then generic message
                     try:
                         kb_answer = knowledge_base.get_answer(intent, user_message)
-                        answer = kb_answer if kb_answer else "I can help you. Please try rephrasing your question."
+                        answer = kb_answer if kb_answer else get_multilang_response(MULTILANG_REPHRASE, language_code)
                     except Exception:
-                        answer = "I'm here to help! Please try asking your question again or ask about FAIX programs, courses, or registration."
+                        answer = get_multilang_response(MULTILANG_FALLBACK_HELP, language_code)
 
             # For handbook queries, still attach PDF information if available
             if intent == 'program_info' or is_handbook_query:
@@ -592,21 +940,18 @@ def chat_api(request):
             is_fee_query = intent == 'fees' or any(kw in user_message_lower for kw in fee_keywords)
             
             if is_fee_query:
-                print(f"DEBUG: Fee query detected (non-agent path) - returning link directly")
+                logger.info("Fee query (non-agent) - returning direct link")
                 answer = "https://bendahari.utem.edu.my/ms/jadual-yuran-pelajar.html"
             elif intent and intent != 'general_query':
                 try:
                     answer = knowledge_base.get_answer(intent, user_message)
                 except Exception as e:
-                    print(f"Warning: Knowledge base retrieval error: {e}")
+                    logger.warning(f"Knowledge base retrieval error: {e}")
                     answer = None
                 
                 # Validate answer is not None, empty, or invalid type
                 if not answer or not isinstance(answer, str) or not answer.strip():
-                    answer = (
-                        "I couldn't find the exact information for your query. "
-                        "Try asking about course info, registration, staff contacts, or program information."
-                    )
+                    answer = get_multilang_response(MULTILANG_NOT_FOUND, language_code)
                 
                 # Check if user is asking about academic handbook
                 if intent == 'program_info' or is_handbook_query:
@@ -640,17 +985,11 @@ def chat_api(request):
                     answer, context = process_conversation(user_message, context)
                     # Validate answer from conversation manager
                     if not answer or not isinstance(answer, str) or not answer.strip():
-                        answer = (
-                            "I'm sorry, I couldn't process your query. "
-                            "Could you please rephrase your question?"
-                        )
+                        answer = get_multilang_response(MULTILANG_REPHRASE, language_code)
         
         # Final safety check: ensure answer is never None or empty before saving
         if not answer or not isinstance(answer, str) or not answer.strip():
-            answer = (
-                "I apologize, but I'm having trouble processing your request. "
-                "Please try rephrasing your question or contact the FAIX office for assistance."
-            )
+            answer = get_multilang_response(MULTILANG_ERROR_FALLBACK, language_code)
         
         # Update session context
         session.context = context

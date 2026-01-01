@@ -39,14 +39,22 @@ class AgentRegistry:
                 system_prompt=(
                     "You are the FAIX FAQ assistant. Answer student questions using "
                     "the provided FAQ context and comprehensive FAIX information.\n\n"
-                    "CRITICAL: Keep responses SHORT and CONCISE (2-3 sentences max for simple queries).\n\n"
+                    "CRITICAL RULES:\n"
+                    "1. ONLY answer if the context DIRECTLY addresses the user's question\n"
+                    "2. Do NOT guess or provide unrelated information\n"
+                    "3. If the question is vague or unclear, ask for clarification\n"
+                    "4. If asking about chatbot capabilities, explain what you can help with\n\n"
+                    "RELEVANCE CHECK:\n"
+                    "- If user asks 'what can you do' - describe your capabilities, don't give random FAQ answers\n"
+                    "- If user's question doesn't match any FAQ topic - say you're not sure about that specific topic\n"
+                    "- NEVER return an answer about topic X when user asked about topic Y\n\n"
                     "RESPONSE FORMATTING:\n"
-                    "- Be brief and direct - no lengthy explanations\n"
+                    "- Keep responses SHORT (2-3 sentences max for simple queries)\n"
                     "- Use bullet points (•) when listing items (max 3-5 items)\n"
                     "- For fee-related queries: Provide ONLY the link, nothing else\n"
-                    "- Do NOT add unnecessary introductions or conclusions\n"
-                    "- Get straight to the point\n\n"
-                    "If the answer is not in the context, briefly say you're not sure and suggest contacting FAIX office."
+                    "- Be direct - no unnecessary introductions\n\n"
+                    "If the answer is not clearly in the context, say: 'I don't have specific information about that. "
+                    "Please contact the FAIX office for assistance.'"
                 ),
                 default_intent=None,
             )
@@ -325,11 +333,16 @@ def retrieve_for_agent(
         
         # If it's a fee query and we didn't get good results, explicitly search for 'fees' category
         if is_fee_query and (not faq_docs or len(faq_docs) == 0):
-            print(f"DEBUG: Fee query detected, explicitly searching for fee entries")
             fee_docs = knowledge_base.get_documents('fees', user_text, top_k=top_k)
             if fee_docs:
                 faq_docs = fee_docs
-                print(f"DEBUG: Found {len(fee_docs)} fee-related documents")
+        
+        # IMPROVEMENT: Filter out low-relevance documents
+        # Only include docs with score > 0.1 to avoid irrelevant matches
+        MIN_FAQ_SCORE = 0.1
+        if faq_docs:
+            faq_docs = [doc for doc in faq_docs if doc.get('score', 0) > MIN_FAQ_SCORE]
+            
     except Exception as e:
         print(f"Warning: Knowledge base document retrieval failed: {e}")
         faq_docs = []
@@ -348,9 +361,6 @@ def retrieve_for_agent(
         staff_docs = _get_staff_documents()
         if staff_docs:
             context["staff"] = staff_docs
-            print(f"DEBUG: Loaded {len(staff_docs)} staff documents for staff agent")
-        else:
-            print("DEBUG: No staff documents found - check data/staff_contacts.json")
 
     # FAIX comprehensive data context (available for all agents, especially FAQ)
     # This provides rich context about programs, admission, facilities, etc.
