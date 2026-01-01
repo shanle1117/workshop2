@@ -345,7 +345,8 @@ class KnowledgeBase:
         links = local.get('application_links', {})
         fee_url = links.get('fees', 'https://bendahari.utem.edu.my/ms/jadual-yuran-pelajar.html')
         
-        return f"For fee schedules and tuition information, please visit:\n\n**{fee_url}**"
+        # Return link directly for direct access
+        return fee_url
     
     def _get_career_answer(self, user_text: str) -> Optional[str]:
         """Get career opportunities information"""
@@ -388,20 +389,71 @@ class KnowledgeBase:
         facilities = self.faix_data.get('facilities', {})
         available = facilities.get('available', [])
         booking = facilities.get('booking_system', '')
+        laboratories = facilities.get('laboratories', {})
         
-        answer = "**FAIX Facilities:**\n\n"
-        for f in available:
-            answer += f"- {f}\n"
+        user_lower = user_text.lower()
+        
+        # Check if user is asking specifically about labs
+        lab_keywords = ['lab', 'laboratory', 'laboratories', 'makmal', 'ai lab', 'cybersec', 'cybersecurity lab']
+        is_lab_query = any(kw in user_lower for kw in lab_keywords)
+        
+        # If booking system link exists, return it directly for booking queries
+        booking_keywords = ['booking', 'book', 'reserve', 'tempahan']
+        if booking and any(kw in user_lower for kw in booking_keywords):
+            return booking
+        
+        answer = ""
+        
+        # If asking about labs specifically, show lab details
+        if is_lab_query and laboratories:
+            ai_labs = laboratories.get('ai_labs', [])
+            cybersec_labs = laboratories.get('cybersec_labs', [])
+            
+            if ai_labs or cybersec_labs:
+                answer = "**FAIX Laboratories:**\n\n"
+                
+                if ai_labs:
+                    answer += "**AI Labs:**\n"
+                    for lab in ai_labs:
+                        answer += f"- {lab.get('name', '')}\n"
+                        answer += f"  Block: {lab.get('block', '')}\n"
+                        answer += f"  {lab.get('level', '')}\n\n"
+                
+                if cybersec_labs:
+                    answer += "**CyberSec Labs:**\n"
+                    for lab in cybersec_labs:
+                        answer += f"- {lab.get('name', '')}\n"
+                        answer += f"  Block: {lab.get('block', '')}\n"
+                        answer += f"  {lab.get('level', '')}\n\n"
+                
+                if booking:
+                    answer += f"**Room Booking System:** {booking}\n"
+                
+                return answer
+        
+        # General facilities answer
+        if available:
+            answer = "**FAIX Facilities:**\n\n"
+            for f in available:
+                answer += f"- {f}\n"
+        
         if booking:
             answer += f"\n**Room Booking System:** {booking}"
         
-        return answer
+        return answer if answer else None
     
     def _get_academic_resources_answer(self, user_text: str) -> Optional[str]:
         """Get academic resources information"""
         resources = self.faix_data.get('academic_resources', {})
         portal = resources.get('ulearn_portal', '')
         available = resources.get('resources', [])
+        
+        user_lower = user_text.lower()
+        
+        # If asking specifically about uLearn portal, return link directly
+        portal_keywords = ['ulearn', 'portal', 'learning portal', 'online learning']
+        if portal and any(kw in user_lower for kw in portal_keywords):
+            return portal
         
         answer = "**Academic Resources:**\n\n"
         for r in available:

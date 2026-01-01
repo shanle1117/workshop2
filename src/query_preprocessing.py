@@ -1069,6 +1069,45 @@ class QueryProcessor:
         language_patterns = self.patterns[language]
         text_lower = text.lower() if language not in ['zh', 'ar'] else text
         
+        # Priority rules: certain patterns should override keyword matching
+        # Check for high-priority patterns first
+        priority_patterns = {
+            'about_faix': [
+                'when was faix', 'when was the faculty', 'when was faix established',
+                'when was faix founded', 'when is faix', 'history of faix',
+                'what is faix', 'what is the faculty'
+            ],
+            'program_info': [
+                'what programs', 'what programmes', 'what programs does',
+                'what programmes does', 'what programs are', 'what programmes are',
+                'what degrees', 'programs available', 'programmes available'
+            ],
+            'staff_contact': [
+                'who can i contact', 'who should i contact', 'who should i email',
+                'who can i', 'how do i contact', 'contact information',
+                'staff contact', 'email address', 'phone number'
+            ],
+            'academic_schedule': [
+                'academic calendar', 'when does the semester', 'when is the semester',
+                'semester dates', 'important dates', 'when are classes'
+            ],
+            'facility_info': [
+                'what facilities', 'what labs', 'what laboratories', 'facilities available',
+                'labs available', 'laboratories available'
+            ],
+            'research': [
+                'what research', 'research areas', 'research focus', 'research projects'
+            ]
+        }
+        
+        # Check priority patterns first (exact phrase matching)
+        for intent, patterns in priority_patterns.items():
+            for pattern in patterns:
+                if pattern in text_lower:
+                    result = (intent, 0.9)  # High confidence for exact pattern match
+                    self._intent_cache[cache_key] = result
+                    return result
+        
         intent_scores = {}
         
         for intent, keywords in language_patterns.items():

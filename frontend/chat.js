@@ -310,12 +310,15 @@ class Chatbot {
     }
     
     addMessage(role, content, pdfUrl = null) {
+        const isAssistant = role === 'bot' || role === 'assistant';
+        const displayRole = isAssistant ? 'bot' : role;
+
         const messageDiv = document.createElement('div');
-        messageDiv.className = `message ${role}-message`;
+        messageDiv.className = `message ${displayRole}-message`;
         
         const avatar = document.createElement('div');
         avatar.className = 'message-avatar';
-        avatar.textContent = role === 'user' ? '👤' : '🤖';
+        avatar.textContent = displayRole === 'user' ? '👤' : '🤖';
         
         const messageContent = document.createElement('div');
         messageContent.className = 'message-content';
@@ -323,7 +326,7 @@ class Chatbot {
         const textContainer = document.createElement('div');
         textContainer.className = 'message-text';
         
-        if (role === 'bot' && typeof marked !== 'undefined') {
+        if (isAssistant && typeof marked !== 'undefined') {
             // Use marked.js for bot messages to render markdown
             // Sanitize by escaping script tags first
             const sanitized = content

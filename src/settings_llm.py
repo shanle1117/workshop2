@@ -17,7 +17,7 @@ class LLMSettings:
     provider: str = "ollama"
     base_url: str = "http://localhost:11434"
     model: str = "llama3.2:3b"
-    request_timeout: int = 60  # seconds
+    request_timeout: int = 25  # seconds (reduced from 60 to prevent long waits)
     enabled: bool = True
 
     @classmethod

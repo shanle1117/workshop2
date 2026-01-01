@@ -585,28 +585,55 @@ def chat_api(request):
         # (even if frontend sent a default agent_id like 'faq')
         
         # Check for staff-related keywords and verify staff data exists
+        # IMPORTANT: Exclude non-staff questions that might match staff keywords
+        non_staff_keywords = [
+            'established', 'founded', 'when was', 'history', 'facility', 'facilities',
+            'lab', 'laboratory', 'laboratories', 'equipment', 'research', 'project',
+            'program', 'programme', 'degree', 'course', 'schedule', 'calendar',
+            'academic calendar', 'semester', 'registration', 'admission', 'fee', 'fees'
+        ]
+        is_non_staff_query = any(kw in user_message_lower for kw in non_staff_keywords)
+        
         staff_keywords = [
-            'contact', 'email', 'phone', 'professor', 'lecturer', 'staff', 'faculty', 
-            'who can i', 'who can', 'reach', 'get in touch', 'call', 'number', 
-            'office', 'address', 'dean', 'head of', 'department head', 'ai', 'artificial intelligence',
-            'cybersecurity', 'data science', 'machine learning', 'nlp', 'deep learning',
-            'administration', 'admin', 'registrar', 'secretary', 'academic staff', 'who works',
-            'work in', 'works in', 'working in'
+            'contact', 'email', 'phone', 'professor', 'lecturer', 'staff', 'faculty member',
+            'who can i contact', 'who can i', 'who should i email', 'who should i contact',
+            'reach', 'get in touch', 'call', 'number', 'office', 'address',
+            'administration', 'admin', 'registrar', 'secretary', 'academic staff',
+            'who works', 'work in', 'works in', 'working in', 'coordinator'
         ]
         matched_keywords = [kw for kw in staff_keywords if kw in user_message_lower]
         
-        if matched_keywords:
-            # Check if staff data actually exists
-            staff_available = check_staff_data_available()
-            if staff_available:
-                staff_docs = _get_staff_documents()
-                agent_id = 'staff'
-                logger.info(f"Staff agent routing: {len(staff_docs)} staff, keywords={matched_keywords[:3]}")
+        # Only route to staff agent if:
+        # 1. Staff keywords are present
+        # 2. It's NOT a non-staff query (e.g., "when was FAIX established" shouldn't go to staff)
+        # 3. It's specifically asking about contacting someone (not general info)
+        if matched_keywords and not is_non_staff_query:
+            # Additional check: ensure it's actually asking about contacts
+            contact_intent_keywords = ['contact', 'email', 'phone', 'who can', 'who should', 'reach', 'get in touch']
+            has_contact_intent = any(kw in user_message_lower for kw in contact_intent_keywords)
+            
+            if has_contact_intent:
+                # Check if staff data actually exists
+                staff_available = check_staff_data_available()
+                if staff_available:
+                    staff_docs = _get_staff_documents()
+                    agent_id = 'staff'
+                    logger.info(f"Staff agent routing: {len(staff_docs)} staff, keywords={matched_keywords[:3]}")
         
         # Check for schedule-related keywords and verify schedule data exists
         if agent_id != 'staff':  # Don't override if we already set staff
-            schedule_keywords = ['schedule', 'timetable', 'calendar', 'when', 'time', 'date', 'semester', 'deadline']
-            if any(kw in user_message_lower for kw in schedule_keywords):
+            # More specific schedule keywords to avoid false positives
+            schedule_keywords = [
+                'schedule', 'timetable', 'academic calendar', 'semester', 'deadline',
+                'when does the semester', 'when is the semester', 'when are classes',
+                'important dates', 'academic year', 'class schedule'
+            ]
+            # Exclude non-schedule queries that might match "when"
+            non_schedule_keywords = ['when was', 'when founded', 'when established', 'history']
+            is_schedule_query = any(kw in user_message_lower for kw in schedule_keywords)
+            is_non_schedule_query = any(kw in user_message_lower for kw in non_schedule_keywords)
+            
+            if is_schedule_query and not is_non_schedule_query:
                 if check_schedule_data_available():
                     schedule_docs = _get_schedule_documents()
                     agent_id = 'schedule'
@@ -722,9 +749,13 @@ def chat_api(request):
                         logger.info("FAQ agent routing: FAIX keywords detected")
         
         # Final check: if still no agent_id and we have staff keywords, force staff agent
-        if not agent_id and any(kw in user_message_lower for kw in ['contact', 'who can', 'email', 'phone', 'professor', 'staff']):
-            if check_staff_data_available():
-                agent_id = 'staff'
+        # But only if it's actually a contact query (not a general info query)
+        if not agent_id:
+            contact_keywords = ['who can i contact', 'who should i contact', 'who should i email', 
+                              'contact information', 'how do i contact', 'staff contact']
+            if any(kw in user_message_lower for kw in contact_keywords) and not is_non_staff_query:
+                if check_staff_data_available():
+                    agent_id = 'staff'
         
         logger.info(f"Final routing: agent={agent_id or 'default'}, intent={intent}")
 
@@ -829,10 +860,97 @@ def chat_api(request):
                     
                     # PERFORMANCE OPTIMIZATION: Reduced max_tokens for shorter, faster responses
                     # Keep responses concise and focused
-                    max_tokens = 150 if agent_id == 'staff' else 200  # Reduced for shorter conversations
-                    # Lower temperature for faster, more deterministic generation
-                    llm_response = llm_client.chat(messages, max_tokens=max_tokens, temperature=0.2)
-                    answer = llm_response.content
+                    max_tokens = 150 if agent_id == 'staff' else 200
+                    
+                    # TIMEOUT HANDLING: Use shorter timeout for staff queries (they tend to be slower)
+                    import signal
+                    from contextlib import contextmanager
+                    
+                    @contextmanager
+                    def timeout_handler(timeout_seconds):
+                        """Context manager for timeout handling"""
+                        def timeout_signal(signum, frame):
+                            raise TimeoutError(f"Operation timed out after {timeout_seconds} seconds")
+                        
+                        # Set up signal handler (Unix only)
+                        if hasattr(signal, 'SIGALRM'):
+                            old_handler = signal.signal(signal.SIGALRM, timeout_signal)
+                            signal.alarm(timeout_seconds)
+                            try:
+                                yield
+                            finally:
+                                signal.alarm(0)
+                                signal.signal(signal.SIGALRM, old_handler)
+                        else:
+                            # Windows doesn't support SIGALRM, rely on LLM client timeout
+                            yield
+                    
+                    # Set timeout based on agent type
+                    llm_timeout = 15 if agent_id == 'staff' else 20  # Reduced for shorter conversations
+                    
+                    try:
+                        # Lower temperature for faster, more deterministic generation
+                        llm_response = llm_client.chat(messages, max_tokens=max_tokens, temperature=0.2)
+                        answer = llm_response.content
+                        
+                        # RESPONSE VALIDATION: Check if response matches intent
+                        answer_lower = answer.lower()
+                        invalid_responses = [
+                            'no matching staff found',
+                            'no matching',
+                            'not found in database',
+                            'could not find',
+                            'unable to find'
+                        ]
+                        
+                        # If response indicates "not found" but intent doesn't match, try knowledge base fallback
+                        if any(invalid in answer_lower for invalid in invalid_responses):
+                            # Check if this is actually a staff query
+                            if intent != 'staff_contact' and agent_id == 'staff':
+                                logger.warning(f"Staff agent returned 'not found' for non-staff intent: {intent}")
+                                # Try knowledge base instead
+                                kb_answer = knowledge_base.get_answer(intent, user_message)
+                                if kb_answer and 'couldn\'t find' not in kb_answer.lower():
+                                    answer = kb_answer
+                                    logger.info("Using knowledge base fallback after invalid staff response")
+                            
+                            # For non-staff intents getting "not found", try knowledge base
+                            elif intent not in ['staff_contact'] and any(invalid in answer_lower for invalid in invalid_responses):
+                                logger.warning(f"Invalid response for intent {intent}: {answer[:100]}")
+                                kb_answer = knowledge_base.get_answer(intent, user_message)
+                                if kb_answer and 'couldn\'t find' not in kb_answer.lower():
+                                    answer = kb_answer
+                                    logger.info("Using knowledge base fallback after invalid response")
+                        
+                        # Validate response completeness
+                        if len(answer.strip()) < 10:
+                            logger.warning(f"Response too short: {answer}")
+                            kb_answer = knowledge_base.get_answer(intent, user_message)
+                            if kb_answer:
+                                answer = kb_answer
+                    
+                    except Exception as e:
+                        error_msg = str(e)
+                        logger.error(f"LLM call failed: {error_msg}")
+                        
+                        # TIMEOUT FALLBACK: If timeout or error, use knowledge base
+                        if 'timeout' in error_msg.lower() or 'timed out' in error_msg.lower():
+                            logger.info("LLM timeout - falling back to knowledge base")
+                            kb_answer = knowledge_base.get_answer(intent, user_message)
+                            if kb_answer:
+                                answer = kb_answer
+                            else:
+                                answer = get_multilang_response(MULTILANG_FALLBACK_HELP, language_code)
+                        else:
+                            # Other errors - try knowledge base first
+                            kb_answer = knowledge_base.get_answer(intent, user_message)
+                            if kb_answer:
+                                answer = kb_answer
+                            else:
+                                answer = get_multilang_response(
+                                    MULTILANG_FALLBACK_ERROR if 'MULTILANG_FALLBACK_ERROR' in globals() else MULTILANG_FALLBACK_HELP,
+                                    language_code
+                                )
                     
                     # Clean up unwanted disclaimers and meta-commentary from LLM responses
                     if answer:

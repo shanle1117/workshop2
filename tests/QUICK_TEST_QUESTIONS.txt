@@ -1,0 +1,54 @@
+# Quick Test Questions - FAIX Chatbot
+
+Essential questions for quick testing organized by priority.
+
+## Priority 1: Basic Functionality (Test First)
+Hello
+Hi
+What can you do?
+Tell me about FAIX
+What programs does FAIX offer?
+Thanks, bye
+
+## Priority 2: Core Features
+What is BCSAI?
+What is BCSCS?
+What are the admission requirements?
+How much are the fees?
+What are the career opportunities?
+Who can I contact?
+
+## Priority 3: Specific Information
+Tell me about the AI program
+What are the requirements for local students?
+What jobs can I get with BCSAI?
+How do I contact staff?
+When does registration open?
+What is the academic calendar?
+
+## Priority 4: Multi-Language
+Apakah program yang ditawarkan?
+FAIX提供什么课程？
+مرحبا
+
+## Priority 5: Edge Cases
+Help
+I need information
+Tell me more
+What is the difference between BCSAI and BCSCS?
+
+---
+
+Copy-paste ready format (one question per line):
+
+Hello
+What programs does FAIX offer?
+Tell me about BCSAI
+What are the admission requirements?
+How much are the fees?
+What are the career opportunities?
+Who can I contact?
+How do I register?
+When does the semester start?
+Thanks, bye
+

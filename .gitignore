@@ -4,29 +4,40 @@ __pycache__/
 *$py.class
 *.so
 .Python
-
-# Virtual Environment
 venv/
 env/
 ENV/
-.venv
+*.egg-info/
+dist/
+build/
+
+# Django
+*.log
+db.sqlite3
+db.sqlite3-journal
+media/
+staticfiles/
+
+# Node
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+package-lock.json
+yarn.lock
+
+# Webpack
+frontend/dist/
+*.bundle.js
+*.bundle.js.map
 
 # IDE
 .vscode/
 .idea/
 *.swp
 *.swo
+*~
 
 # OS
 .DS_Store
 Thumbs.db
-
-# Django
-*.log
-db.sqlite3
-/media
-/staticfiles
-
-# Environment variables
-.env
-.env.local

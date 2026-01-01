@@ -1,0 +1,856 @@
+{
+  "statistics": {
+    "total": 85,
+    "successful": 81,
+    "failed": 4,
+    "success_rate": 95.29411764705881,
+    "avg_time": 12.38516482184915,
+    "max_time": 32.06200075149536,
+    "min_time": 2.0507442951202393,
+    "by_category": {
+      "greeting": {
+        "total": 5,
+        "success": 5
+      },
+      "program_info": {
+        "total": 5,
+        "success": 5
+      },
+      "admission": {
+        "total": 5,
+        "success": 5
+      },
+      "fees": {
+        "total": 5,
+        "success": 5
+      },
+      "career": {
+        "total": 5,
+        "success": 5
+      },
+      "about_faix": {
+        "total": 5,
+        "success": 5
+      },
+      "staff_contact": {
+        "total": 5,
+        "success": 3
+      },
+      "facility_info": {
+        "total": 5,
+        "success": 4
+      },
+      "academic_resources": {
+        "total": 5,
+        "success": 5
+      },
+      "research": {
+        "total": 5,
+        "success": 4
+      },
+      "course_info": {
+        "total": 5,
+        "success": 5
+      },
+      "registration": {
+        "total": 5,
+        "success": 5
+      },
+      "academic_schedule": {
+        "total": 5,
+        "success": 5
+      },
+      "farewell": {
+        "total": 5,
+        "success": 5
+      },
+      "multi-language_questions": {
+        "total": 5,
+        "success": 5
+      },
+      "edge_cases_&_complex_queries": {
+        "total": 5,
+        "success": 5
+      },
+      "testing_checklist": {
+        "total": 1,
+        "success": 1
+      },
+      "usage_tips": {
+        "total": 2,
+        "success": 2
+      },
+      "notes": {
+        "total": 2,
+        "success": 2
+      }
+    }
+  },
+  "results": [
+    {
+      "question": "Hello",
+      "response": "Hello! I'm the FAIX AI Chatbot. How can I help you today?",
+      "success": true,
+      "time_taken": 2.258068084716797,
+      "error": null,
+      "intent": "greeting",
+      "category": "greeting"
+    },
+    {
+      "question": "Hey",
+      "response": "Hello! I'm the FAIX AI Chatbot. How can I help you today?",
+      "success": true,
+      "time_taken": 2.072509527206421,
+      "error": null,
+      "intent": "greeting",
+      "category": "greeting"
+    },
+    {
+      "question": "Good morning",
+      "response": "Hello! I'm the FAIX AI Chatbot. How can I help you today?",
+      "success": true,
+      "time_taken": 2.0741167068481445,
+      "error": null,
+      "intent": "greeting",
+      "category": "greeting"
+    },
+    {
+      "question": "Good afternoon",
+      "response": "Hello! I'm the FAIX AI Chatbot. How can I help you today?",
+      "success": true,
+      "time_taken": 2.0669960975646973,
+      "error": null,
+      "intent": "greeting",
+      "category": "greeting"
+    },
+    {
+      "question": "Good evening",
+      "response": "Hello! I'm the FAIX AI Chatbot. How can I help you today?",
+      "success": true,
+      "time_taken": 2.0614125728607178,
+      "error": null,
+      "intent": "greeting",
+      "category": "greeting"
+    },
+    {
+      "question": "What programs does FAIX offer?",
+      "response": "FAIX offers the following undergraduate programs:\n\n* **Bachelor of Computer Science (Artificial Intelligence)**: Focus on AI technology, machine learning, neural networks, fuzzy logic, evolutionary computing, intelligent agents.\n* **Bachelor of Computer Science (Computer Security)**: Focus on cybersecurity, digital forensics, network security, information security, security systems.\n\nAnd the following postgraduate programs:\n\n* **Master of Technology in Data Science and Analytics**\n* **Master of ",
+      "success": true,
+      "time_taken": 5.466263771057129,
+      "error": null,
+      "intent": "course_info",
+      "category": "program_info"
+    },
+    {
+      "question": "What programmes are available?",
+      "response": "FAIX offers the following undergraduate programs:\n\n- Bachelor of Computer Science (Artificial Intelligence) with Honours\n- Bachelor of Computer Science (Computer Security) with Honours\n\nAnd the following postgraduate program:\n\n* Master of Technology in Data Science and Analytics",
+      "success": true,
+      "time_taken": 31.869754791259766,
+      "error": null,
+      "intent": "course_info",
+      "category": "program_info"
+    },
+    {
+      "question": "Tell me about FAIX programs",
+      "response": "FAIX offers a range of undergraduate and postgraduate programs in Artificial Intelligence, Cybersecurity, and Data Science. Here are some key details about our programs:\n\n**Undergraduate Programs:**\n\n- **Bachelor of Computer Science (Artificial Intelligence)**: Focus on AI technology, machine learning, neural networks, fuzzy logic, evolutionary computing, intelligent agents.\n  - Duration: 4 years\n  - Learning approach: 70% coursework, 30% practical\n\n- **Bachelor of Computer Science (Computer Sec",
+      "success": true,
+      "time_taken": 30.486082553863525,
+      "error": null,
+      "intent": "course_info",
+      "category": "program_info"
+    },
+    {
+      "question": "What degrees can I study at FAIX?",
+      "response": "- **Bachelor of Computer Science (Artificial Intelligence)** \n- **Bachelor of Computer Science (Computer Security)**\n- Master of Technology in Data Science and Analytics",
+      "success": true,
+      "time_taken": 13.301679849624634,
+      "error": null,
+      "intent": "course_info",
+      "category": "program_info"
+    },
+    {
+      "question": "What undergraduate programs are available?",
+      "response": "- **Bachelor of Computer Science (Artificial Intelligence)**\n- **Bachelor of Computer Science (Computer Security)**\n\nWould you like to know more about these programs or contact details for the staff involved?",
+      "success": true,
+      "time_taken": 10.907847881317139,
+      "error": null,
+      "intent": "course_info",
+      "category": "program_info"
+    },
+    {
+      "question": "What are the admission requirements?",
+      "response": "**Undergraduate Admission Requirements:**\n\n* **Local Students (Malaysian Citizens):**\n\t+ SPM/STPM or equivalent qualification\n\t+ As specified by UTeM Senate\n* **International Students:**\n\t+ International qualifications accepted subject to evaluation\n\t+ Academic: Equivalent to Malaysian secondary education\n\t+ Learning approach: 70% coursework and practical projects, emphasis on real-world applications\n\n**Postgraduate Admission Requirements:**\n\n* **Computing Background:**\n\t+ Bachelor's degree (Lev",
+      "success": true,
+      "time_taken": 5.567366600036621,
+      "error": null,
+      "intent": "admission",
+      "category": "admission"
+    },
+    {
+      "question": "How do I apply to FAIX?",
+      "response": "To apply to FAIX, follow these steps:\n\n1. **Check Eligibility:** Ensure you meet the admission requirements for your chosen program.\n2. **Submit Online Application:**\n\t* Visit our website at [www.utem.edu.my](http://www.utem.edu.my)\n\t* Click on \"Admissions\" and select your program\n\t* Fill in the online application form with required details\n3. **Supporting Documents:** Attach required documents, including:\n\t+ Academic transcripts\n\t+ Certificates of qualifications\n\t+ Proof of identity (passport o",
+      "success": true,
+      "time_taken": 15.305103063583374,
+      "error": null,
+      "intent": "admission",
+      "category": "admission"
+    },
+    {
+      "question": "What are the entry requirements?",
+      "response": "**Undergraduate Entry Requirements:**\n\n* **Local Students (Malaysian Citizens):**\n\t+ SPM/STPM or equivalent qualification with minimum 3.0 CGPA\n\t+ English language proficiency test (e.g., IELTS, TOEFL)\n* **International Students:**\n\t+ International qualifications accepted subject to evaluation\n\t+ Academic: Equivalent to Malaysian secondary education\n\t+ English language proficiency test (e.g., IELTS, TOEFL) with minimum Band 4.0\n\n**Postgraduate Entry Requirements:**\n\n* **Computing Background:**\n\t",
+      "success": true,
+      "time_taken": 27.958428859710693,
+      "error": null,
+      "intent": "admission",
+      "category": "admission"
+    },
+    {
+      "question": "What are the admission criteria?",
+      "response": "I don't have specific information about your application. However, I can guide you on how to find more information.\n\nTo get detailed admission criteria for FAIX, I recommend:\n\n1. **Checking our website:** Visit [www.utem.edu.my](http://www.utem.edu.my) and navigate to the \"Admissions\" section.\n2. **Contacting our admissions office:** Reach out to us via phone or email with your specific questions about admission requirements.\n3. **Visiting our campus:** Meet with our admissions team in person to",
+      "success": true,
+      "time_taken": 23.100160360336304,
+      "error": null,
+      "intent": "admission",
+      "category": "admission"
+    },
+    {
+      "question": "How can I enroll?",
+      "response": "To enroll at FAIX, follow these steps:\n\n1. **Submit Online Application:**\n\t* Visit our website at [www.utem.edu.my](http://www.utem.edu.my)\n\t* Click on \"Admissions\" and select your program\n\t* Fill in the online application form with required details\n2. **Pay Application Fee:**\n\t* Pay the application fee via our website or at the UTeM Bank-in Counter\n3. **Submit Supporting Documents:**\n\t* Attach required documents, including academic transcripts, certificates of qualifications, and proof of ident",
+      "success": true,
+      "time_taken": 26.62861394882202,
+      "error": null,
+      "intent": "registration",
+      "category": "admission"
+    },
+    {
+      "question": "How much are the tuition fees?",
+      "response": "https://bendahari.utem.edu.my/ms/jadual-yuran-pelajar.html",
+      "success": true,
+      "time_taken": 6.279898166656494,
+      "error": null,
+      "intent": "fees",
+      "category": "fees"
+    },
+    {
+      "question": "What are the fees?",
+      "response": "https://bendahari.utem.edu.my/ms/jadual-yuran-pelajar.html",
+      "success": true,
+      "time_taken": 5.691343069076538,
+      "error": null,
+      "intent": "fees",
+      "category": "fees"
+    },
+    {
+      "question": "How much does it cost?",
+      "response": "https://bendahari.utem.edu.my/ms/jadual-yuran-pelajar.html",
+      "success": true,
+      "time_taken": 5.630650997161865,
+      "error": null,
+      "intent": "fees",
+      "category": "fees"
+    },
+    {
+      "question": "What is the fee structure?",
+      "response": "For fee schedules and tuition information, please visit:\n\n**https://bendahari.utem.edu.my/ms/jadual-yuran-pelajar.html**",
+      "success": true,
+      "time_taken": 6.033963203430176,
+      "error": null,
+      "intent": "fees",
+      "category": "fees"
+    },
+    {
+      "question": "Tell me about fees",
+      "response": "https://bendahari.utem.edu.my/ms/jadual-yuran-pelajar.html",
+      "success": true,
+      "time_taken": 5.66080904006958,
+      "error": null,
+      "intent": "about_faix",
+      "category": "fees"
+    },
+    {
+      "question": "What jobs can I get after graduation?",
+      "response": "As a graduate of FAIX, you can pursue various career opportunities in the fields of Artificial Intelligence and Cyber Security. Here are some potential job roles:\n\n* **Knowledge Engineer**: Design and develop intelligent systems that can learn from data.\n* **Smart Systems Developer**: Create innovative solutions using AI and machine learning techniques.\n* **Expert System Developer**: Develop expert systems that mimic human decision-making processes.\n* **Systems Analyst**: Analyze and improve the",
+      "success": true,
+      "time_taken": 22.64465641975403,
+      "error": null,
+      "intent": "career",
+      "category": "career"
+    },
+    {
+      "question": "What are the career opportunities?",
+      "response": "**Career Opportunities for BCSAI and BCSCS graduates:**\n\n* **BCSAI (Bachelor of Computer Science (Artificial Intelligence) with Honours):**\n\t+ Knowledge engineer\n\t+ Smart systems developer\n\t+ Expert system developer\n\t+ Systems analyst\n\t+ Systems programmer\n* **BCSCS (Bachelor of Computer Science (Computer Security) with Honours):**\n\t+ Cybersecurity analyst\n\t+ Security consultant\n\t+ Penetration tester\n\t+ Digital forensics specialist\n\t+ Security architect",
+      "success": true,
+      "time_taken": 5.578655004501343,
+      "error": null,
+      "intent": "career",
+      "category": "career"
+    },
+    {
+      "question": "What career paths are available?",
+      "response": "- **Knowledge Engineer** - Design and develop intelligent systems that can learn from data.\n- **Smart Systems Developer** - Create innovative solutions using AI and machine learning techniques.\n- **Expert System Developer** - Develop expert systems that mimic human decision-making processes.\n- **Systems Analyst** - Analyze and improve the performance of complex systems using AI and machine learning techniques.\n- **Systems Programmer** - Design, develop, and test software applications using AI an",
+      "success": true,
+      "time_taken": 15.096444845199585,
+      "error": null,
+      "intent": "facility_info",
+      "category": "career"
+    },
+    {
+      "question": "What can I do with a degree from FAIX?",
+      "response": "- **BCSAI (Bachelor of Computer Science (Artificial Intelligence) with Honours):**\n  - Work in AI research and development\n  - Develop intelligent systems for various industries\n  - Pursue a career in data science or machine learning engineering\n\n- **BCSCS (Bachelor of Computer Science (Computer Security) with Honours):**\n  - Secure software applications and systems\n  - Conduct penetration testing and vulnerability assessments\n  - Work as a cybersecurity consultant or analyst\n\nWould you like to ",
+      "success": true,
+      "time_taken": 15.424489259719849,
+      "error": null,
+      "intent": "career",
+      "category": "career"
+    },
+    {
+      "question": "What are my job prospects?",
+      "response": "- **Job Prospects for BCSAI graduates:**\n  * Average salary range: RM 40,000 - RM 80,000 per annum\n  * Job titles:\n    + AI/ML Engineer\n    + Data Scientist\n    + Business Intelligence Analyst\n    + IT Consultant\n    + Research Assistant\n\n- **Job Prospects for BCSCS graduates:**\n  * Average salary range: RM 50,000 - RM 100,000 per annum\n  * Job titles:\n    + Cybersecurity Specialist\n    + Penetration Tester\n    + Security Consultant\n    + Incident Response Analyst\n    + Chief Information Securit",
+      "success": true,
+      "time_taken": 26.57817506790161,
+      "error": null,
+      "intent": "career",
+      "category": "career"
+    },
+    {
+      "question": "Tell me about FAIX",
+      "response": "FAIX offers Bachelor's degrees in Computer Science, Data Science, Artificial Intelligence, and Cybersecurity. We also offer Master's programs in Machine Learning and Software Engineering.",
+      "success": true,
+      "time_taken": 5.662573337554932,
+      "error": null,
+      "intent": "about_faix",
+      "category": "about_faix"
+    },
+    {
+      "question": "What is FAIX?",
+      "response": "**Faculty of Artificial Intelligence and Cyber Security (FAIX)**\n\n- **University:** Universiti Teknikal Malaysia Melaka (UTeM)\n- **Established:** July 22, 2024\n- **Dean:** Associate Professor Ts. Dr. Muhammad Hafidz Fazli Bin Md Fauadi\n\n**Vision:** To be a leading faculty in producing skilled AI and cybersecurity professionals to meet Malaysia's goal of cultivating 200,000 AI specialists and 100,000 cyber security experts by 2030",
+      "success": true,
+      "time_taken": 5.683068037033081,
+      "error": null,
+      "intent": "about_faix",
+      "category": "about_faix"
+    },
+    {
+      "question": "What is the Faculty of Artificial Intelligence and Cyber Security?",
+      "response": "**FAIX Research Focus Areas:**\n\n- Artificial Intelligence applications\n- Cybersecurity solutions\n- Data science and analytics\n- Machine learning\n- Digital forensics\n- Intelligent systems\n- Industry-relevant research with societal impact\n",
+      "success": true,
+      "time_taken": 5.8384480476379395,
+      "error": null,
+      "intent": "research",
+      "category": "about_faix"
+    },
+    {
+      "question": "When was FAIX established?",
+      "response": "No matching staff found in database.",
+      "success": true,
+      "time_taken": 13.48356294631958,
+      "error": null,
+      "intent": "academic_schedule",
+      "category": "about_faix"
+    },
+    {
+      "question": "When was FAIX founded?",
+      "response": "No matching staff found in database.\n\nWould you like to know more about the faculty or its programs?",
+      "success": true,
+      "time_taken": 10.55118727684021,
+      "error": null,
+      "intent": "academic_schedule",
+      "category": "about_faix"
+    },
+    {
+      "question": "Who can I contact?",
+      "response": "- **Dr. Norazah Mohd Salleh** - Head, School of Computer Science and Information Technology\n- **Assoc. Prof. Dr. Norhayati Kamaruddin** - Dean, Faculty of Information Technology\n- **Mr. Muhammad Syafiq bin Md. Samsudin** - Deputy Director (Academic), School of Computer Science and Information Technology",
+      "success": true,
+      "time_taken": 5.685929536819458,
+      "error": null,
+      "intent": "about_faix",
+      "category": "staff_contact"
+    },
+    {
+      "question": "How do I contact staff?",
+      "response": "- **Dr. Norazah Mohd Salleh** - Head, School of Computer Science and Information Technology\n- **Assoc. Prof. Dr. Norhayati Kamaruddin** - Dean, Faculty of Information Technology\n- **Mr. Muhammad Syafiq bin Md. Samsudin** - Deputy Director (Academic), School of Computer Science and Information Technology\n\nWould you like to know their contact details?",
+      "success": true,
+      "time_taken": 5.602295875549316,
+      "error": null,
+      "intent": "about_faix",
+      "category": "staff_contact"
+    },
+    {
+      "question": "I need to contact someone",
+      "response": "Error: API request failed: HTTPConnectionPool(host='localhost', port=8000): Read timed out. (read timeout=30)",
+      "success": false,
+      "time_taken": 32.058077335357666,
+      "error": "API request failed: HTTPConnectionPool(host='localhost', port=8000): Read timed out. (read timeout=30)",
+      "intent": null,
+      "category": "staff_contact"
+    },
+    {
+      "question": "Who should I email?",
+      "response": "Error: API request failed: HTTPConnectionPool(host='localhost', port=8000): Read timed out. (read timeout=30)",
+      "success": false,
+      "time_taken": 32.036317348480225,
+      "error": "API request failed: HTTPConnectionPool(host='localhost', port=8000): Read timed out. (read timeout=30)",
+      "intent": null,
+      "category": "staff_contact"
+    },
+    {
+      "question": "Can you give me a contact?",
+      "response": "- **Nur Azriah Binti Amir** - Deputy Registrar\n- **Hazrin Binti Kasim** - Senior Assistant Registrar\n- **Muhammad Abdullah Zubair Bin Abdul Sukor** - Assistant Administrative Officer\n- **Aidatul Azuin Binti Sarifuddin** - Senior Administrative Assistant\n- **Puan Nur Diana Izzani Binti Masdzarif** - Lecturer",
+      "success": true,
+      "time_taken": 29.503852605819702,
+      "error": null,
+      "intent": "about_faix",
+      "category": "staff_contact"
+    },
+    {
+      "question": "What facilities does FAIX have?",
+      "response": "Error: API request failed: HTTPConnectionPool(host='localhost', port=8000): Read timed out. (read timeout=30)",
+      "success": false,
+      "time_taken": 32.06200075149536,
+      "error": "API request failed: HTTPConnectionPool(host='localhost', port=8000): Read timed out. (read timeout=30)",
+      "intent": null,
+      "category": "facility_info"
+    },
+    {
+      "question": "Tell me about the facilities",
+      "response": "FAIX has 8 computer labs with latest hardware, a Cybersecurity Lab, AI/ML Lab with GPU servers, IoT Lab, and a Maker Space with 3D printers. Labs are open Mon-Sat 8 AM - 10 PM.",
+      "success": true,
+      "time_taken": 5.712949752807617,
+      "error": null,
+      "intent": "about_faix",
+      "category": "facility_info"
+    },
+    {
+      "question": "What labs are available?",
+      "response": "- **Lab 1** - General Computer Lab\n- **Lab 2** - Cybersecurity Lab\n- **Lab 3** - AI/ML Lab\n- **Lab 4** - IoT Lab\n- **Lab 5** - Data Science Lab\n- **Lab 6** - Virtual Reality/Augmented Reality Lab\n- **Lab 7** - Gaming Development Lab\n- **Lab 8** - Web Development Lab",
+      "success": true,
+      "time_taken": 14.536398649215698,
+      "error": null,
+      "intent": "facility_info",
+      "category": "facility_info"
+    },
+    {
+      "question": "What laboratories does FAIX have?",
+      "response": "No matching staff found in database.",
+      "success": true,
+      "time_taken": 11.940985202789307,
+      "error": null,
+      "intent": "about_faix",
+      "category": "facility_info"
+    },
+    {
+      "question": "What equipment is available?",
+      "response": "No matching staff found in database.\n\nHowever, according to the FAIX website, we have a range of equipment including:\n\n* High-performance computing servers\n* GPU clusters for AI/ML and data science applications\n* Virtual Reality (VR) and Augmented Reality (AR) hardware\n* 3D printers for Maker Space use\n* Gaming PCs for gaming development and esports training\n\nPlease note that the availability and specifications of these equipment may be subject to change.",
+      "success": true,
+      "time_taken": 13.235638856887817,
+      "error": null,
+      "intent": "facility_info",
+      "category": "facility_info"
+    },
+    {
+      "question": "What academic resources are available?",
+      "response": "No matching staff found in database.\n\nHowever, according to the FAIX website, we have a range of academic resources including:\n\n* Online learning platforms\n* Digital libraries with e-books and journals\n* Research databases for various fields\n* Academic software and tools for research and development\n\nPlease note that the availability and specifications of these resources may be subject to change.",
+      "success": true,
+      "time_taken": 11.664721488952637,
+      "error": null,
+      "intent": "facility_info",
+      "category": "academic_resources"
+    },
+    {
+      "question": "Tell me about academic resources",
+      "response": "Each student is assigned an academic advisor. Find yours on the Student Portal under 'My Advisor'. General advising is available at advising@faix.edu or visit the Academic Advising Office in Building A, Room 201.",
+      "success": true,
+      "time_taken": 5.824640274047852,
+      "error": null,
+      "intent": "about_faix",
+      "category": "academic_resources"
+    },
+    {
+      "question": "What resources can I access?",
+      "response": "* **uLearn Portal**: Access to online learning materials, course schedules, and grades.\n* **Digital Libraries**: E-books, journals, and other digital resources for research and study.\n* **Research Databases**: Various databases for academic research in fields such as AI, cybersecurity, and data science.\n* **Academic Software**: Tools and software for research, development, and project work.\n* **FAIX Library**: A physical library with books, journals, and other materials for borrowing and studyin",
+      "success": true,
+      "time_taken": 24.52472710609436,
+      "error": null,
+      "intent": "academic_resources",
+      "category": "academic_resources"
+    },
+    {
+      "question": "Where is the academic handbook?",
+      "response": "The Academic Handbook can be found on the uLearn Portal under the \"Resources\" section. You can also access it through the FAIX website by clicking on the \"Academic Resources\" link.\n\n* **Location:** uLearn Portal > Resources > Academic Handbook\n* **Link:** https://ulearn.utem.edu.my/academic-handbook",
+      "success": true,
+      "time_taken": 20.610018253326416,
+      "error": null,
+      "intent": "academic_resources",
+      "category": "academic_resources"
+    },
+    {
+      "question": "Tell me about the academic handbook",
+      "response": "Final exams are held during the last two weeks of each semester. The detailed schedule is posted 4 weeks before exams at portal.faix.edu. Mid-term exams are scheduled by individual instructors.",
+      "success": true,
+      "time_taken": 5.842994213104248,
+      "error": null,
+      "intent": "about_faix",
+      "category": "academic_resources"
+    },
+    {
+      "question": "What research does FAIX do?",
+      "response": "Error: API request failed: HTTPConnectionPool(host='localhost', port=8000): Read timed out. (read timeout=30)",
+      "success": false,
+      "time_taken": 32.04329705238342,
+      "error": "API request failed: HTTPConnectionPool(host='localhost', port=8000): Read timed out. (read timeout=30)",
+      "intent": null,
+      "category": "research"
+    },
+    {
+      "question": "Tell me about research at FAIX",
+      "response": "FAIX offers Bachelor's degrees in Computer Science, Data Science, Artificial Intelligence, and Cybersecurity. We also offer Master's programs in Machine Learning and Software Engineering.",
+      "success": true,
+      "time_taken": 6.172045469284058,
+      "error": null,
+      "intent": "about_faix",
+      "category": "research"
+    },
+    {
+      "question": "What are the research areas?",
+      "response": "* **Artificial Intelligence (AI)**\n  - Intelligent Systems\n  - Natural Language Processing\n  - Computer Vision\n  - Robotics\n* **Cyber Security**\n  - Network Security\n  - Cryptography\n  - Digital Forensics\n  - Threat Intelligence\n* **Data Science and Analytics**\n  - Data Mining\n  - Machine Learning\n  - Big Data Analytics\n  - Business Intelligence",
+      "success": true,
+      "time_taken": 23.17118787765503,
+      "error": null,
+      "intent": "research",
+      "category": "research"
+    },
+    {
+      "question": "What are the research focus areas?",
+      "response": "FAIX has a strong research focus in the following areas:\n\n* **Artificial Intelligence (AI) applications**:\n\t+ Intelligent Systems\n\t+ Natural Language Processing\n\t+ Computer Vision\n\t+ Robotics\n* **Cyber Security solutions**:\n\t+ Network Security\n\t+ Cryptography\n\t+ Digital Forensics\n\t+ Threat Intelligence\n* **Data Science and Analytics**:\n\t+ Data Mining\n\t+ Machine Learning\n\t+ Big Data Analytics\n\t+ Business Intelligence\n\nThese areas are aligned with Malaysia's goals of developing 200,000 AI speciali",
+      "success": true,
+      "time_taken": 13.43429946899414,
+      "error": null,
+      "intent": "research",
+      "category": "research"
+    },
+    {
+      "question": "What research projects are available?",
+      "response": "No matching staff found in database.",
+      "success": true,
+      "time_taken": 12.907593250274658,
+      "error": null,
+      "intent": "research",
+      "category": "research"
+    },
+    {
+      "question": "What courses are available?",
+      "response": "- **Name** - Position\n- **Name** - Position\n\nWould you like to know more about the courses offered by FAIX?",
+      "success": true,
+      "time_taken": 31.552124500274658,
+      "error": null,
+      "intent": "course_info",
+      "category": "course_info"
+    },
+    {
+      "question": "Tell me about the courses",
+      "response": "**Undergraduate Courses**\n\n* **Bachelor of Computer Science (Artificial Intelligence) with Honours (BAXI)**:\n\t+ Duration: 4 years\n\t+ Focus Areas: AI technology, Machine learning, Neural networks, Fuzzy logic, Evolutionary computing, Intelligent agents\n\t+ Career Opportunities: Knowledge engineer, Smart systems developer, Expert system developer, Systems analyst, Systems programmer\n* **Bachelor of Computer Science (Computer Security) with Honours (BAXZ)**:\n\t+ Duration: 4 years\n\t+ Focus Areas: Cybe",
+      "success": true,
+      "time_taken": 26.338711977005005,
+      "error": null,
+      "intent": "course_info",
+      "category": "course_info"
+    },
+    {
+      "question": "What subjects can I take?",
+      "response": "Here are some sample subjects for the Bachelor of Computer Science (Artificial Intelligence) with Honours (BAXI) program:\n\n- **Mathematics**\n  - Calculus\n  - Linear Algebra\n  - Probability and Statistics\n- **Computer Science**\n  - Introduction to Programming\n  - Data Structures and Algorithms\n  - Computer Systems\n  - Database Management System\n- **Artificial Intelligence and Machine Learning**\n  - Introduction to AI\n  - Machine Learning Fundamentals\n  - Deep Learning\n  - Natural Language Process",
+      "success": true,
+      "time_taken": 23.082520723342896,
+      "error": null,
+      "intent": "course_info",
+      "category": "course_info"
+    },
+    {
+      "question": "What modules are offered?",
+      "response": "Here is a sample list of modules for the Bachelor of Computer Science (Artificial Intelligence) with Honours (BAXI) program:\n\n* **Core Modules**\n\t+ `AI501: Introduction to Artificial Intelligence`\n\t+ `AI502: Machine Learning Fundamentals`\n\t+ `AI503: Deep Learning`\n\t+ `AI504: Natural Language Processing`\n* **Computer Science Modules**\n\t+ `CS501: Data Structures and Algorithms`\n\t+ `CS502: Computer Systems`\n\t+ `CS503: Database Management System`\n\t+ `CS504: Web Development`\n* **Elective Modules**\n\t+",
+      "success": true,
+      "time_taken": 24.367121934890747,
+      "error": null,
+      "intent": "course_info",
+      "category": "course_info"
+    },
+    {
+      "question": "What is the curriculum?",
+      "response": "FAIX emphasizes practical learning with 70% coursework and 30% hands-on, real-world projects to ensure industry readiness.",
+      "success": true,
+      "time_taken": 5.893481492996216,
+      "error": null,
+      "intent": "course_info",
+      "category": "course_info"
+    },
+    {
+      "question": "How do I register for courses?",
+      "response": "To register for courses at FAIX, follow these steps:\n\n1. **Login to Student Portal**: Go to [portal.faix.edu](http://portal.faix.edu) and log in with your student ID.\n2. **Navigate to Course Registration**: Click on the \"Course Registration\" tab.\n3. **Select Courses**: Browse through the available courses and select the ones you want to register for.\n4. **Check Availability**: Ensure that the courses are available for registration and that you meet any prerequisites.\n5. **Submit Registration**: ",
+      "success": true,
+      "time_taken": 25.757832765579224,
+      "error": null,
+      "intent": "course_info",
+      "category": "registration"
+    },
+    {
+      "question": "How do I enroll?",
+      "response": "To enroll at FAIX, follow these steps:\n\n1. **Meet Admission Requirements**: Ensure you meet the admission requirements for your chosen program.\n2. **Submit Application**: Submit your application through the UTeM website or through the FAIX office.\n3. **Pay Fees**: Pay the required fees, which include tuition fees and other applicable charges.\n4. **Provide Required Documents**: Provide required documents, such as:\n\t* SPM/STPM/International Qualification certificates\n\t* Transcripts from previous i",
+      "success": true,
+      "time_taken": 26.81669807434082,
+      "error": null,
+      "intent": "registration",
+      "category": "registration"
+    },
+    {
+      "question": "How do I sign up?",
+      "response": "To sign up for courses at FAIX, follow these steps:\n\n1. **Login to Student Portal**: Go to [portal.faix.edu](http://portal.faix.edu) and log in with your student ID.\n2. **Navigate to Course Registration**: Click on the \"Course Registration\" tab.\n3. **Select Courses**: Browse through the available courses and select the ones you want to sign up for.\n4. **Check Availability**: Ensure that the courses are available for registration and that you meet any prerequisites.\n5. **Click \"Enroll\"**: Once yo",
+      "success": true,
+      "time_taken": 16.602402687072754,
+      "error": null,
+      "intent": "registration",
+      "category": "registration"
+    },
+    {
+      "question": "Tell me about registration",
+      "response": "You can register through the Student Portal at portal.faix.edu. Login with your student ID, go to 'Course Registration', select your courses, and submit before the deadline. Contact the registrar at registrar@faix.edu for help.",
+      "success": true,
+      "time_taken": 5.706228733062744,
+      "error": null,
+      "intent": "about_faix",
+      "category": "registration"
+    },
+    {
+      "question": "What is the registration process?",
+      "response": "FAIX emphasizes practical learning with 70% coursework and 30% hands-on, real-world projects to ensure industry readiness.",
+      "success": true,
+      "time_taken": 5.5788469314575195,
+      "error": null,
+      "intent": "registration",
+      "category": "registration"
+    },
+    {
+      "question": "What is the academic calendar?",
+      "response": "FAIX emphasizes practical learning with 70% coursework and 30% hands-on, real-world projects to ensure industry readiness.",
+      "success": true,
+      "time_taken": 5.597193241119385,
+      "error": null,
+      "intent": "academic_schedule",
+      "category": "academic_schedule"
+    },
+    {
+      "question": "When does the semester start?",
+      "response": "The Fall 2025 semester starts on **September 8, 2025**. Orientation week is from September 1-5. Classes begin on September 8 and end on December 15, 2025.",
+      "success": true,
+      "time_taken": 5.648992538452148,
+      "error": null,
+      "intent": "about_faix",
+      "category": "academic_schedule"
+    },
+    {
+      "question": "When does the semester end?",
+      "response": "The Fall 2025 semester ends on **December 15, 2025**.",
+      "success": true,
+      "time_taken": 20.338928937911987,
+      "error": null,
+      "intent": "about_faix",
+      "category": "academic_schedule"
+    },
+    {
+      "question": "What are the important dates?",
+      "response": "Here are some important dates for the Fall 2025 semester:\n\n* Orientation week: September 1-5\n* Classes begin: September 8\n* Mid-term exams (varies by course)\n* Final exams (last two weeks of December)\n* End of semester: December 15, 2025",
+      "success": true,
+      "time_taken": 21.654740810394287,
+      "error": null,
+      "intent": "academic_schedule",
+      "category": "academic_schedule"
+    },
+    {
+      "question": "Tell me about the schedule",
+      "response": "The FAIX Library is open Monday-Friday 8:00 AM - 10:00 PM, Saturday 9:00 AM - 6:00 PM, and Sunday 10:00 AM - 5:00 PM. Extended hours during exam periods.",
+      "success": true,
+      "time_taken": 20.299516916275024,
+      "error": null,
+      "intent": "course_info",
+      "category": "academic_schedule"
+    },
+    {
+      "question": "Bye",
+      "response": "Thank you for using FAIX AI Chatbot! Have a great day!",
+      "success": true,
+      "time_taken": 2.062225818634033,
+      "error": null,
+      "intent": "farewell",
+      "category": "farewell"
+    },
+    {
+      "question": "Goodbye",
+      "response": "Thank you for using FAIX AI Chatbot! Have a great day!",
+      "success": true,
+      "time_taken": 2.0650808811187744,
+      "error": null,
+      "intent": "farewell",
+      "category": "farewell"
+    },
+    {
+      "question": "See you",
+      "response": "Thank you for using FAIX AI Chatbot! Have a great day!",
+      "success": true,
+      "time_taken": 2.064718246459961,
+      "error": null,
+      "intent": "farewell",
+      "category": "farewell"
+    },
+    {
+      "question": "Thanks",
+      "response": "Thank you for using FAIX AI Chatbot! Have a great day!",
+      "success": true,
+      "time_taken": 2.0567591190338135,
+      "error": null,
+      "intent": "farewell",
+      "category": "farewell"
+    },
+    {
+      "question": "Thank you",
+      "response": "Thank you for using FAIX AI Chatbot! Have a great day!",
+      "success": true,
+      "time_taken": 2.0704314708709717,
+      "error": null,
+      "intent": "farewell",
+      "category": "farewell"
+    },
+    {
+      "question": "Hai",
+      "response": "Hai! Saya FAIX AI Chatbot. Bagaimana saya boleh membantu anda hari ini?",
+      "success": true,
+      "time_taken": 2.0957677364349365,
+      "error": null,
+      "intent": "greeting",
+      "category": "multi-language_questions"
+    },
+    {
+      "question": "Helo",
+      "response": "Hai! Saya FAIX AI Chatbot. Bagaimana saya boleh membantu anda hari ini?",
+      "success": true,
+      "time_taken": 2.0507442951202393,
+      "error": null,
+      "intent": "greeting",
+      "category": "multi-language_questions"
+    },
+    {
+      "question": "Selamat pagi",
+      "response": "Hai! Saya FAIX AI Chatbot. Bagaimana saya boleh membantu anda hari ini?",
+      "success": true,
+      "time_taken": 2.0705385208129883,
+      "error": null,
+      "intent": "greeting",
+      "category": "multi-language_questions"
+    },
+    {
+      "question": "Selamat petang",
+      "response": "Hai! Saya FAIX AI Chatbot. Bagaimana saya boleh membantu anda hari ini?",
+      "success": true,
+      "time_taken": 2.0886270999908447,
+      "error": null,
+      "intent": "greeting",
+      "category": "multi-language_questions"
+    },
+    {
+      "question": "Apakah program yang ditawarkan oleh FAIX?",
+      "response": "FAIX menawarkan beberapa program, antara lain:\n\n- **BAXI**: Sarjana Muda Teknologi Komputer (SMTK) dengan spesialisasi Teknologi Artificial Intelligence\n- **BAXZ**: Sarjana Muda Teknologi Komputer (SMTK) dengan spesialisasi Teknologi Keamanan Komputer\n\nProgram postgraduate juga tersedia, seperti:\n\n- **MCSSS**: Sarjana Muda Sains Keamanan Komputer (SMSSK)\n- **MTDSA**: Sarjana Muda Teknologi Data dan Analisis\n- **MTDSA-ODL**: Sarjana Muda Teknologi Data dan Analisis (",
+      "success": true,
+      "time_taken": 30.976111888885498,
+      "error": null,
+      "intent": "program_info",
+      "category": "multi-language_questions"
+    },
+    {
+      "question": "Help",
+      "response": "The IT Help Desk is in the Library Building, Ground Floor. Hours: Mon-Fri 9 AM - 5 PM. For urgent issues, email itsupport@faix.edu or call extension 2233.",
+      "success": true,
+      "time_taken": 5.420281171798706,
+      "error": null,
+      "intent": "about_faix",
+      "category": "edge_cases_&_complex_queries"
+    },
+    {
+      "question": "I need information",
+      "response": "Bachelor's degree programs require 120-130 credits depending on your major. This typically takes 4 years of full-time study (8 semesters). Check your program handbook for details.",
+      "success": true,
+      "time_taken": 5.573939800262451,
+      "error": null,
+      "intent": "about_faix",
+      "category": "edge_cases_&_complex_queries"
+    },
+    {
+      "question": "Tell me something",
+      "response": "Hello! I'm the FAIX AI Chatbot. How can I help you today?",
+      "success": true,
+      "time_taken": 2.086167097091675,
+      "error": null,
+      "intent": "greeting",
+      "category": "edge_cases_&_complex_queries"
+    },
+    {
+      "question": "What can you do?",
+      "response": "I'm the FAIX AI Chatbot! Here's what I can help you with:\n\n- **Programs & Courses** - Information about FAIX degree programs, courses, and curriculum\n- **Registration** - How to register, add/drop subjects, enrollment procedures\n- **Staff Contacts** - Find professors, lecturers, and department contacts\n- **Academic Schedule** - Semester dates, deadlines, timetables\n- **Fees & Tuition** - Fee schedules and payment information\n- **Facilities** - Labs, libraries, and campus resources\n\nJust ask me a",
+      "success": true,
+      "time_taken": 2.0570380687713623,
+      "error": null,
+      "intent": "help",
+      "category": "edge_cases_&_complex_queries"
+    },
+    {
+      "question": "What are your capabilities?",
+      "response": "Saya FAIX AI Chatbot! Ini yang boleh saya bantu:\n\n- **Program & Kursus** - Maklumat tentang program ijazah FAIX, kursus, dan kurikulum\n- **Pendaftaran** - Cara mendaftar, tambah/gugur subjek, prosedur pendaftaran\n- **Hubungan Kakitangan** - Cari profesor, pensyarah, dan hubungan jabatan\n- **Jadual Akademik** - Tarikh semester, tarikh akhir, jadual waktu\n- **Yuran & Bayaran** - Jadual yuran dan maklumat pembayaran\n- **Kemudahan** - Makmal, perpustakaan, dan sumber kampus\n\nTanya saya apa sahaja te",
+      "success": true,
+      "time_taken": 2.081340789794922,
+      "error": null,
+      "intent": "help",
+      "category": "edge_cases_&_complex_queries"
+    },
+    {
+      "question": "Use this checklist to ensure comprehensive testing:",
+      "response": "Hello! I'm the FAIX AI Chatbot. How can I help you today?",
+      "success": true,
+      "time_taken": 2.073446035385132,
+      "error": null,
+      "intent": "greeting",
+      "category": "testing_checklist"
+    },
+    {
+      "question": "6. **Verify Accuracy**: Check that responses are factually correct",
+      "response": "Yes! FAIX has partnerships with over 50 tech companies including Microsoft, Google Malaysia, and Grab. Career Services helps match students with internships. Contact careers@faix.edu for more info.",
+      "success": true,
+      "time_taken": 5.797972679138184,
+      "error": null,
+      "intent": "about_faix",
+      "category": "usage_tips"
+    },
+    {
+      "question": "7. **Check Response Format**: Ensure URLs, formatting, and structure are correct",
+      "response": "Yes! FAIX has partnerships with over 50 tech companies including Microsoft, Google Malaysia, and Grab. Career Services helps match students with internships. Contact careers@faix.edu for more info.",
+      "success": true,
+      "time_taken": 5.681835174560547,
+      "error": null,
+      "intent": "about_faix",
+      "category": "usage_tips"
+    },
+    {
+      "question": "Response quality may vary depending on the agent used",
+      "response": "Yes, free WiFi is available throughout campus. Connect to 'FAIX-Student' network using your student credentials. For connection issues, contact IT Support at itsupport@faix.edu.",
+      "success": true,
+      "time_taken": 5.56123685836792,
+      "error": null,
+      "intent": "about_faix",
+      "category": "notes"
+    },
+    {
+      "question": "Multi-language support depends on the language detection and processing capabilities",
+      "response": "Yes, free WiFi is available throughout campus. Connect to 'FAIX-Student' network using your student credentials. For connection issues, contact IT Support at itsupport@faix.edu.",
+      "success": true,
+      "time_taken": 6.037105083465576,
+      "error": null,
+      "intent": "about_faix",
+      "category": "notes"
+    }
+  ]
+}

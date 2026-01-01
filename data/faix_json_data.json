@@ -35,7 +35,7 @@
     "undergraduate": [
       {
         "name": "Bachelor of Computer Science (Artificial Intelligence) with Honours",
-        "code": "BCSAI",
+        "code": "BAXI",
         "duration": "4 years",
         "focus_areas": [
           "AI technology",
@@ -69,7 +69,7 @@
       },
       {
         "name": "Bachelor of Computer Science (Computer Security) with Honours",
-        "code": "BCSCS",
+        "code": "BAXZ",
         "duration": "4 years",
         "focus_areas": [
           "Cybersecurity",
@@ -180,7 +180,48 @@
       "Laboratory facilities",
       "Research centers"
     ],
-    "booking_system": "https://rbs.utem.edu.my/ftmk/web/"
+    "booking_system": "https://rbs.utem.edu.my/ftmk/web/",
+    "laboratories": {
+      "ai_labs": [
+        {
+          "name": "Makmal Kepintaran Buatan 1",
+          "block": "DB1-2",
+          "level": "Level 2"
+        },
+        {
+          "name": "Makmal Kepintaran Buatan 2",
+          "block": "DB1-2",
+          "level": "Level 2"
+        },
+        {
+          "name": "Makmal Kepintaran Buatan 3",
+          "block": "DB1-2",
+          "level": "Level 2"
+        },
+        {
+          "name": "Makmal Kepintaran Buatan 4",
+          "block": "DB1-2",
+          "level": "Level 2"
+        }
+      ],
+      "cybersec_labs": [
+        {
+          "name": "Makmal Keselamatan 2",
+          "block": "DB2-2",
+          "level": "Level 3"
+        },
+        {
+          "name": "Makmal CMERP",
+          "block": "DB1-2",
+          "level": "Level 3"
+        },
+        {
+          "name": "Makmal UTeM Cyscc",
+          "block": "DB2-2",
+          "level": "Level 2"
+        }
+      ]
+    }
   },
   "academic_resources": {
     "ulearn_portal": "https://ulearn.utem.edu.my/",
