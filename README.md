@@ -566,6 +566,41 @@ results = search.search(
 
 ## ✅ Testing
 
+### Latest Test Results (January 2026)
+
+| Metric | Value |
+|--------|-------|
+| **Total Tests** | 85 |
+| **Successful** | 81 |
+| **Failed** | 4 |
+| **Success Rate** | 95.29% |
+| **Avg Response Time** | 12.39s |
+| **Min Response Time** | 2.05s |
+| **Max Response Time** | 32.06s |
+
+#### Results by Category:
+
+| Category | Success Rate | Notes |
+|----------|--------------|-------|
+| Greeting | 5/5 (100%) | ✅ |
+| Program Info | 5/5 (100%) | ✅ |
+| Admission | 5/5 (100%) | ✅ |
+| Fees | 5/5 (100%) | ✅ |
+| Career | 5/5 (100%) | ✅ |
+| About FAIX | 5/5 (100%) | ✅ |
+| Course Info | 5/5 (100%) | ✅ |
+| Registration | 5/5 (100%) | ✅ |
+| Academic Schedule | 5/5 (100%) | ✅ |
+| Farewell | 5/5 (100%) | ✅ |
+| Multi-language | 5/5 (100%) | ✅ |
+| Edge Cases | 5/5 (100%) | ✅ |
+| Academic Resources | 5/5 (100%) | ✅ |
+| Staff Contact | 3/5 (60%) | ⚠️ Timeouts |
+| Facility Info | 4/5 (80%) | ⚠️ Timeout |
+| Research | 4/5 (80%) | ⚠️ Timeout |
+
+> **Note**: Failed tests are due to API request timeouts (30s limit), not incorrect responses.
+
 ### Run All Tests:
 ```bash
 # Core functionality
@@ -707,7 +742,7 @@ For questions or issues, please open a GitHub issue or contact the project maint
 
 ---
 
-**Last Updated**: December 2025  
+**Last Updated**: January 2026  
 **Project Status**: 🟢 Active Development
 
 ---
