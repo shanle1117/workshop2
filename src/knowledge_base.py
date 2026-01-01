@@ -708,6 +708,9 @@ class KnowledgeBase:
     def _retrieve_from_csv(self, intent: str, user_text: str,
                            user_keywords: List[str], user_clean: str) -> Optional[str]:
         """Retrieve answer from CSV (fallback mode)"""
+        # MINIMUM RELEVANCE THRESHOLD for TF-IDF matching
+        MIN_TFIDF_THRESHOLD = 0.15
+        
         # Filter with case insensitivity
         subset = self.df[self.df["category"].str.lower() == intent]
         
@@ -719,6 +722,13 @@ class KnowledgeBase:
                 query_vec = self.vectorizer.transform([user_clean])
                 similarity = cosine_similarity(query_vec, self.question_vectors)[0]
                 best_idx = similarity.argmax()
+                best_score = similarity[best_idx]
+                
+                # Reject low-relevance matches
+                if best_score < MIN_TFIDF_THRESHOLD:
+                    print(f"CSV TF-IDF match rejected: score {best_score:.3f} below threshold")
+                    return None
+                    
                 return self.df.iloc[best_idx]["answer"]
             except Exception as e:
                 print(f"Warning: Semantic fallback failed in CSV mode: {e}")
@@ -739,19 +749,31 @@ class KnowledgeBase:
         if kw_score == 0:
             try:
                 if self.question_vectors is None or not hasattr(self, 'vectorizer'):
-                    return self.df.iloc[best_keyword_idx]["answer"]  # Fallback to keyword match
+                    # No keyword match and no vectors - don't return random answer
+                    return None
                 query_vec = self.vectorizer.transform([user_clean])
                 similarity = cosine_similarity(query_vec, self.question_vectors)[0]
                 best_idx = similarity.argmax()
+                best_score = similarity[best_idx]
+                
+                # Reject low-relevance matches
+                if best_score < MIN_TFIDF_THRESHOLD:
+                    print(f"CSV TF-IDF match rejected: score {best_score:.3f} below threshold")
+                    return None
+                    
                 return self.df.iloc[best_idx]["answer"]
             except Exception as e:
                 print(f"Warning: Semantic fallback failed in CSV mode: {e}")
-                return self.df.iloc[best_keyword_idx]["answer"]  # Fallback to keyword match
+                return None
         
         return self.df.iloc[best_keyword_idx]["answer"]
     
     def _semantic_search(self, user_text: str, user_clean: str) -> Optional[str]:
         """Perform semantic search across all entries"""
+        # MINIMUM RELEVANCE THRESHOLD: Reject matches below this similarity score
+        # This prevents gibberish queries from returning random answers
+        MIN_TFIDF_THRESHOLD = 0.15
+        
         # Try transformer-based semantic search first
         if self.use_semantic_search and self.semantic_search and self.semantic_search.is_available():
             try:
@@ -811,6 +833,14 @@ class KnowledgeBase:
             query_vec = self.vectorizer.transform([user_clean])
             similarity = cosine_similarity(query_vec, self.question_vectors)[0]
             best_idx = similarity.argmax()
+            best_score = similarity[best_idx]
+            
+            # CRITICAL: Reject matches with very low similarity to prevent irrelevant responses
+            # This prevents gibberish like "asdjiashjidfohqwf" from returning random FAQ answers
+            if best_score < MIN_TFIDF_THRESHOLD:
+                print(f"TF-IDF match rejected: score {best_score:.3f} below threshold {MIN_TFIDF_THRESHOLD}")
+                return None
+                
         except Exception as e:
             print(f"Warning: Error in TF-IDF similarity calculation: {e}")
             return None

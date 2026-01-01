@@ -112,6 +112,68 @@ MULTILANG_REPHRASE = {
     'ar': "عذراً، لم أتمكن من معالجة استفسارك. هل يمكنك إعادة صياغة سؤالك؟",
 }
 
+MULTILANG_GIBBERISH_RESPONSE = {
+    'en': "I'm sorry, I didn't understand that. Could you please rephrase your question in a clearer way? You can ask me about FAIX programs, registration, staff contacts, schedules, or fees.",
+    'ms': "Maaf, saya tidak faham. Bolehkah anda menyatakan semula soalan anda dengan lebih jelas? Anda boleh bertanya tentang program FAIX, pendaftaran, hubungan kakitangan, jadual, atau yuran.",
+    'zh': "抱歉，我不明白。您能否用更清晰的方式重新表述您的问题？您可以询问关于FAIX项目、注册、教职员工联系方式、日程或费用的问题。",
+    'ar': "عذراً، لم أفهم ذلك. هل يمكنك إعادة صياغة سؤالك بشكل أوضح؟ يمكنك السؤال عن برامج FAIX، التسجيل، جهات اتصال الموظفين، الجداول، أو الرسوم.",
+}
+
+
+def is_gibberish(text: str) -> bool:
+    """
+    Detect if the input text is gibberish/nonsensical.
+    Returns True if the text appears to be random characters without meaning.
+    """
+    import re
+    
+    if not text or len(text.strip()) < 2:
+        return True
+    
+    text = text.strip().lower()
+    
+    # Check if text is only punctuation or special characters
+    cleaned = re.sub(r'[^\w\s]', '', text)
+    if not cleaned.strip():
+        return True
+    
+    # Check for repeated characters (like "aaaaaaa" or "asdfasdf")
+    if len(set(cleaned.replace(' ', ''))) <= 3 and len(cleaned) > 5:
+        return True
+    
+    # Check for keyboard mashing patterns (consecutive consonants without vowels)
+    # This detects things like "asdfjkl", "qwerty" nonsense, "asdfgh"
+    vowels = set('aeiouàáâãäåèéêëìíîïòóôõöùúûü')
+    words = cleaned.split()
+    
+    for word in words:
+        if len(word) > 4:
+            # Count consecutive consonants
+            max_consonants = 0
+            current_consonants = 0
+            for char in word:
+                if char.isalpha() and char not in vowels:
+                    current_consonants += 1
+                    max_consonants = max(max_consonants, current_consonants)
+                else:
+                    current_consonants = 0
+            
+            # More than 5 consecutive consonants is likely gibberish
+            if max_consonants > 5:
+                return True
+    
+    # Check for very long words with no apparent structure (likely random typing)
+    for word in words:
+        if len(word) > 15 and not any(kw in word for kw in ['university', 'registration', 'information', 'undergraduate', 'postgraduate']):
+            # Check if it looks like a real word (has reasonable vowel distribution)
+            vowel_count = sum(1 for c in word if c in vowels)
+            vowel_ratio = vowel_count / len(word) if word else 0
+            # Normal English words have ~30-40% vowels, gibberish often has < 20% or > 60%
+            if vowel_ratio < 0.15 or vowel_ratio > 0.65:
+                return True
+    
+    return False
+
 MULTILANG_ERROR_FALLBACK = {
     'en': "I apologize, but I'm having trouble processing your request. Please try rephrasing your question or contact the FAIX office for assistance.",
     'ms': "Maaf, saya menghadapi masalah memproses permintaan anda. Sila cuba nyatakan semula soalan anda atau hubungi pejabat FAIX untuk bantuan.",
@@ -572,6 +634,27 @@ def chat_api(request):
                 'intent': intent,
                 'confidence': confidence,
                 'entities': entities,
+                'timestamp': timezone.now().isoformat(),
+                'pdf_url': None,
+            })
+
+        # EARLY GIBBERISH DETECTION: Catch nonsensical input before expensive processing
+        # This prevents random typing like "asdjiashjidfohqwf" from returning irrelevant FAQ answers
+        if is_gibberish(user_message):
+            logger.info(f"Gibberish detected: '{user_message[:30]}...'")
+            answer = get_multilang_response(MULTILANG_GIBBERISH_RESPONSE, early_lang_code)
+            
+            save_messages_async(conversation, user_message, answer, 'unknown', 0.0, {})
+            session.context = context
+            session.save(update_fields=['context', 'updated_at'])
+            
+            return JsonResponse({
+                'response': answer,
+                'session_id': session.session_id,
+                'conversation_id': conversation.id,
+                'intent': 'unknown',
+                'confidence': 0.0,
+                'entities': {},
                 'timestamp': timezone.now().isoformat(),
                 'pdf_url': None,
             })
