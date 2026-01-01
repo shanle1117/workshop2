@@ -27,7 +27,7 @@ package-lock.json
 yarn.lock
 
 # Webpack
-frontend/dist/
+# Note: frontend/dist/ is excluded from git but included in npm package
 *.bundle.js
 *.bundle.js.map
 
