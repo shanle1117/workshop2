@@ -1,12 +1,42 @@
 {
-  "name": "faix-chatbot",
-  "version": "1.0.0",
+  "name": "@shanle1117/faix-chatbot",
+  "version": "1.0.1",
   "description": "FAIX Chatbot with React and react-markdown",
-  "main": "index.js",
+  "main": "frontend/dist/chatbot-react.js",
+  "files": [
+    "frontend/dist",
+    "frontend/style.css",
+    "src/react",
+    "README.md",
+    "package.json"
+  ],
+  "keywords": [
+    "chatbot",
+    "react",
+    "faix",
+    "ai",
+    "conversational-ai"
+  ],
+  "author": "shanle1117",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/shanle1117/workshop2.git"
+  },
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com"
+  },
   "scripts": {
     "build": "webpack --mode production",
     "dev": "webpack --mode development --watch",
-    "start": "webpack serve --mode development"
+    "start": "webpack serve --mode development",
+    "publish:github": "npm publish",
+    "test-auth": "npm whoami --registry=https://npm.pkg.github.com",
+    "setup:github": "node scripts/check-github-auth.js",
+    "release": "node scripts/create-release.js",
+    "version:patch": "npm version patch --no-git-tag-version",
+    "version:minor": "npm version minor --no-git-tag-version",
+    "version:major": "npm version major --no-git-tag-version"
   },
   "dependencies": {
     "react": "^18.2.0",
@@ -27,4 +57,3 @@
     "webpack-dev-server": "^4.15.1"
   }
 }
-
