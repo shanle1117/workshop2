@@ -1043,3 +1043,123 @@ Enhanced response formatting includes:
 - Structured bullet points and sections
 - HTML escaping for security
 - Special handling for fee queries (direct link responses)
+
+---
+
+## 🧠 LLM Features
+
+### Ollama Integration
+The chatbot uses **Ollama** as the LLM provider for running open-source models locally:
+
+| Setting | Value | Description |
+|---------|-------|-------------|
+| Provider | Ollama | Local LLM inference server |
+| Model | Llama 3.2:3b | Default model (configurable) |
+| Base URL | http://localhost:11434 | Ollama API endpoint |
+| Timeout | 30 seconds | Request timeout limit |
+
+### Supported Models
+```bash
+# Recommended models for FAIX Chatbot
+ollama pull llama3.2:3b      # Default - balanced performance
+ollama pull llama3.2:1b      # Lightweight - faster responses
+ollama pull llama3.1:8b      # Advanced - better accuracy
+ollama pull mistral:7b       # Alternative - good for Q&A
+```
+
+### RAG (Retrieval-Augmented Generation)
+The LLM responses are enhanced with context from the knowledge base:
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│  RAG Pipeline                                               │
+├─────────────────────────────────────────────────────────────┤
+│                                                             │
+│  1. RETRIEVE                                                │
+│     ├── Semantic search in faix_json_data.json              │
+│     ├── Query staff_contacts.json                           │
+│     └── Match intent patterns from intent_config.json       │
+│                                                             │
+│  2. AUGMENT                                                 │
+│     ├── Inject retrieved context into prompt                │
+│     ├── Add agent-specific system instructions              │
+│     └── Include conversation history (last 5 turns)         │
+│                                                             │
+│  3. GENERATE                                                │
+│     ├── Send augmented prompt to Llama via Ollama           │
+│     ├── Stream response tokens                              │
+│     └── Format and return to user                           │
+│                                                             │
+└─────────────────────────────────────────────────────────────┘
+```
+
+### Agent-Specific Prompts
+Each agent has a tailored system prompt for optimal responses:
+
+| Agent | Focus Area | System Prompt Highlights |
+|-------|------------|--------------------------|
+| **FAQ** | General queries | Answer using FAIX data; be helpful and informative |
+| **Schedule** | Academic calendar | Focus on dates, deadlines, and timetables |
+| **Staff** | Contact info | Provide accurate staff names, emails, and positions |
+
+### LLM Configuration
+
+Environment variables for LLM settings:
+
+```env
+# .env file
+LLM_PROVIDER=ollama           # LLM provider (ollama)
+LLM_ENABLED=1                 # Enable/disable LLM features (1/0)
+OLLAMA_BASE_URL=http://localhost:11434
+OLLAMA_MODEL=llama3.2:3b      # Model to use
+OLLAMA_TIMEOUT=30             # Request timeout in seconds
+```
+
+### Fallback Behavior
+When LLM is unavailable, the system gracefully degrades:
+
+```
+LLM Available?
+     │
+     ├── YES → Use RAG pipeline with Llama
+     │
+     └── NO → Fallback to rule-based responses
+              ├── Keyword matching for intent
+              ├── Direct knowledge base lookup
+              └── Pre-defined response templates
+```
+
+### Response Quality Features
+
+| Feature | Description |
+|---------|-------------|
+| **Context Window** | Up to 4096 tokens for comprehensive context |
+| **Temperature** | 0.7 for balanced creativity/accuracy |
+| **Conversation History** | Last 5 turns included for continuity |
+| **Grounding** | Responses grounded in FAIX knowledge base |
+| **Hallucination Prevention** | "I don't know" responses when data unavailable |
+
+### Performance Metrics (from Latest Tests)
+
+| Metric | Value |
+|--------|-------|
+| Average Response Time | 12.39 seconds |
+| Success Rate | 95.29% |
+| Timeout Failures | 4 (at 30s limit) |
+| Categories with 100% Success | 13/16 |
+
+### LLM API Usage
+
+```python
+# Example: Using the LLM client directly
+from src.llm_client import get_llm_response
+
+response = get_llm_response(
+    messages=[
+        {"role": "system", "content": "You are FAIX AI assistant."},
+        {"role": "user", "content": "What programs does FAIX offer?"}
+    ],
+    context=retrieved_context,
+    agent_id="faq"
+)
+```
