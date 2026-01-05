@@ -203,19 +203,17 @@ body {
 
 .hero-section {
     margin-top: 90px;
-    min-height: 70vh;
-    background: linear-gradient(135deg, 
-        var(--hero-dark) 0%, 
-        var(--hero-gradient-1) 25%, 
-        var(--hero-gradient-2) 50%, 
-        var(--hero-gradient-3) 75%,
-        #2a6496 100%);
+    width: 100%;
     position: relative;
-    display: flex;
-    align-items: center;
-    justify-content: center;
     overflow: hidden;
-    padding: 4rem 2rem;
+    background: var(--hero-dark);
+}
+
+.hero-banner-img {
+    width: 100%;
+    height: auto;
+    display: block;
+    object-fit: cover;
 }
 
 /* Background Effects Container */
@@ -728,8 +726,18 @@ body {
 }
 
 .dean-photo {
-    background: linear-gradient(135deg, var(--faix-secondary) 0%, var(--faix-primary) 100%);
-    padding: 2rem;
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    padding: 1.5rem;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.dean-img {
+    width: 200px;
+    height: auto;
+    border-radius: 8px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
 }
 
 .dean-placeholder {

@@ -117,68 +117,9 @@
         </div>
     </header>
 
-    <!-- Hero Section -->
+    <!-- Hero Section with Banner Image -->
     <section class="hero-section" id="home">
-        <!-- Animated Background Elements -->
-        <div class="hero-bg-effects">
-            <div class="circuit-lines"></div>
-            <div class="floating-dots"></div>
-            <div class="gradient-orb orb-1"></div>
-            <div class="gradient-orb orb-2"></div>
-            <div class="gradient-orb orb-3"></div>
-            <div class="tech-grid"></div>
-        </div>
-
-        <!-- Left Shield Icon -->
-        <div class="shield-container">
-            <div class="shield-glow"></div>
-            <svg class="shield-icon" viewBox="0 0 100 120" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <defs>
-                    <linearGradient id="shieldGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                        <stop offset="0%" style="stop-color:#d4a574"/>
-                        <stop offset="50%" style="stop-color:#c9956c"/>
-                        <stop offset="100%" style="stop-color:#8b6914"/>
-                    </linearGradient>
-                    <linearGradient id="shieldInner" x1="0%" y1="0%" x2="100%" y2="100%">
-                        <stop offset="0%" style="stop-color:#1a3a5c"/>
-                        <stop offset="100%" style="stop-color:#0d1f33"/>
-                    </linearGradient>
-                </defs>
-                <path d="M50 5 L90 20 L90 55 C90 85 50 115 50 115 C50 115 10 85 10 55 L10 20 Z" 
-                      fill="url(#shieldGradient)" stroke="#ffd700" stroke-width="2"/>
-                <path d="M50 15 L80 27 L80 52 C80 77 50 102 50 102 C50 102 20 77 20 52 L20 27 Z" 
-                      fill="url(#shieldInner)"/>
-                <!-- Keyhole -->
-                <circle cx="50" cy="55" r="12" fill="#0a1628" stroke="#1e4d7b" stroke-width="2"/>
-                <rect x="46" y="60" width="8" height="20" rx="2" fill="#0a1628" stroke="#1e4d7b" stroke-width="2"/>
-            </svg>
-        </div>
-
-        <!-- Main Content -->
-        <div class="hero-content">
-            <!-- FAIX 3D Logo -->
-            <div class="faix-logo-3d">
-                <span class="letter letter-f">F</span>
-                <span class="letter letter-a">a</span>
-                <span class="letter letter-i">I</span>
-                <span class="letter letter-x">X</span>
-            </div>
-
-            <!-- University Name -->
-            <h2 class="university-name">UNIVERSITI TEKNIKAL MALAYSIA MELAKA</h2>
-            
-            <!-- Faculty Names -->
-            <div class="faculty-names">
-                <p class="faculty-malay">FAKULTI KECERDASAN BUATAN DAN KESELAMATAN SIBER</p>
-                <p class="faculty-english">FACULTY OF ARTIFICIAL INTELLIGENCE AND CYBER SECURITY</p>
-            </div>
-        </div>
-
-        <!-- Right Side Tech Effects -->
-        <div class="right-tech-effects">
-            <div class="data-stream"></div>
-            <div class="neural-network"></div>
-        </div>
+        <img src="{% static 'images/bannerFaix2025.jpeg' %}" alt="FAIX - Faculty of Artificial Intelligence and Cyber Security" class="hero-banner-img">
     </section>
 
     <!-- Tagline Section -->
@@ -211,7 +152,7 @@
             </div>
             <div class="dean-card">
                 <div class="dean-photo">
-                    <div class="dean-placeholder">👨‍💼</div>
+                    <img src="{% static 'images/muhammad-hafidz-fazli-5eac0f2b.webp' %}" alt="Associate Professor Ts. Dr. Muhammad Hafidz Fazli Bin Md Fauadi" class="dean-img">
                 </div>
                 <div class="dean-info">
                     <h3>ASSOCIATE PROFESSOR TS. DR. MUHAMMAD HAFIDZ FAZLI BIN MD FAUADI</h3>
