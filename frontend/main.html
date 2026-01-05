@@ -6,59 +6,286 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     {% load static %}
     <link rel="icon" type="image/png" href="{% static 'images/utem-logo.png' %}" />
-    <link rel="stylesheet" type="text/css" href="{% static 'style.css' %}" />
-    <title>FAIX Website with Chatbot</title>
+    <link rel="stylesheet" type="text/css" href="{% static 'faix-style.css' %}" />
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800;900&family=Rajdhani:wght@300;400;500;600;700&family=Exo+2:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <title>FAIX - Faculty of Artificial Intelligence and Cyber Security | UTeM</title>
 </head>
 
 <body>
-    <header>
-        <nav>
-            <div class="logo">FAIX</div>
-            <ul>
-                <li><a href="#home">Home</a></li>
-                <li><a href="#features">FAIX</a></li>
-                <li><a href="#about">Admission</a></li>
-                <li><a href="#contact">Academics</a></li>
-            </ul>
-        </nav>
+    <!-- Top Header Bar -->
+    <header class="main-header">
+        <div class="header-container">
+            <div class="logo-section">
+                <img src="{% static 'images/utem-logo.png' %}" alt="UTeM Logo" class="utem-logo">
+                <div class="logo-text">
+                    <h1 class="faix-title">FAIX</h1>
+                    <p class="faix-subtitle">Faculty of Artificial Intelligence and Cyber Security</p>
+                </div>
+            </div>
+            
+            <nav class="main-nav">
+                <ul class="nav-menu">
+                    <li><a href="#home">Home</a></li>
+                    <li class="has-dropdown">
+                        <a href="#faix">FAIX <span class="dropdown-arrow">▾</span></a>
+                        <ul class="dropdown-menu">
+                            <li class="dropdown-header">About Us</li>
+                            <li><a href="#">Dean's Foreword</a></li>
+                            <li><a href="#">Faculty at Glance</a></li>
+                            <li><a href="#">Vision, Mission & Objective</a></li>
+                            <li><a href="#">Top Management</a></li>
+                            <li class="dropdown-divider"></li>
+                            <li class="dropdown-header">Staff</li>
+                            <li><a href="#">Administration</a></li>
+                            <li><a href="#">Dept. of Cyber Security</a></li>
+                            <li><a href="#">Dept. of Intelligent Computing</a></li>
+                            <li><a href="#">Technical</a></li>
+                            <li class="dropdown-divider"></li>
+                            <li><a href="#">Facilities</a></li>
+                            <li><a href="#">MoA & MoU</a></li>
+                            <li><a href="#">FAIX Videos</a></li>
+                        </ul>
+                    </li>
+                    <li class="has-dropdown">
+                        <a href="#admission">Admission <span class="dropdown-arrow">▾</span></a>
+                        <ul class="dropdown-menu">
+                            <li class="dropdown-header">Undergraduate - Local</li>
+                            <li><a href="#">List of Programmes</a></li>
+                            <li><a href="#">Entry Requirement</a></li>
+                            <li><a href="#">Fees</a></li>
+                            <li><a href="#">Scholarship and Loan</a></li>
+                            <li class="dropdown-divider"></li>
+                            <li class="dropdown-header">Undergraduate - International</li>
+                            <li><a href="#">List of Programmes</a></li>
+                            <li><a href="#">Entry Requirement</a></li>
+                            <li class="dropdown-divider"></li>
+                            <li><a href="#">Postgraduate</a></li>
+                        </ul>
+                    </li>
+                    <li class="has-dropdown">
+                        <a href="#academics">Academics <span class="dropdown-arrow">▾</span></a>
+                        <ul class="dropdown-menu">
+                            <li class="dropdown-header">Undergraduate Programmes</li>
+                            <li><a href="#">B.Sc. Computer Security (Hons)</a></li>
+                            <li><a href="#">B.Sc. Artificial Intelligence (Hons)</a></li>
+                            <li class="dropdown-divider"></li>
+                            <li class="dropdown-header">Postgraduate Programmes</li>
+                            <li><a href="#">M.Sc. Security Science</a></li>
+                            <li><a href="#">M.Tech Data Science & Analytics</a></li>
+                            <li class="dropdown-divider"></li>
+                            <li><a href="#">Academic Resources</a></li>
+                            <li><a href="#">ULearn Portal</a></li>
+                            <li><a href="#">Professional Certification</a></li>
+                            <li><a href="#">Academic Hand Book</a></li>
+                        </ul>
+                    </li>
+                    <li><a href="#research">Research</a></li>
+                    <li class="has-dropdown">
+                        <a href="#society">Society <span class="dropdown-arrow">▾</span></a>
+                        <ul class="dropdown-menu">
+                            <li><a href="#">Alumni</a></li>
+                            <li><a href="#">Staff Club</a></li>
+                            <li class="dropdown-divider"></li>
+                            <li class="dropdown-header">Visitor</li>
+                            <li><a href="#">Job Vacancy</a></li>
+                            <li><a href="#">Internship Placement</a></li>
+                            <li><a href="#">Procurement</a></li>
+                            <li><a href="#">Customer Feedback</a></li>
+                        </ul>
+                    </li>
+                    <li class="has-dropdown">
+                        <a href="#faculty-life">Faculty Life <span class="dropdown-arrow">▾</span></a>
+                        <ul class="dropdown-menu">
+                            <li><a href="#">Research, Innovation & Commercialization</a></li>
+                            <li><a href="#">Teaching & Learning</a></li>
+                            <li><a href="#">Energy Info</a></li>
+                            <li><a href="#">Workshop II (AI) Showcase</a></li>
+                        </ul>
+                    </li>
+                    <li><a href="#news">News & Activities</a></li>
+                    <li class="has-dropdown">
+                        <a href="#ifacs">IFACS <span class="dropdown-arrow">▾</span></a>
+                        <ul class="dropdown-menu">
+                            <li><a href="#">Information IFACS</a></li>
+                            <li><a href="#">Keynote Speaker</a></li>
+                            <li><a href="#">Tentative Programme</a></li>
+                            <li><a href="#">Programme Book</a></li>
+                        </ul>
+                    </li>
+                </ul>
+            </nav>
+        </div>
     </header>
 
-    <section class="hero" id="home">
-        <h1>FACULTY OF ARTIFICIAL INTELLIGENCE AND CYBER SECURITY</h1>
-        <p>Create something amazing with this modern template</p>
-        <a href="#features" class="cta-button">WELCOME</a>
+    <!-- Hero Section -->
+    <section class="hero-section" id="home">
+        <!-- Animated Background Elements -->
+        <div class="hero-bg-effects">
+            <div class="circuit-lines"></div>
+            <div class="floating-dots"></div>
+            <div class="gradient-orb orb-1"></div>
+            <div class="gradient-orb orb-2"></div>
+            <div class="gradient-orb orb-3"></div>
+            <div class="tech-grid"></div>
+        </div>
+
+        <!-- Left Shield Icon -->
+        <div class="shield-container">
+            <div class="shield-glow"></div>
+            <svg class="shield-icon" viewBox="0 0 100 120" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <defs>
+                    <linearGradient id="shieldGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                        <stop offset="0%" style="stop-color:#d4a574"/>
+                        <stop offset="50%" style="stop-color:#c9956c"/>
+                        <stop offset="100%" style="stop-color:#8b6914"/>
+                    </linearGradient>
+                    <linearGradient id="shieldInner" x1="0%" y1="0%" x2="100%" y2="100%">
+                        <stop offset="0%" style="stop-color:#1a3a5c"/>
+                        <stop offset="100%" style="stop-color:#0d1f33"/>
+                    </linearGradient>
+                </defs>
+                <path d="M50 5 L90 20 L90 55 C90 85 50 115 50 115 C50 115 10 85 10 55 L10 20 Z" 
+                      fill="url(#shieldGradient)" stroke="#ffd700" stroke-width="2"/>
+                <path d="M50 15 L80 27 L80 52 C80 77 50 102 50 102 C50 102 20 77 20 52 L20 27 Z" 
+                      fill="url(#shieldInner)"/>
+                <!-- Keyhole -->
+                <circle cx="50" cy="55" r="12" fill="#0a1628" stroke="#1e4d7b" stroke-width="2"/>
+                <rect x="46" y="60" width="8" height="20" rx="2" fill="#0a1628" stroke="#1e4d7b" stroke-width="2"/>
+            </svg>
+        </div>
+
+        <!-- Main Content -->
+        <div class="hero-content">
+            <!-- FAIX 3D Logo -->
+            <div class="faix-logo-3d">
+                <span class="letter letter-f">F</span>
+                <span class="letter letter-a">a</span>
+                <span class="letter letter-i">I</span>
+                <span class="letter letter-x">X</span>
+            </div>
+
+            <!-- University Name -->
+            <h2 class="university-name">UNIVERSITI TEKNIKAL MALAYSIA MELAKA</h2>
+            
+            <!-- Faculty Names -->
+            <div class="faculty-names">
+                <p class="faculty-malay">FAKULTI KECERDASAN BUATAN DAN KESELAMATAN SIBER</p>
+                <p class="faculty-english">FACULTY OF ARTIFICIAL INTELLIGENCE AND CYBER SECURITY</p>
+            </div>
+        </div>
+
+        <!-- Right Side Tech Effects -->
+        <div class="right-tech-effects">
+            <div class="data-stream"></div>
+            <div class="neural-network"></div>
+        </div>
     </section>
 
-    <section class="section" id="features">
-        <h2>Features</h2>
-        <div class="features">
-            <div class="feature-card">
-                <h3>Fast & Responsive</h3>
-                <p>Built with modern web standards to ensure your site looks great on any device and loads quickly.</p>
+    <!-- Tagline Section -->
+    <section class="tagline-section">
+        <h2 class="tagline">The future is open with FAIX</h2>
+        <div class="cta-buttons">
+            <a href="#undergraduate" class="cta-btn cta-primary">Browse Undergraduate Programmes</a>
+            <a href="#postgraduate" class="cta-btn cta-secondary">Browse Postgraduate Programmes</a>
+        </div>
+    </section>
+
+    <!-- About FAIX Section -->
+    <section class="about-section" id="about">
+        <h2 class="section-title">Faculty of Artificial Intelligence and Cyber Security (FAIX)</h2>
+        <div class="about-content">
+            <div class="about-text-block">
+                <p>
+                    The establishment of the Faculty of Artificial Intelligence and Cyber Security (FAIX) marks a significant milestone for Universiti Teknikal Malaysia Melaka (UTeM) as it steps boldly into the forefront of education and research within Malaysia's Technical University Network (MTUN) and on a national scale.
+                </p>
+                <p>
+                    Officially founded on <strong>July 22, 2024</strong>, FAIX embodies UTeM's proactive approach to addressing the evolving demands of technology and higher education, all while aligning with the vision and aspirations set forth by the Ministry of Higher Education.
+                </p>
+                <p>
+                    Under the esteemed leadership of Vice-Chancellor, <strong>Professor Datuk Ts Dr. Massila Kamalrudin</strong>, UTeM is committed to becoming a primary driver in producing a workforce equipped with the necessary skills to meet the country's ambitious goal of cultivating <strong>200,000 AI specialists</strong> and <strong>100,000 cyber security experts by 2030</strong>.
+                </p>
+                <p>
+                    FAIX is strategically designed to combine the core elements of Artificial Intelligence and Cyber Security, which are not only relevant but critical to modern society and industries worldwide.
+                </p>
+                <a href="#" class="read-more-btn">Read More</a>
             </div>
-            <div class="feature-card">
-                <h3>Clean Design</h3>
-                <p>A minimalist approach that puts your content first while maintaining visual appeal.</p>
-            </div>
-            <div class="feature-card">
-                <h3>Easy to Customize</h3>
-                <p>Simple HTML and CSS structure makes it easy to adapt to your specific needs.</p>
+            <div class="dean-card">
+                <div class="dean-photo">
+                    <div class="dean-placeholder">👨‍💼</div>
+                </div>
+                <div class="dean-info">
+                    <h3>ASSOCIATE PROFESSOR TS. DR. MUHAMMAD HAFIDZ FAZLI BIN MD FAUADI</h3>
+                    <p class="dean-title">Dean</p>
+                    <p class="dean-faculty">Faculty of Artificial Intelligence and Cyber Security (FAIX)</p>
+                </div>
             </div>
         </div>
     </section>
 
-    <section class="section" id="about">
-        <h2>About Us</h2>
-        <p style="text-align: center; max-width: 800px; margin: 0 auto; font-size: 1.1rem; color: #666;">
-            We're passionate about creating beautiful, functional websites. This template is designed to give you a
-            solid foundation to build upon, with modern design principles and smooth animations that make your content
-            shine.
-        </p>
+    <!-- Programs Section -->
+    <section class="programs-section" id="programs">
+        <h2 class="section-title">Our Programmes</h2>
+        <div class="programs-grid">
+            <div class="program-card undergraduate">
+                <div class="program-icon">🎓</div>
+                <h3>Undergraduate</h3>
+                <ul class="program-list">
+                    <li>Bachelor of Computer Science (Computer Security) with Honours</li>
+                    <li>Bachelor of Computer Science (Artificial Intelligence) with Honours</li>
+                </ul>
+                <a href="#" class="program-link">View Details →</a>
+            </div>
+            <div class="program-card postgraduate">
+                <div class="program-icon">📚</div>
+                <h3>Postgraduate</h3>
+                <ul class="program-list">
+                    <li>Master of Computer Science (Security Science)</li>
+                    <li>Master of Technology (Data Science and Analytics)</li>
+                    <li>M.Tech Data Science & Analytics (ODL)</li>
+                </ul>
+                <a href="#" class="program-link">View Details →</a>
+            </div>
+        </div>
     </section>
 
-    <footer id="contact">
-        <p>&copy; 2024 YourBrand. All rights reserved.</p>
-        <p>Contact: hello@yourbrand.com</p>
+    <!-- Contact Section -->
+    <section class="contact-section" id="contact">
+        <h2 class="section-title">Contact Us</h2>
+        <div class="contact-grid">
+            <div class="contact-info">
+                <h3>Faculty of Artificial Intelligence and Cyber Security</h3>
+                <p class="university-address">Universiti Teknikal Malaysia Melaka</p>
+                <p>Hang Tuah Jaya, 76100 Durian Tunggal</p>
+                <p>Melaka, Malaysia</p>
+                <div class="contact-details">
+                    <p><span class="contact-icon">📧</span> faix@utem.edu.my</p>
+                    <p><span class="contact-icon">📞</span> +606 270 4540</p>
+                </div>
+            </div>
+            <div class="social-links">
+                <h3>Follow & Like Us</h3>
+                <div class="social-icons">
+                    <a href="#" class="social-btn facebook">📘 Facebook</a>
+                    <a href="#" class="social-btn instagram">📷 Instagram</a>
+                    <a href="#" class="social-btn youtube">▶️ YouTube</a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="main-footer">
+        <div class="footer-content">
+            <p class="footer-brand">Faculty of Artificial Intelligence and Cyber Security (FAIX)</p>
+            <p>&copy; Universiti Teknikal Malaysia Melaka</p>
+            <div class="footer-links">
+                <a href="#">Legal Disclaimer</a>
+                <span>|</span>
+                <a href="#">Privacy Policy</a>
+                <span>|</span>
+                <a href="#">Copyright</a>
+            </div>
+        </div>
     </footer>
 
     <!-- Chatbot Widget -->

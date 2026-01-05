@@ -46,3 +46,4 @@ echo "2. Or manually create tag: git tag -a v${VERSION} -m \"Release v${VERSION}
 echo "3. Push tag: git push origin v${VERSION}"
 echo ""
 
+

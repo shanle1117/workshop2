@@ -109,3 +109,4 @@ echo Release: https://github.com/shanle1117/workshop2/releases/tag/v%NEW_VERSION
 echo.
 pause
 
+
