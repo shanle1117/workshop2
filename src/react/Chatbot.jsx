@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 
@@ -15,6 +15,11 @@ function Chatbot() {
     },
   ]);
   const [inputValue, setInputValue] = useState('');
+  
+  // Keep ref in sync with state
+  useEffect(() => {
+    inputValueRef.current = inputValue;
+  }, [inputValue]);
   const [isLoading, setIsLoading] = useState(false);
   const [isRecording, setIsRecording] = useState(false);
   const [sessionId, setSessionId] = useState(null);
@@ -27,6 +32,7 @@ function Chatbot() {
   const recognitionRef = useRef(null);
   const pendingTranscriptRef = useRef('');
   const inputRef = useRef(null);
+  const inputValueRef = useRef('');
   
   const API_BASE_URL = 'http://localhost:8000';
 
@@ -100,8 +106,8 @@ function Chatbot() {
         const finalText = pendingTranscriptRef.current.trim();
         pendingTranscriptRef.current = '';
         handleSpeechResult(finalText);
-      } else if (inputValue.trim()) {
-        const inputText = inputValue.trim();
+      } else if (inputValueRef.current.trim()) {
+        const inputText = inputValueRef.current.trim();
         setInputValue('');
         handleSpeechResult(inputText);
       }
@@ -114,7 +120,7 @@ function Chatbot() {
         recognitionRef.current.abort();
       }
     };
-  }, [inputValue]);
+  }, []); // Remove inputValue dependency to prevent recreation on every input change
 
   // Scroll to bottom when messages change
   useEffect(() => {

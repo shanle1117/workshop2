@@ -119,6 +119,102 @@ MULTILANG_GIBBERISH_RESPONSE = {
     'ar': "عذراً، لم أفهم ذلك. هل يمكنك إعادة صياغة سؤالك بشكل أوضح؟ يمكنك السؤال عن برامج FAIX، التسجيل، جهات اتصال الموظفين، الجداول، أو الرسوم.",
 }
 
+MULTILANG_CANT_UNDERSTAND = {
+    'en': "I'm sorry, I couldn't understand your question. Could you please rephrase it? I can help you with:\n- FAIX programs and courses\n- Registration and admission\n- Staff contacts\n- Academic schedules\n- Fees and tuition",
+    'ms': "Maaf, saya tidak dapat memahami soalan anda. Bolehkah anda menyatakan semula? Saya boleh membantu dengan:\n- Program dan kursus FAIX\n- Pendaftaran dan kemasukan\n- Hubungan kakitangan\n- Jadual akademik\n- Yuran dan bayaran",
+    'zh': "抱歉，我无法理解您的问题。您能重新表述一下吗？我可以帮助您：\n- FAIX项目和课程\n- 注册和入学\n- 教职员工联系方式\n- 学术日程\n- 学费和费用",
+    'ar': "عذراً، لم أتمكن من فهم سؤالك. هل يمكنك إعادة صياغته؟ يمكنني مساعدتك في:\n- برامج ودورات FAIX\n- التسجيل والقبول\n- جهات اتصال الموظفين\n- الجداول الأكاديمية\n- الرسوم الدراسية",
+}
+
+MULTILANG_NO_INFO = {
+    'en': "I don't have information about that topic. I can help you with FAIX programs, registration, staff contacts, schedules, and fees. Please contact the FAIX office at faix@utem.edu.my for other inquiries.",
+    'ms': "Saya tidak mempunyai maklumat tentang topik itu. Saya boleh membantu dengan program FAIX, pendaftaran, hubungan kakitangan, jadual, dan yuran. Sila hubungi pejabat FAIX di faix@utem.edu.my untuk pertanyaan lain.",
+    'zh': "我没有关于该主题的信息。我可以帮助您了解FAIX项目、注册、教职员工联系方式、日程和费用。其他咨询请联系FAIX办公室：faix@utem.edu.my",
+    'ar': "ليس لدي معلومات حول هذا الموضوع. يمكنني مساعدتك في برامج FAIX والتسجيل وجهات اتصال الموظفين والجداول والرسوم. يرجى الاتصال بمكتب FAIX على faix@utem.edu.my للاستفسارات الأخرى.",
+}
+
+
+def is_off_topic_query(text: str) -> bool:
+    """
+    Detect if the user's query is clearly off-topic (not related to FAIX/education).
+    Returns True if the query is about something unrelated to the chatbot's scope.
+    """
+    if not text or len(text.strip()) < 2:
+        return False
+    
+    text_lower = text.lower().strip()
+    
+    # Keywords that indicate FAIX-related topics (keep these)
+    faix_related_keywords = [
+        # General education/university
+        'faix', 'utem', 'university', 'fakulti', 'faculty', 'college',
+        'student', 'pelajar', 'study', 'belajar', 'learn',
+        # Programs/courses
+        'program', 'programme', 'course', 'kursus', 'degree', 'ijazah',
+        'diploma', 'master', 'phd', 'bachelor', 'sarjana',
+        'bcsai', 'bcscs', 'mtdsa', 'mcsss', 'ai', 'artificial intelligence',
+        'cybersecurity', 'cyber security', 'data science', 'computer',
+        # Registration/admission
+        'register', 'registration', 'pendaftaran', 'daftar', 'admission',
+        'kemasukan', 'apply', 'application', 'enroll', 'enrollment',
+        'cgpa', 'muet', 'spm', 'stpm', 'requirement', 'syarat',
+        # Staff/contact
+        'staff', 'lecturer', 'pensyarah', 'professor', 'dean', 'dekan',
+        'contact', 'hubungi', 'email', 'phone', 'office', 'pejabat',
+        # Schedule/academic
+        'schedule', 'jadual', 'timetable', 'semester', 'academic',
+        'calendar', 'deadline', 'date', 'tarikh', 'exam', 'peperiksaan',
+        # Fees
+        'fee', 'fees', 'yuran', 'tuition', 'payment', 'bayaran', 'cost',
+        # Facilities
+        'facility', 'facilities', 'kemudahan', 'lab', 'laboratory', 'library',
+        # Career/research
+        'career', 'kerjaya', 'job', 'research', 'penyelidikan',
+        # General chatbot
+        'help', 'tolong', 'can you', 'boleh', 'what can', 'apa boleh',
+        'hello', 'hi', 'hai', 'hey', 'bye', 'thanks', 'thank', 'terima kasih',
+    ]
+    
+    # Check if any FAIX-related keyword is present
+    has_faix_keyword = any(kw in text_lower for kw in faix_related_keywords)
+    
+    if has_faix_keyword:
+        return False  # Not off-topic
+    
+    # Common off-topic patterns (things clearly unrelated to education)
+    off_topic_patterns = [
+        'what is ', 'what are ', 'who is ', 'where is ', 'when is ',
+        'how to make', 'how to cook', 'recipe', 'resepi',
+        'weather', 'cuaca', 'news', 'berita',
+        'movie', 'filem', 'music', 'lagu', 'song', 'game', 'permainan',
+        'food', 'makanan', 'pizza', 'burger', 'nasi', 'makan',
+        'sport', 'sukan', 'football', 'bola', 'basketball',
+        'travel', 'melancong', 'holiday', 'cuti',
+        'animal', 'haiwan', 'cat', 'kucing', 'dog', 'anjing',
+        'car', 'kereta', 'bike', 'basikal',
+        'phone', 'telefon', 'iphone', 'samsung', 'laptop',
+        'joke', 'jenaka', 'funny', 'kelakar',
+        'love', 'cinta', 'relationship',
+        'health', 'kesihatan', 'medicine', 'ubat', 'doctor', 'doktor',
+        'money', 'wang', 'bitcoin', 'crypto',
+        'country', 'negara', 'politics', 'politik',
+        'religion', 'agama',
+    ]
+    
+    # Check if text starts with off-topic patterns and doesn't have FAIX keywords
+    for pattern in off_topic_patterns:
+        if pattern in text_lower:
+            return True
+    
+    # If the query is very short (1-3 words) and not a greeting or FAIX keyword
+    words = text_lower.split()
+    if len(words) <= 3 and not has_faix_keyword:
+        # Check if it's asking "what is X" where X is not FAIX-related
+        if text_lower.startswith(('what is', 'what are', 'apa itu', 'apakah')):
+            return True
+    
+    return False
+
 
 def is_gibberish(text: str) -> bool:
     """
@@ -173,6 +269,65 @@ def is_gibberish(text: str) -> bool:
                 return True
     
     return False
+
+
+def is_inadequate_response(response: str) -> bool:
+    """
+    Detect if the LLM response indicates it couldn't understand or answer properly.
+    Returns True if the response seems inadequate or indicates confusion.
+    """
+    if not response or len(response.strip()) < 10:
+        return True
+    
+    response_lower = response.lower().strip()
+    
+    # Indicators that the response is inadequate or the LLM couldn't understand
+    inadequate_indicators = [
+        # Empty or very short
+        'i am not sure',
+        'i\'m not sure',
+        'i do not know',
+        'i don\'t know',
+        'i cannot answer',
+        'i can\'t answer',
+        'unable to answer',
+        'cannot provide',
+        'can\'t provide',
+        'not able to',
+        'i have no information',
+        'no information available',
+        'this information is not available',
+        'i am unable to',
+        'i\'m unable to',
+        # Confusion indicators
+        'i do not understand',
+        'i don\'t understand',
+        'unclear question',
+        'not clear what',
+        'could you clarify',
+        'what do you mean',
+        'please clarify',
+        # Off-topic indicators
+        'this is outside my scope',
+        'outside my knowledge',
+        'beyond my capabilities',
+        'not within my scope',
+        # Generic filler responses
+        'as an ai',
+        'as a language model',
+        'i apologize, but',
+    ]
+    
+    for indicator in inadequate_indicators:
+        if indicator in response_lower:
+            return True
+    
+    # Check if response is just repeating the question or very generic
+    if len(response.strip()) < 30 and '?' in response:
+        return True
+    
+    return False
+
 
 MULTILANG_ERROR_FALLBACK = {
     'en': "I apologize, but I'm having trouble processing your request. Please try rephrasing your question or contact the FAIX office for assistance.",
@@ -659,6 +814,27 @@ def chat_api(request):
                 'pdf_url': None,
             })
 
+        # OFF-TOPIC DETECTION: Catch questions clearly unrelated to FAIX/education
+        # This prevents questions like "what is pizza" from returning irrelevant FAIX information
+        if is_off_topic_query(user_message):
+            logger.info(f"Off-topic query detected: '{user_message[:50]}...'")
+            answer = get_multilang_response(MULTILANG_NO_INFO, early_lang_code)
+            
+            save_messages_async(conversation, user_message, answer, 'off_topic', 0.0, {})
+            session.context = context
+            session.save(update_fields=['context', 'updated_at'])
+            
+            return JsonResponse({
+                'response': answer,
+                'session_id': session.session_id,
+                'conversation_id': conversation.id,
+                'intent': 'off_topic',
+                'confidence': 0.0,
+                'entities': {},
+                'timestamp': timezone.now().isoformat(),
+                'pdf_url': None,
+            })
+
         # STEP 1: Check data availability FIRST before NLP processing
         # This ensures we route to agents that have data available
         # NOTE: Frontend may send agent_id='faq' by default, but we override if query matches staff/schedule
@@ -1011,6 +1187,19 @@ def chat_api(request):
                             kb_answer = knowledge_base.get_answer(intent, user_message)
                             if kb_answer:
                                 answer = kb_answer
+                        
+                        # CHECK FOR INADEQUATE RESPONSES: When agent can't understand or answer
+                        if is_inadequate_response(answer):
+                            logger.info(f"Inadequate response detected: {answer[:100]}...")
+                            # Try knowledge base first
+                            kb_answer = knowledge_base.get_answer(intent, user_message)
+                            if kb_answer and not is_inadequate_response(kb_answer):
+                                answer = kb_answer
+                                logger.info("Using knowledge base fallback for inadequate response")
+                            else:
+                                # Use the "can't understand" fallback message
+                                answer = get_multilang_response(MULTILANG_CANT_UNDERSTAND, language_code)
+                                logger.info("Using 'can't understand' fallback response")
                     
                     except Exception as e:
                         error_msg = str(e)
@@ -1199,7 +1388,11 @@ def chat_api(request):
                 
                 # Validate answer is not None, empty, or invalid type
                 if not answer or not isinstance(answer, str) or not answer.strip():
-                    answer = get_multilang_response(MULTILANG_NOT_FOUND, language_code)
+                    answer = get_multilang_response(MULTILANG_CANT_UNDERSTAND, language_code)
+                # Also check for inadequate responses from knowledge base
+                elif is_inadequate_response(answer):
+                    logger.info(f"Inadequate KB response: {answer[:50]}...")
+                    answer = get_multilang_response(MULTILANG_NO_INFO, language_code)
                 
                 # Check if user is asking about academic handbook
                 if intent == 'program_info' or is_handbook_query:
@@ -1233,11 +1426,19 @@ def chat_api(request):
                     answer, context = process_conversation(user_message, context)
                     # Validate answer from conversation manager
                     if not answer or not isinstance(answer, str) or not answer.strip():
-                        answer = get_multilang_response(MULTILANG_REPHRASE, language_code)
+                        answer = get_multilang_response(MULTILANG_CANT_UNDERSTAND, language_code)
+                    # Also check for inadequate responses
+                    elif is_inadequate_response(answer):
+                        logger.info(f"Inadequate conversation manager response detected")
+                        answer = get_multilang_response(MULTILANG_CANT_UNDERSTAND, language_code)
         
         # Final safety check: ensure answer is never None or empty before saving
         if not answer or not isinstance(answer, str) or not answer.strip():
-            answer = get_multilang_response(MULTILANG_ERROR_FALLBACK, language_code)
+            answer = get_multilang_response(MULTILANG_CANT_UNDERSTAND, language_code)
+        # Final check for inadequate responses
+        elif is_inadequate_response(answer):
+            logger.info("Final check caught inadequate response")
+            answer = get_multilang_response(MULTILANG_CANT_UNDERSTAND, language_code)
         
         # Update session context
         session.context = context

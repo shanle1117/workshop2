@@ -1,0 +1,401 @@
+# Questions to Test FAIX Chatbot
+
+A curated list of questions organized by intent category for testing the chatbot.
+
+========================================
+GREETINGS
+========================================
+Hello
+Hi
+Hey
+Good morning
+Good afternoon
+Good evening
+Hai
+Helo
+Assalamualaikum
+Hello, I need help
+Hi there, can you help me?
+
+========================================
+PROGRAM INFO
+========================================
+What programs does FAIX offer?
+What programmes are available?
+Tell me about FAIX programs
+What degrees can I study at FAIX?
+What undergraduate programs are available?
+What postgraduate programs does FAIX offer?
+Tell me about BAXI
+What is BAXZ?
+What is Bachelor of Computer Science (Artificial Intelligence)?
+Tell me about the AI programme
+What is the cybersecurity programme?
+What is MCSSS?
+What is MTDSA?
+Tell me about Master of Computer Science (Security Science)
+What is Master of Technology (Data Science and Analytics)?
+How long is the BAXI program?
+What is the duration of BAXZ?
+What are the focus areas in BAXI?
+What does BAXZ focus on?
+What will I learn in the AI program?
+What subjects are covered in cybersecurity?
+Does FAIX offer ODL programs?
+What is ODL?
+Tell me about online distance learning
+
+========================================
+ADMISSION
+========================================
+What are the admission requirements?
+How do I apply to FAIX?
+What are the entry requirements?
+What are the admission criteria?
+How can I enroll?
+What do I need to apply?
+What are the requirements for local students?
+What CGPA do I need?
+Do I need MUET?
+What MUET band is required?
+What are the SPM requirements?
+What are the STPM requirements?
+What are the prerequisites for undergraduate programs?
+What are the requirements for international students?
+How do international students apply?
+What are the entry criteria for international students?
+What English proficiency test is required?
+Do I need CEFR certification?
+What CEFR level is required?
+What are the admission requirements for Master's programs?
+How do I apply for postgraduate studies?
+What are the entry requirements for MCSSS?
+What are the entry requirements for MTDSA?
+Where can I find application links?
+How do I submit my application?
+What documents do I need?
+When is the application deadline?
+
+========================================
+FEES
+========================================
+How much are the tuition fees?
+What are the fees?
+How much does it cost?
+What is the fee structure?
+Tell me about fees
+What are the payment options?
+When do I need to pay?
+What are the fees for local students?
+What are the fees for international students?
+What are the undergraduate fees?
+What are the postgraduate fees?
+How much does BAXI cost?
+How much does BAXZ cost?
+Are there any scholarships available?
+What financial aid is available?
+Where can I find the fee schedule?
+Can you give me the link to fees?
+Show me the official fee information
+
+========================================
+CAREER
+========================================
+What jobs can I get after graduation?
+What are the career opportunities?
+What career paths are available?
+What can I do with a degree from FAIX?
+What are my job prospects?
+What jobs can I get with BAXI?
+What careers are available for AI graduates?
+Tell me about career opportunities for AI students
+What is a knowledge engineer?
+What does a smart systems developer do?
+What is an expert system developer?
+What jobs can I get with BAXZ?
+What careers are available for cybersecurity graduates?
+Tell me about career opportunities for cybersecurity students
+What is a cybersecurity analyst?
+What does a penetration tester do?
+What is a digital forensics specialist?
+What is a security consultant?
+What industries hire FAIX graduates?
+What is the job market like?
+What is the average salary?
+What companies hire FAIX graduates?
+
+========================================
+ABOUT FAIX
+========================================
+Tell me about FAIX
+What is FAIX?
+What is the Faculty of Artificial Intelligence and Cyber Security?
+When was FAIX established?
+When was FAIX founded?
+What is the history of FAIX?
+What is FAIX's vision?
+What is FAIX's mission?
+What are FAIX's objectives?
+What are the faculty's goals?
+Who is the dean of FAIX?
+Who is the dean?
+Tell me about the dean
+What departments are in FAIX?
+What are the departments?
+Tell me about the departments
+What are the key highlights of FAIX?
+How many staff does FAIX have?
+How many academic staff are there?
+How many administrative staff are there?
+How many students are enrolled?
+What is FAIX's email?
+What is FAIX's phone number?
+What is FAIX's address?
+Where is FAIX located?
+What is FAIX's website?
+What is UTeM?
+Tell me about UTeM
+What university is FAIX part of?
+
+========================================
+STAFF CONTACT
+========================================
+Who can I contact?
+How do I contact staff?
+I need to contact someone
+Who should I email?
+Can you give me a contact?
+Who works in AI?
+Who works in cybersecurity?
+Who works in the AI department?
+Who works in the cybersecurity department?
+I need to contact a professor
+I need to contact a lecturer
+Who is the coordinator?
+Who is the registrar?
+What is the email for administration?
+What is the phone number for the office?
+How do I contact the faculty?
+Give me the contact information
+What is the office number?
+How do I contact Dr. Muhammad Hafidz Fazli?
+What is the email for the dean?
+Contact information for Associate Professor Ts. Dr. Muhammad Hafidz Fazli Bin Md Fauadi
+
+========================================
+FACILITY INFO
+========================================
+What facilities does FAIX have?
+Tell me about the facilities
+What labs are available?
+What laboratories does FAIX have?
+What equipment is available?
+Tell me about the AI lab
+Tell me about the cybersecurity lab
+What is in the research lab?
+Can I use the lab?
+How do I book a lab?
+How do I book a room?
+What buildings does FAIX have?
+Where are the labs located?
+What is in the research center?
+What equipment can I use?
+How do I reserve a facility?
+
+========================================
+ACADEMIC RESOURCES
+========================================
+What academic resources are available?
+Tell me about academic resources
+What resources can I access?
+Where is the academic handbook?
+Tell me about the academic handbook
+How do I access the student handbook?
+Where can I find the handbook?
+What is uLearn?
+How do I access uLearn?
+Tell me about the uLearn portal
+How do I log in to uLearn?
+Where can I find my timetable?
+How do I check my schedule?
+Tell me about the timetable
+Where can I find forms?
+What forms are available?
+Tell me about professional certifications
+What certifications can I get?
+Tell me about education funds
+What are the work processes?
+Tell me about academic processes
+
+========================================
+RESEARCH
+========================================
+What research does FAIX do?
+Tell me about research at FAIX
+What are the research areas?
+What are the research focus areas?
+What research projects are available?
+Tell me about AI research
+What cybersecurity research is done?
+Tell me about machine learning research
+What data science research is available?
+Tell me about digital forensics research
+What intelligent systems research is done?
+Tell me about data analytics research
+Can I do research?
+How do I get involved in research?
+What research projects can I join?
+Tell me about thesis opportunities
+Tell me about dissertation opportunities
+What publications has FAIX produced?
+Tell me about research publications
+
+========================================
+COURSE INFO
+========================================
+What courses are available?
+Tell me about the courses
+What subjects can I take?
+What modules are offered?
+What is the curriculum?
+Tell me about the course structure
+How are courses organized?
+What is the curriculum like?
+What are the coursework requirements?
+What practical work is required?
+When are classes?
+How are lectures conducted?
+What is the learning format?
+
+========================================
+REGISTRATION
+========================================
+How do I register for courses?
+How do I enroll?
+How do I sign up?
+Tell me about registration
+What is the registration process?
+How do I register for a course?
+How do I add a subject?
+How do I drop a subject?
+Can I change my courses?
+How do I modify my registration?
+When is registration?
+What is the registration deadline?
+When does registration open?
+When does registration close?
+What are the important dates?
+What do I need to register?
+What documents do I need?
+How do I complete enrollment?
+
+========================================
+ACADEMIC SCHEDULE
+========================================
+What is the academic calendar?
+When does the semester start?
+When does the semester end?
+What are the important dates?
+Tell me about the schedule
+When is semester 1?
+When is semester 2?
+What are the semester dates?
+When does the academic year start?
+When does the academic year end?
+What is my timetable?
+When are my classes?
+What is the class schedule?
+When do classes start?
+When do classes end?
+When are the deadlines?
+What are the important dates?
+When is the exam period?
+When are the holidays?
+
+========================================
+FAREWELLS
+========================================
+Bye
+Goodbye
+See you
+Thanks
+Thank you
+Thank
+Terima kasih
+Thanks for your help
+Thank you, that's all
+Goodbye, see you later
+Thanks, bye
+
+========================================
+MULTI-LANGUAGE QUESTIONS
+========================================
+Apakah program yang ditawarkan oleh FAIX?
+Beritahu saya tentang BAXI
+Apakah BAXZ?
+Apakah syarat kemasukan?
+Bagaimana untuk memohon?
+Berapakah yuran?
+Siapa yang boleh saya hubungi?
+Terima kasih
+FAIX提供什么课程？
+告诉我关于BAXI
+什么是BAXZ？
+入学要求是什么？
+谢谢
+مرحبا
+أهلا
+شكرا
+
+========================================
+EDGE CASES & COMPLEX QUERIES
+========================================
+Help
+I need information
+Tell me something
+What can you do?
+What are your capabilities?
+I want to register for BAXI, what are the fees?
+Tell me about AI programs and career opportunities
+What are the admission requirements and fees for BAXZ?
+How do I contact someone about registration?
+Tell me more
+What else?
+Can you elaborate?
+Give me more details
+What about career opportunities?
+wat programs r available?
+how 2 apply?
+tell me bout fees
+who cn i contact?
+What is the exact CGPA requirement for BAXI for local students with STPM?
+What is the email address of the dean?
+What is the phone number for the faculty office?
+What is the exact address of FAIX?
+What is the difference between BAXI and BAXZ?
+Which program is better for me?
+Should I choose AI or cybersecurity?
+If I have CGPA 3.5, can I apply?
+What if I don't have MUET?
+Can I apply if I'm an international student?
+I'm a student who is interested in studying artificial intelligence and I want to know about the programs available at FAIX, the admission requirements, the fees, and the career opportunities after graduation, can you help me?
+What is the fee for 4 years?
+How many staff members are there?
+What is the duration in years?
+
+========================================
+QUICK TEST SET (Copy-Paste Ready)
+========================================
+Hello
+What programs does FAIX offer?
+Tell me about BAXI
+What are the admission requirements?
+How much are the fees?
+What are the career opportunities?
+Who can I contact?
+How do I register?
+When does the semester start?
+What is FAIX's vision?
+Tell me about research at FAIX
+Thanks, bye
+

@@ -104,7 +104,7 @@ class Chatbot {
             
             // Update input field with combined final and interim results
             const displayText = this.pendingTranscript + interimTranscript;
-            if (displayText.trim()) {
+            if (displayText.trim() && this.input) {
                 this.input.value = displayText.trim();
             }
         };
@@ -123,7 +123,7 @@ class Chatbot {
                 const finalText = this.pendingTranscript.trim();
                 this.pendingTranscript = '';
                 this.handleSpeechResult(finalText);
-            } else if (this.input.value.trim()) {
+            } else if (this.input && this.input.value.trim()) {
                 // If we have text in input but no final transcript, use input value
                 const inputText = this.input.value.trim();
                 this.input.value = '';
@@ -134,17 +134,31 @@ class Chatbot {
     
     attachEventListeners() {
         // Toggle chatbot
-        this.toggle.addEventListener('click', () => this.toggleChatbot());
-        this.minimize.addEventListener('click', () => this.toggleChatbot());
+        if (this.toggle) {
+            this.toggle.addEventListener('click', () => this.toggleChatbot());
+        }
+        if (this.minimize) {
+            this.minimize.addEventListener('click', () => this.toggleChatbot());
+        }
         
         // Send message
-        this.sendButton.addEventListener('click', () => this.sendMessage());
-        this.input.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter' && !e.shiftKey) {
-                e.preventDefault();
-                this.sendMessage();
-            }
-        });
+        if (this.sendButton) {
+            this.sendButton.addEventListener('click', () => this.sendMessage());
+        }
+        if (this.input) {
+            this.input.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    this.sendMessage();
+                }
+            });
+
+            // Auto-resize input
+            this.input.addEventListener('input', () => {
+                this.input.style.height = 'auto';
+                this.input.style.height = this.input.scrollHeight + 'px';
+            });
+        }
 
         // Agent selector change
         if (this.agentSelect) {
@@ -153,12 +167,6 @@ class Chatbot {
                 this.agentId = value;
             });
         }
-        
-        // Auto-resize input
-        this.input.addEventListener('input', () => {
-            this.input.style.height = 'auto';
-            this.input.style.height = this.input.scrollHeight + 'px';
-        });
         
         // Microphone button
         if (this.micButton) {
@@ -182,11 +190,17 @@ class Chatbot {
     toggleChatbot() {
         this.isOpen = !this.isOpen;
         if (this.isOpen) {
-            this.container.style.display = 'flex';
-            this.input.focus();
+            if (this.container) {
+                this.container.style.display = 'flex';
+            }
+            if (this.input) {
+                this.input.focus();
+            }
             this.hideBadge();
         } else {
-            this.container.style.display = 'none';
+            if (this.container) {
+                this.container.style.display = 'none';
+            }
         }
     }
     
@@ -205,6 +219,11 @@ class Chatbot {
     }
     
     async sendMessage() {
+        if (!this.input) {
+            console.error('Chatbot input element not found');
+            return;
+        }
+        
         const message = this.input.value.trim();
         
         if (!message || this.isLoading) {
@@ -310,6 +329,11 @@ class Chatbot {
     }
     
     addMessage(role, content, pdfUrl = null) {
+        if (!this.messagesContainer) {
+            console.error('Chatbot messages container not found');
+            return;
+        }
+        
         const isAssistant = role === 'bot' || role === 'assistant';
         const displayRole = isAssistant ? 'bot' : role;
 
@@ -399,18 +423,26 @@ class Chatbot {
     }
     
     showTyping() {
-        this.typingIndicator.style.display = 'block';
+        if (this.typingIndicator) {
+            this.typingIndicator.style.display = 'block';
+        }
         this.scrollToBottom();
     }
     
     hideTyping() {
-        this.typingIndicator.style.display = 'none';
+        if (this.typingIndicator) {
+            this.typingIndicator.style.display = 'none';
+        }
     }
     
     setLoading(loading) {
         this.isLoading = loading;
-        this.sendButton.disabled = loading;
-        this.input.disabled = loading;
+        if (this.sendButton) {
+            this.sendButton.disabled = loading;
+        }
+        if (this.input) {
+            this.input.disabled = loading;
+        }
         
         // Disable microphone button while loading to prevent starting
         // speech recognition during an active request (tests expect
@@ -421,7 +453,9 @@ class Chatbot {
     }
     
     scrollToBottom() {
-        this.messagesContainer.scrollTop = this.messagesContainer.scrollHeight;
+        if (this.messagesContainer) {
+            this.messagesContainer.scrollTop = this.messagesContainer.scrollHeight;
+        }
     }
     
     async loadConversationHistory() {
@@ -530,7 +564,9 @@ class Chatbot {
         
         try {
             // Clear input field
-            this.input.value = '';
+            if (this.input) {
+                this.input.value = '';
+            }
             this.recognition.start();
         } catch (error) {
             console.error('Error starting speech recognition:', error);
@@ -550,7 +586,9 @@ class Chatbot {
         }
         
         // Set the input value with the transcribed text
-        this.input.value = transcript;
+        if (this.input) {
+            this.input.value = transcript;
+        }
         
         // Automatically send the message
         this.sendMessage();
@@ -628,6 +666,27 @@ class Chatbot {
 
 // Initialize chatbot when DOM is ready
 document.addEventListener('DOMContentLoaded', () => {
-    window.chatbot = new Chatbot();
+    try {
+        // Check if required elements exist before initializing
+        const requiredElements = [
+            'chatbot-toggle',
+            'chatbot-container',
+            'chatbot-messages',
+            'chatbot-input',
+            'chatbot-send'
+        ];
+        
+        const missingElements = requiredElements.filter(id => !document.getElementById(id));
+        
+        if (missingElements.length > 0) {
+            console.warn('Chatbot: Some required elements are missing:', missingElements);
+            console.warn('Chatbot initialization skipped. Make sure all chatbot HTML elements are present.');
+            return;
+        }
+        
+        window.chatbot = new Chatbot();
+    } catch (error) {
+        console.error('Error initializing chatbot:', error);
+    }
 });
 
