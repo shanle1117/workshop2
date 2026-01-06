@@ -4,9 +4,13 @@ import django
 import json
 from pathlib import Path
 import re
+import logging
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
 from typing import Optional, List, Dict, Any
+
+# Shared logger for startup/status messages
+logger = logging.getLogger("faix_chatbot")
 
 # Import semantic search
 try:
@@ -18,7 +22,7 @@ except ImportError:
         SEMANTIC_SEARCH_AVAILABLE = True
     except ImportError:
         SEMANTIC_SEARCH_AVAILABLE = False
-        print("Warning: Semantic search not available. Using TF-IDF fallback.")
+        logger.warning("Semantic search not available. Using TF-IDF fallback.")
 
 # Setup Django if not already configured
 try:
@@ -29,7 +33,7 @@ try:
     from django_app.models import FAQEntry
     DJANGO_AVAILABLE = True
 except Exception as e:
-    print(f"Warning: Django not available, falling back to CSV mode: {e}")
+    logger.warning("Django not available, falling back to CSV mode: %s", e)
     DJANGO_AVAILABLE = False
     import pandas as pd
 
@@ -60,16 +64,19 @@ class KnowledgeBase:
         # Load FAIX JSON data as primary data source
         self.faix_data = self._load_faix_json_data()
         
+        # Load intent-to-data mapping from intent_config.json
+        self.faix_data_mapping = self._load_intent_mapping()
+        
         # Initialize semantic search if available
         if self.use_semantic_search:
             try:
                 self.semantic_search = get_semantic_search()
                 if self.semantic_search.is_available():
-                    print("✓ Semantic search enabled")
+                    logger.info("Semantic search enabled")
                 else:
                     self.use_semantic_search = False
             except Exception as e:
-                print(f"Warning: Could not initialize semantic search: {e}")
+                logger.warning("Could not initialize semantic search: %s", e)
                 self.use_semantic_search = False
         
         if self.use_database:
@@ -83,7 +90,7 @@ class KnowledgeBase:
                 if default_path.exists():
                     self._init_csv(str(default_path))
                 else:
-                    print("Warning: No CSV file found, using FAIX JSON data only")
+                    logger.warning("No CSV file found, using FAIX JSON data only")
                     self.entries = []
                     self.vectorizer = TfidfVectorizer()
                     self.question_vectors = None
@@ -95,10 +102,25 @@ class KnowledgeBase:
             if json_path.exists():
                 with open(json_path, 'r', encoding='utf-8') as f:
                     data = json.load(f)
-                print(f"✓ Loaded FAIX JSON data from {json_path}")
+                logger.info("Loaded FAIX JSON data from %s", json_path.name)
                 return data
         except Exception as e:
-            print(f"Warning: Could not load FAIX JSON data: {e}")
+            logger.warning("Could not load FAIX JSON data: %s", e)
+        return {}
+    
+    def _load_intent_mapping(self) -> Dict[str, List[str]]:
+        """Load intent-to-data mapping from intent_config.json"""
+        try:
+            config_path = Path(__file__).parent.parent / 'data' / 'intent_config.json'
+            if config_path.exists():
+                with open(config_path, 'r', encoding='utf-8') as f:
+                    config = json.load(f)
+                mapping = config.get('faix_data_mapping', {})
+                if mapping:
+                    logger.debug("Loaded intent-to-data mapping from intent_config.json")
+                return mapping
+        except Exception as e:
+            logger.warning("Could not load intent mapping from intent_config.json: %s", e)
         return {}
     
     def get_faix_answer(self, intent: str, user_text: str) -> Optional[str]:
@@ -152,6 +174,8 @@ class KnowledgeBase:
                 if dean:
                     return f"The Dean of FAIX is **{dean}**."
             return self._get_contact_answer(user_lower)
+        elif intent == 'academic_schedule':
+            return self._get_schedule_answer(user_lower)
         
         # Check FAQs in FAIX data
         return self._search_faix_faqs(user_lower)
@@ -394,7 +418,7 @@ class KnowledgeBase:
         user_lower = user_text.lower()
         
         # Check if user is asking specifically about labs
-        lab_keywords = ['lab', 'laboratory', 'laboratories', 'makmal', 'ai lab', 'cybersec', 'cybersecurity lab']
+        lab_keywords = ['lab', 'laboratory', 'laboratories', 'makmal', 'ai lab', 'ai labs', 'cybersec', 'cybersecurity lab', 'where is', 'location']
         is_lab_query = any(kw in user_lower for kw in lab_keywords)
         
         # If booking system link exists, return it directly for booking queries
@@ -498,6 +522,92 @@ class KnowledgeBase:
         
         return None
     
+    def _get_schedule_answer(self, user_text: str) -> Optional[str]:
+        """Get answer about academic schedule/timetable - provides explanation and links"""
+        user_lower = user_text.lower()
+        
+        # Timetable links for different programs
+        TIMETABLE_LINKS = {
+            'baxi': 'https://faix.utem.edu.my/en/academics/academic-resources/timetable/32-baxi-jadualwaktu-sem1-sesi-2025-2026/file.html',
+            'baxz': 'https://faix.utem.edu.my/en/academics/academic-resources/timetable/31-baxz-jadualwaktu-sem1-sesi-2025-2026/file.html',
+            'master': 'https://faix.utem.edu.my/en/academics/academic-resources/timetable/30-jadual-master-sem1-2025-2026-v3-faix/file.html',
+        }
+        
+        # Detect program type from user query
+        detected_program = None
+        if 'baxi' in user_lower and 'baxz' not in user_lower:
+            detected_program = 'baxi'
+        elif 'baxz' in user_lower:
+            detected_program = 'baxz'
+        elif any(kw in user_lower for kw in ['master', 'maxd', 'maxz', 'bridging', 'postgraduate', 'graduate']):
+            detected_program = 'master'
+        
+        # Check if user is asking about timetable/schedule
+        # More comprehensive detection including variations
+        is_schedule_query = any(kw in user_lower for kw in [
+            'timetable', 'schedule', 'jadual', 'class schedule', 'my schedule', 
+            'when is', 'when are', 'time table', 'time-table', 'what is the schedule',
+            'what is schedule', 'show schedule', 'show timetable', 'get schedule',
+            'academic schedule', 'class timetable', 'course schedule'
+        ])
+        
+        # Also check for "what is" + schedule-related words
+        if not is_schedule_query:
+            if 'what is' in user_lower or 'what are' in user_lower:
+                if any(kw in user_lower for kw in ['schedule', 'timetable', 'jadual', 'time']):
+                    is_schedule_query = True
+        
+        if not is_schedule_query:
+            return None
+        
+        # Provide simple explanation and appropriate link(s)
+        if detected_program == 'baxi':
+            response = (
+                "You can find the complete **BAXI (Bachelor of Computer Science - Artificial Intelligence)** "
+                "timetable for Semester 1 Session 2025/2026 on the FAIX website.\n\n"
+                "The timetable includes schedules for all BAXI groups (S1G1, S1G2, S2G1, S2G2, S3G1, S3G2, etc.) "
+                "with detailed class times, rooms, and lecturers.\n\n"
+                f"📅 **View Complete BAXI Timetable:**\n{TIMETABLE_LINKS['baxi']}"
+            )
+            return response
+        
+        elif detected_program == 'baxz':
+            response = (
+                "You can find the complete **BAXZ (Bachelor of Computer Science - Cybersecurity)** "
+                "timetable for Semester 1 Session 2025/2026 on the FAIX website.\n\n"
+                "The timetable includes schedules for all BAXZ groups (S1G1, S1G2, S2G1, S2G2, S3G1, etc.) "
+                "with detailed class times, rooms, and lecturers.\n\n"
+                f"📅 **View Complete BAXZ Timetable:**\n{TIMETABLE_LINKS['baxz']}"
+            )
+            return response
+        
+        elif detected_program == 'master':
+            response = (
+                "You can find the complete **Master Program** timetable for Semester 1 Session 2025/2026 on the FAIX website.\n\n"
+                "The timetable includes schedules for:\n"
+                "- MAXD (Master of Artificial Intelligence) - Full Time and Part Time\n"
+                "- MAXZ (Master of Cybersecurity) - Full Time and Part Time\n"
+                "- BRIDGING Program\n\n"
+                f"📅 **View Complete Master Program Timetable:**\n{TIMETABLE_LINKS['master']}"
+            )
+            return response
+        
+        else:
+            # General schedule query - provide all links
+            response = (
+                "You can find the complete academic timetables for Semester 1 Session 2025/2026 on the FAIX website.\n\n"
+                "**Available Timetables:**\n\n"
+                "📅 **BAXI (Bachelor of Computer Science - Artificial Intelligence)**\n"
+                f"{TIMETABLE_LINKS['baxi']}\n\n"
+                "📅 **BAXZ (Bachelor of Computer Science - Cybersecurity)**\n"
+                f"{TIMETABLE_LINKS['baxz']}\n\n"
+                "📅 **Master Programs (MAXD, MAXZ, BRIDGING)**\n"
+                f"{TIMETABLE_LINKS['master']}\n\n"
+                "Each timetable includes detailed schedules with class times, rooms, lecturers, and course information "
+                "for all groups and programs."
+            )
+            return response
+    
     def _search_faix_faqs(self, user_text: str) -> Optional[str]:
         """Search through FAQs in FAIX data"""
         faqs = self.faix_data.get('faqs', [])
@@ -523,14 +633,14 @@ class KnowledgeBase:
     
     def _init_database(self):
         """Initialize database-backed knowledge base"""
-        print("Initializing Knowledge Base from database...")
+        logger.info("Initializing FAQ knowledge base from database")
         
         try:
             # Load all FAQ entries from database
             entries = FAQEntry.objects.filter(is_active=True)
             
             if not entries.exists():
-                print("Warning: No FAQ entries found in database. Consider running migration script.")
+                logger.warning("No FAQ entries found in database. Consider running migration script.")
                 self.entries = []
                 self.vectorizer = TfidfVectorizer()
                 self.question_vectors = None
@@ -538,10 +648,10 @@ class KnowledgeBase:
         except Exception as e:
             # Handle case where table doesn't exist yet (migrations not run)
             if 'no such table' in str(e).lower() or 'does not exist' in str(e).lower():
-                print(f"Warning: Database table not found. This is normal before running migrations. Error: {e}")
-                print("Initializing with empty entries. Run migrations and migrate data to populate.")
+                logger.warning("Database table for FAQ entries not found yet. This is normal before running migrations. Error: %s", e)
+                logger.info("Initializing knowledge base with empty entries. Run migrations to populate FAQs.")
             else:
-                print(f"Warning: Database error during initialization: {e}")
+                logger.warning("Database error during knowledge base initialization: %s", e)
             self.entries = []
             self.vectorizer = TfidfVectorizer()
             self.question_vectors = None

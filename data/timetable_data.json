@@ -1,0 +1,1742 @@
+[
+  {
+    "title": "BRIDGING FULL TIME / PART TIME - Semester 1 2025/2026",
+    "description": "Courses: BITP 1323 - DATABASE, BITP 1113 - PROGRAMMING TECHNIQUE",
+    "time": "Semester 1 2025/2026",
+    "group": "BRIDGING FULL TIME / PART TIME",
+    "semester": "1",
+    "academic_year": "2025/2026",
+    "schedule": "Timetable for BRIDGING FULL TIME / PART TIME - Semester 1 2025/2026\n\n",
+    "courses": [
+      "BITP 1323 - DATABASE",
+      "BITP 1113 - PROGRAMMING TECHNIQUE"
+    ],
+    "raw": {
+      "group": "BRIDGING FULL TIME / PART TIME",
+      "semester": "1",
+      "academic_year": "2025/2026",
+      "schedule": {},
+      "courses": [
+        "BITP 1323 - DATABASE",
+        "BITP 1113 - PROGRAMMING TECHNIQUE"
+      ],
+      "format": "time-based"
+    }
+  },
+  {
+    "title": "MAXD-FULL TIME (NEW STUDENT Y1S1) - Semester 1 2025/2026",
+    "description": "Schedule: Monday: MAXD 5113 (6pm-10pm Online), MAXD 5113 (6pm-10pm Online), MAXD 5123 (6pm-10pm Online) | 6pm-10pm Online: MAXD 5113 (Time), MAXD 5123 (Time), MAXD 5123 (Time) | MPSW 5013 Research Methodology (Refer IPTK Timetable): MPSW 5063 (Time), MAXD 5113 (Time), MAXD 5123 (Time) | 8am-6pm Physical Class (MKP1): MAXD 5123 (Time), MAXD 5113 (Time), MAXD 5133 (Time)",
+    "time": "Semester 1 2025/2026",
+    "group": "MAXD-FULL TIME (NEW STUDENT Y1S1)",
+    "semester": "1",
+    "academic_year": "2025/2026",
+    "schedule": "Timetable for MAXD-FULL TIME (NEW STUDENT Y1S1) - Semester 1 2025/2026\n\nMonday:\n  Time: 6pm-10pm Online\n    - MAXD 5113 Week 1 (MAXD 5113)\n    - MAXD 5113 Week 2 (MAXD 5113)\n    - MAXD 5123 Week 3 (MAXD 5123)\n    - MAXD 5123 Week 4 (MAXD 5123)\n    - MPSW 5013 Week 5 Room: Refer IPTK Timetable (MPSW 5013 Research Methodology (Refer IPTK Timetable))\n    - MPSW 5063 Week 9 Room: Refer IPTK Timetable (MPSW 5063 Entrepreneurship (Refer IPTK Timetable))\n    - MAXD 5133 Week 12 (MAXD 5133)\n    - MAXD 5133 Week 13 (MAXD 5133)\n    - MAXD 5143 Week 14 (MAXD 5143)\n    - MAXD 5143 Week 15 (MAXD 5143)\n\n6pm-10pm Online:\n  Time: Time\n    - MAXD 5113 Week 1 (MAXD 5113)\n    - MAXD 5123 Week 2 (MAXD 5123)\n    - MAXD 5123 Week 3 (MAXD 5123)\n    - MPSW 5013 Week 4 Room: Refer IPTK Timetable (MPSW 5013 Research Methodology (Refer IPTK Timetable))\n    - MPSW 5063 Week 6 Room: Refer IPTK Timetable (MPSW 5063 Entrepreneurship (Refer IPTK Timetable))\n    - MAXD 5133 Week 7 (MAXD 5133)\n    - MAXD 5133 Week 8 (MAXD 5133)\n    - MAXD 5143 Week 9 (MAXD 5143)\n    - MAXD 5143 Week 10 (MAXD 5143)\n\nMPSW 5013 Research Methodology (Refer IPTK Timetable):\n  Time: Time\n    - MPSW 5063 Week 1 Room: Refer IPTK Timetable (MPSW 5063 Entrepreneurship (Refer IPTK Timetable))\n    - MAXD 5113 Week 7 (MAXD 5113)\n    - MAXD 5123 Week 9 (MAXD 5123)\n    - MAXD 5133 Week 10 (MAXD 5133)\n    - MAXD 5143 Week 12 (MAXD 5143)\n\n8am-6pm Physical Class (MKP1):\n  Time: Time\n    - MAXD 5123 Week 1 (MAXD 5123)\n    - MAXD 5113 Week 4 (MAXD 5113)\n    - MAXD 5133 Week 5 (MAXD 5133)\n    - MAXD 5143 Week 6 (MAXD 5143)\n\n",
+    "courses": [
+      {
+        "course_code": "MAXD 5123",
+        "week": 1,
+        "week_label": "W1",
+        "room": "",
+        "full_text": "MAXD 5123",
+        "time": "Time",
+        "format": "week-based"
+      },
+      {
+        "course_code": "MAXD 5113",
+        "week": 4,
+        "week_label": "W4",
+        "room": "",
+        "full_text": "MAXD 5113",
+        "time": "Time",
+        "format": "week-based"
+      },
+      {
+        "course_code": "MAXD 5133",
+        "week": 5,
+        "week_label": "W5",
+        "room": "",
+        "full_text": "MAXD 5133",
+        "time": "Time",
+        "format": "week-based"
+      },
+      {
+        "course_code": "MAXD 5143",
+        "week": 6,
+        "week_label": "W6",
+        "room": "",
+        "full_text": "MAXD 5143",
+        "time": "Time",
+        "format": "week-based"
+      }
+    ],
+    "raw": {
+      "group": "MAXD-FULL TIME (NEW STUDENT Y1S1)",
+      "schedule": {
+        "Monday": [
+          {
+            "course_code": "MAXD 5113",
+            "week": 1,
+            "week_label": "W1",
+            "room": "",
+            "full_text": "MAXD 5113",
+            "time": "6pm-10pm Online",
+            "format": "week-based"
+          },
+          {
+            "course_code": "MAXD 5113",
+            "week": 2,
+            "week_label": "W2",
+            "room": "",
+            "full_text": "MAXD 5113",
+            "time": "6pm-10pm Online",
+            "format": "week-based"
+          },
+          {
+            "course_code": "MAXD 5123",
+            "week": 3,
+            "week_label": "W3",
+            "room": "",
+            "full_text": "MAXD 5123",
+            "time": "6pm-10pm Online",
+            "format": "week-based"
+          },
+          {
+            "course_code": "MAXD 5123",
+            "week": 4,
+            "week_label": "W4",
+            "room": "",
+            "full_text": "MAXD 5123",
+            "time": "6pm-10pm Online",
+            "format": "week-based"
+          },
+          {
+            "course_code": "MPSW 5013",
+            "week": 5,
+            "week_label": "W5",
+            "room": "Refer IPTK Timetable",
+            "full_text": "MPSW 5013 Research Methodology (Refer IPTK Timetable)",
+            "time": "6pm-10pm Online",
+            "format": "week-based"
+          },
+          {
+            "course_code": "MPSW 5063",
+            "week": 9,
+            "week_label": "W9",
+            "room": "Refer IPTK Timetable",
+            "full_text": "MPSW 5063 Entrepreneurship (Refer IPTK Timetable)",
+            "time": "6pm-10pm Online",
+            "format": "week-based"
+          },
+          {
+            "course_code": "MAXD 5133",
+            "week": 12,
+            "week_label": "W12",
+            "room": "",
+            "full_text": "MAXD 5133",
+            "time": "6pm-10pm Online",
+            "format": "week-based"
+          },
+          {
+            "course_code": "MAXD 5133",
+            "week": 13,
+            "week_label": "W13",
+            "room": "",
+            "full_text": "MAXD 5133",
+            "time": "6pm-10pm Online",
+            "format": "week-based"
+          },
+          {
+            "course_code": "MAXD 5143",
+            "week": 14,
+            "week_label": "W14",
+            "room": "",
+            "full_text": "MAXD 5143",
+            "time": "6pm-10pm Online",
+            "format": "week-based"
+          },
+          {
+            "course_code": "MAXD 5143",
+            "week": 15,
+            "week_label": "W15",
+            "room": "",
+            "full_text": "MAXD 5143",
+            "time": "6pm-10pm Online",
+            "format": "week-based"
+          }
+        ],
+        "6pm-10pm Online": [
+          {
+            "course_code": "MAXD 5113",
+            "week": 1,
+            "week_label": "W1",
+            "room": "",
+            "full_text": "MAXD 5113",
+            "time": "Time",
+            "format": "week-based"
+          },
+          {
+            "course_code": "MAXD 5123",
+            "week": 2,
+            "week_label": "W2",
+            "room": "",
+            "full_text": "MAXD 5123",
+            "time": "Time",
+            "format": "week-based"
+          },
+          {
+            "course_code": "MAXD 5123",
+            "week": 3,
+            "week_label": "W3",
+            "room": "",
+            "full_text": "MAXD 5123",
+            "time": "Time",
+            "format": "week-based"
+          },
+          {
+            "course_code": "MPSW 5013",
+            "week": 4,
+            "week_label": "W4",
+            "room": "Refer IPTK Timetable",
+            "full_text": "MPSW 5013 Research Methodology (Refer IPTK Timetable)",
+            "time": "Time",
+            "format": "week-based"
+          },
+          {
+            "course_code": "MPSW 5063",
+            "week": 6,
+            "week_label": "W6",
+            "room": "Refer IPTK Timetable",
+            "full_text": "MPSW 5063 Entrepreneurship (Refer IPTK Timetable)",
+            "time": "Time",
+            "format": "week-based"
+          },
+          {
+            "course_code": "MAXD 5133",
+            "week": 7,
+            "week_label": "W7",
+            "room": "",
+            "full_text": "MAXD 5133",
+            "time": "Time",
+            "format": "week-based"
+          },
+          {
+            "course_code": "MAXD 5133",
+            "week": 8,
+            "week_label": "W8",
+            "room": "",
+            "full_text": "MAXD 5133",
+            "time": "Time",
+            "format": "week-based"
+          },
+          {
+            "course_code": "MAXD 5143",
+            "week": 9,
+            "week_label": "W9",
+            "room": "",
+            "full_text": "MAXD 5143",
+            "time": "Time",
+            "format": "week-based"
+          },
+          {
+            "course_code": "MAXD 5143",
+            "week": 10,
+            "week_label": "W10",
+            "room": "",
+            "full_text": "MAXD 5143",
+            "time": "Time",
+            "format": "week-based"
+          }
+        ],
+        "MPSW 5013 Research Methodology (Refer IPTK Timetable)": [
+          {
+            "course_code": "MPSW 5063",
+            "week": 1,
+            "week_label": "W1",
+            "room": "Refer IPTK Timetable",
+            "full_text": "MPSW 5063 Entrepreneurship (Refer IPTK Timetable)",
+            "time": "Time",
+            "format": "week-based"
+          },
+          {
+            "course_code": "MAXD 5113",
+            "week": 7,
+            "week_label": "W7",
+            "room": "",
+            "full_text": "MAXD 5113",
+            "time": "Time",
+            "format": "week-based"
+          },
+          {
+            "course_code": "MAXD 5123",
+            "week": 9,
+            "week_label": "W9",
+            "room": "",
+            "full_text": "MAXD 5123",
+            "time": "Time",
+            "format": "week-based"
+          },
+          {
+            "course_code": "MAXD 5133",
+            "week": 10,
+            "week_label": "W10",
+            "room": "",
+            "full_text": "MAXD 5133",
+            "time": "Time",
+            "format": "week-based"
+          },
+          {
+            "course_code": "MAXD 5143",
+            "week": 12,
+            "week_label": "W12",
+            "room": "",
+            "full_text": "MAXD 5143",
+            "time": "Time",
+            "format": "week-based"
+          }
+        ],
+        "8am-6pm Physical Class (MKP1)": [
+          {
+            "course_code": "MAXD 5123",
+            "week": 1,
+            "week_label": "W1",
+            "room": "",
+            "full_text": "MAXD 5123",
+            "time": "Time",
+            "format": "week-based"
+          },
+          {
+            "course_code": "MAXD 5113",
+            "week": 4,
+            "week_label": "W4",
+            "room": "",
+            "full_text": "MAXD 5113",
+            "time": "Time",
+            "format": "week-based"
+          },
+          {
+            "course_code": "MAXD 5133",
+            "week": 5,
+            "week_label": "W5",
+            "room": "",
+            "full_text": "MAXD 5133",
+            "time": "Time",
+            "format": "week-based"
+          },
+          {
+            "course_code": "MAXD 5143",
+            "week": 6,
+            "week_label": "W6",
+            "room": "",
+            "full_text": "MAXD 5143",
+            "time": "Time",
+            "format": "week-based"
+          }
+        ]
+      },
+      "format": "week-based",
+      "weeks": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14,
+        15,
+        16,
+        17,
+        18
+      ],
+      "semester": "1",
+      "academic_year": "2025/2026",
+      "courses": []
+    }
+  },
+  {
+    "title": "MAXD 5123 - MAXD 5123",
+    "description": "Course schedule for MAXD 5123 in MAXD-FULL TIME (NEW STUDENT Y1S1)",
+    "time": "Semester 1 2025/2026",
+    "group": "MAXD-FULL TIME (NEW STUDENT Y1S1)",
+    "course_code": "MAXD 5123",
+    "schedule": "Monday 6pm-10pm Online Week 3 - \nMonday 6pm-10pm Online Week 4 - \n6pm-10pm Online Time Week 2 - \n6pm-10pm Online Time Week 3 - \nMPSW 5013 Research Methodology (Refer IPTK Timetable) Time Week 9 - \n8am-6pm Physical Class (MKP1) Time Week 1 - ",
+    "raw": {
+      "course_code": "MAXD 5123",
+      "group": "MAXD-FULL TIME (NEW STUDENT Y1S1)",
+      "schedule": [
+        "Monday 6pm-10pm Online Week 3 - ",
+        "Monday 6pm-10pm Online Week 4 - ",
+        "6pm-10pm Online Time Week 2 - ",
+        "6pm-10pm Online Time Week 3 - ",
+        "MPSW 5013 Research Methodology (Refer IPTK Timetable) Time Week 9 - ",
+        "8am-6pm Physical Class (MKP1) Time Week 1 - "
+      ]
+    }
+  },
+  {
+    "title": "MAXD 5113 - MAXD 5113",
+    "description": "Course schedule for MAXD 5113 in MAXD-FULL TIME (NEW STUDENT Y1S1)",
+    "time": "Semester 1 2025/2026",
+    "group": "MAXD-FULL TIME (NEW STUDENT Y1S1)",
+    "course_code": "MAXD 5113",
+    "schedule": "Monday 6pm-10pm Online Week 1 - \nMonday 6pm-10pm Online Week 2 - \n6pm-10pm Online Time Week 1 - \nMPSW 5013 Research Methodology (Refer IPTK Timetable) Time Week 7 - \n8am-6pm Physical Class (MKP1) Time Week 4 - ",
+    "raw": {
+      "course_code": "MAXD 5113",
+      "group": "MAXD-FULL TIME (NEW STUDENT Y1S1)",
+      "schedule": [
+        "Monday 6pm-10pm Online Week 1 - ",
+        "Monday 6pm-10pm Online Week 2 - ",
+        "6pm-10pm Online Time Week 1 - ",
+        "MPSW 5013 Research Methodology (Refer IPTK Timetable) Time Week 7 - ",
+        "8am-6pm Physical Class (MKP1) Time Week 4 - "
+      ]
+    }
+  },
+  {
+    "title": "MAXD 5133 - MAXD 5133",
+    "description": "Course schedule for MAXD 5133 in MAXD-FULL TIME (NEW STUDENT Y1S1)",
+    "time": "Semester 1 2025/2026",
+    "group": "MAXD-FULL TIME (NEW STUDENT Y1S1)",
+    "course_code": "MAXD 5133",
+    "schedule": "Monday 6pm-10pm Online Week 12 - \nMonday 6pm-10pm Online Week 13 - \n6pm-10pm Online Time Week 7 - \n6pm-10pm Online Time Week 8 - \nMPSW 5013 Research Methodology (Refer IPTK Timetable) Time Week 10 - \n8am-6pm Physical Class (MKP1) Time Week 5 - ",
+    "raw": {
+      "course_code": "MAXD 5133",
+      "group": "MAXD-FULL TIME (NEW STUDENT Y1S1)",
+      "schedule": [
+        "Monday 6pm-10pm Online Week 12 - ",
+        "Monday 6pm-10pm Online Week 13 - ",
+        "6pm-10pm Online Time Week 7 - ",
+        "6pm-10pm Online Time Week 8 - ",
+        "MPSW 5013 Research Methodology (Refer IPTK Timetable) Time Week 10 - ",
+        "8am-6pm Physical Class (MKP1) Time Week 5 - "
+      ]
+    }
+  },
+  {
+    "title": "MAXD 5143 - MAXD 5143",
+    "description": "Course schedule for MAXD 5143 in MAXD-FULL TIME (NEW STUDENT Y1S1)",
+    "time": "Semester 1 2025/2026",
+    "group": "MAXD-FULL TIME (NEW STUDENT Y1S1)",
+    "course_code": "MAXD 5143",
+    "schedule": "Monday 6pm-10pm Online Week 14 - \nMonday 6pm-10pm Online Week 15 - \n6pm-10pm Online Time Week 9 - \n6pm-10pm Online Time Week 10 - \nMPSW 5013 Research Methodology (Refer IPTK Timetable) Time Week 12 - \n8am-6pm Physical Class (MKP1) Time Week 6 - ",
+    "raw": {
+      "course_code": "MAXD 5143",
+      "group": "MAXD-FULL TIME (NEW STUDENT Y1S1)",
+      "schedule": [
+        "Monday 6pm-10pm Online Week 14 - ",
+        "Monday 6pm-10pm Online Week 15 - ",
+        "6pm-10pm Online Time Week 9 - ",
+        "6pm-10pm Online Time Week 10 - ",
+        "MPSW 5013 Research Methodology (Refer IPTK Timetable) Time Week 12 - ",
+        "8am-6pm Physical Class (MKP1) Time Week 6 - "
+      ]
+    }
+  },
+  {
+    "title": "MAXD -PART TIME (NEW STUDENT Y1S1) - Semester 1 2025/2026",
+    "description": "Courses: MAXD 5113 - FUNDAMENTALS OF DATA SCIENCE\nSharifah Sakinah binti Syed Ahmad, PM. Dr.(P), Azah Kamilah binti Muda, Prof. Dr., Zeratul Izzah binti Mohd Yusoh, PM Dr., MAXD 5123 - BIG DATA MANAGEMENT\nNgo Hea Choon, Dr. (P), Farhan Khan, Dr., MAXD 5133 - APPLIED STATISTICAL METHODS\nFauziah binti Kasmin, Dr.(P), Sek Yong Wee, Dr., Hannan Adeel, Dr., MAXD 5143 - APPLIED MACHINE LEARNING\nNoor Fazilla binti Abd. Yusof, Dr. (P), Muhammad Noorazlan Shah bin Zainudin, Dr., MPSW 5063 - ENTREPRENEURSHIP (REFER IPTK TIMETABLE), MPSW 5013 - RESEARCH METHODOLOGY (REFER IPTK TIMETABLE) | Schedule: Monday: MAXD 5113 (6pm-10pm Online), MAXD 5113 (6pm-10pm Online), MPSW 5013 (6pm-10pm Online) | 6pm-10pm Online: MAXD 5113 (Time), MPSW 5013 (Time), MAXD 5133 (Time) | MPSW 5013 Research Methodology (Refer IPTK Timetable): MAXD 5113 (Time), MAXD 5133 (Time)",
+    "time": "Semester 1 2025/2026",
+    "group": "MAXD -PART TIME (NEW STUDENT Y1S1)",
+    "semester": "1",
+    "academic_year": "2025/2026",
+    "schedule": "Timetable for MAXD -PART TIME (NEW STUDENT Y1S1) - Semester 1 2025/2026\n\nMonday:\n  Time: 6pm-10pm Online\n    - MAXD 5113 Week 1 (MAXD 5113)\n    - MAXD 5113 Week 2 (MAXD 5113)\n    - MPSW 5013 Week 5 Room: Refer IPTK Timetable (MPSW 5013 Research Methodology (Refer IPTK Timetable))\n    - MAXD 5133 Week 12 (MAXD 5133)\n    - MAXD 5133 Week 13 (MAXD 5133)\n\n6pm-10pm Online:\n  Time: Time\n    - MAXD 5113 Week 1 (MAXD 5113)\n    - MPSW 5013 Week 2 Room: Refer IPTK Timetable (MPSW 5013 Research Methodology (Refer IPTK Timetable))\n    - MAXD 5133 Week 4 (MAXD 5133)\n    - MAXD 5133 Week 5 (MAXD 5133)\n\nMPSW 5013 Research Methodology (Refer IPTK Timetable):\n  Time: Time\n    - MAXD 5113 Week 4 (MAXD 5113)\n    - MAXD 5133 Week 5 (MAXD 5133)\n\n",
+    "courses": [
+      {
+        "course_code": "MAXD 5113",
+        "week": 4,
+        "week_label": "W4",
+        "room": "",
+        "full_text": "MAXD 5113",
+        "time": "Time",
+        "format": "week-based"
+      },
+      {
+        "course_code": "MAXD 5133",
+        "week": 5,
+        "week_label": "W5",
+        "room": "",
+        "full_text": "MAXD 5133",
+        "time": "Time",
+        "format": "week-based"
+      }
+    ],
+    "raw": {
+      "group": "MAXD -PART TIME (NEW STUDENT Y1S1)",
+      "schedule": {
+        "Monday": [
+          {
+            "course_code": "MAXD 5113",
+            "week": 1,
+            "week_label": "W1",
+            "room": "",
+            "full_text": "MAXD 5113",
+            "time": "6pm-10pm Online",
+            "format": "week-based"
+          },
+          {
+            "course_code": "MAXD 5113",
+            "week": 2,
+            "week_label": "W2",
+            "room": "",
+            "full_text": "MAXD 5113",
+            "time": "6pm-10pm Online",
+            "format": "week-based"
+          },
+          {
+            "course_code": "MPSW 5013",
+            "week": 5,
+            "week_label": "W5",
+            "room": "Refer IPTK Timetable",
+            "full_text": "MPSW 5013 Research Methodology (Refer IPTK Timetable)",
+            "time": "6pm-10pm Online",
+            "format": "week-based"
+          },
+          {
+            "course_code": "MAXD 5133",
+            "week": 12,
+            "week_label": "W12",
+            "room": "",
+            "full_text": "MAXD 5133",
+            "time": "6pm-10pm Online",
+            "format": "week-based"
+          },
+          {
+            "course_code": "MAXD 5133",
+            "week": 13,
+            "week_label": "W13",
+            "room": "",
+            "full_text": "MAXD 5133",
+            "time": "6pm-10pm Online",
+            "format": "week-based"
+          }
+        ],
+        "6pm-10pm Online": [
+          {
+            "course_code": "MAXD 5113",
+            "week": 1,
+            "week_label": "W1",
+            "room": "",
+            "full_text": "MAXD 5113",
+            "time": "Time",
+            "format": "week-based"
+          },
+          {
+            "course_code": "MPSW 5013",
+            "week": 2,
+            "week_label": "W2",
+            "room": "Refer IPTK Timetable",
+            "full_text": "MPSW 5013 Research Methodology (Refer IPTK Timetable)",
+            "time": "Time",
+            "format": "week-based"
+          },
+          {
+            "course_code": "MAXD 5133",
+            "week": 4,
+            "week_label": "W4",
+            "room": "",
+            "full_text": "MAXD 5133",
+            "time": "Time",
+            "format": "week-based"
+          },
+          {
+            "course_code": "MAXD 5133",
+            "week": 5,
+            "week_label": "W5",
+            "room": "",
+            "full_text": "MAXD 5133",
+            "time": "Time",
+            "format": "week-based"
+          }
+        ],
+        "MPSW 5013 Research Methodology (Refer IPTK Timetable)": [
+          {
+            "course_code": "MAXD 5113",
+            "week": 4,
+            "week_label": "W4",
+            "room": "",
+            "full_text": "MAXD 5113",
+            "time": "Time",
+            "format": "week-based"
+          },
+          {
+            "course_code": "MAXD 5133",
+            "week": 5,
+            "week_label": "W5",
+            "room": "",
+            "full_text": "MAXD 5133",
+            "time": "Time",
+            "format": "week-based"
+          }
+        ]
+      },
+      "format": "week-based",
+      "weeks": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14,
+        15,
+        16,
+        17,
+        18
+      ],
+      "semester": "1",
+      "academic_year": "2025/2026",
+      "courses": [
+        "MAXD 5113 - FUNDAMENTALS OF DATA SCIENCE\nSharifah Sakinah binti Syed Ahmad, PM. Dr.(P), Azah Kamilah binti Muda, Prof. Dr., Zeratul Izzah binti Mohd Yusoh, PM Dr.",
+        "MAXD 5123 - BIG DATA MANAGEMENT\nNgo Hea Choon, Dr. (P), Farhan Khan, Dr.",
+        "MAXD 5133 - APPLIED STATISTICAL METHODS\nFauziah binti Kasmin, Dr.(P), Sek Yong Wee, Dr., Hannan Adeel, Dr.",
+        "MAXD 5143 - APPLIED MACHINE LEARNING\nNoor Fazilla binti Abd. Yusof, Dr. (P), Muhammad Noorazlan Shah bin Zainudin, Dr.",
+        "MPSW 5063 - ENTREPRENEURSHIP (REFER IPTK TIMETABLE)",
+        "MPSW 5013 - RESEARCH METHODOLOGY (REFER IPTK TIMETABLE)"
+      ]
+    }
+  },
+  {
+    "title": "MAXD 5113 - MAXD 5113",
+    "description": "Course schedule for MAXD 5113 in MAXD -PART TIME (NEW STUDENT Y1S1)",
+    "time": "Semester 1 2025/2026",
+    "group": "MAXD -PART TIME (NEW STUDENT Y1S1)",
+    "course_code": "MAXD 5113",
+    "schedule": "Monday 6pm-10pm Online Week 1 - \nMonday 6pm-10pm Online Week 2 - \n6pm-10pm Online Time Week 1 - \nMPSW 5013 Research Methodology (Refer IPTK Timetable) Time Week 4 - ",
+    "raw": {
+      "course_code": "MAXD 5113",
+      "group": "MAXD -PART TIME (NEW STUDENT Y1S1)",
+      "schedule": [
+        "Monday 6pm-10pm Online Week 1 - ",
+        "Monday 6pm-10pm Online Week 2 - ",
+        "6pm-10pm Online Time Week 1 - ",
+        "MPSW 5013 Research Methodology (Refer IPTK Timetable) Time Week 4 - "
+      ]
+    }
+  },
+  {
+    "title": "MAXD 5133 - MAXD 5133",
+    "description": "Course schedule for MAXD 5133 in MAXD -PART TIME (NEW STUDENT Y1S1)",
+    "time": "Semester 1 2025/2026",
+    "group": "MAXD -PART TIME (NEW STUDENT Y1S1)",
+    "course_code": "MAXD 5133",
+    "schedule": "Monday 6pm-10pm Online Week 12 - \nMonday 6pm-10pm Online Week 13 - \n6pm-10pm Online Time Week 4 - \n6pm-10pm Online Time Week 5 - \nMPSW 5013 Research Methodology (Refer IPTK Timetable) Time Week 5 - ",
+    "raw": {
+      "course_code": "MAXD 5133",
+      "group": "MAXD -PART TIME (NEW STUDENT Y1S1)",
+      "schedule": [
+        "Monday 6pm-10pm Online Week 12 - ",
+        "Monday 6pm-10pm Online Week 13 - ",
+        "6pm-10pm Online Time Week 4 - ",
+        "6pm-10pm Online Time Week 5 - ",
+        "MPSW 5013 Research Methodology (Refer IPTK Timetable) Time Week 5 - "
+      ]
+    }
+  },
+  {
+    "title": "MAXD-FULL TIME (SENIOR STUDENT Y1S3) - Semester 1 2025/2026",
+    "description": "Schedule: Monday: MAXD 5163 (6pm-10pm Online), MAXD 5163 (6pm-10pm Online), MPSW 5063 (6pm-10pm Online) | 6pm-10pm Online: MAXD 5163 (Time), MAXD 5163 (Time), MPSW 5063 (Time) | Mid Sem Break: MAXD 5163 (Time), MAXD 5233 (Time) | MAXD 5163: MAXD 5233 (Time)",
+    "time": "Semester 1 2025/2026",
+    "group": "MAXD-FULL TIME (SENIOR STUDENT Y1S3)",
+    "semester": "1",
+    "academic_year": "2025/2026",
+    "schedule": "Timetable for MAXD-FULL TIME (SENIOR STUDENT Y1S3) - Semester 1 2025/2026\n\nMonday:\n  Time: 6pm-10pm Online\n    - MAXD 5163 Week 3 (MAXD 5163)\n    - MAXD 5163 Week 4 (MAXD 5163)\n    - MPSW 5063 Week 9 Room: Refer IPTK Timetable (MPSW 5063 Entrepreneurship (Refer IPTK Timetable))\n    - MAXD 5233 Week 12 (MAXD 5233)\n    - MAXD 5233 Week 13 (MAXD 5233)\n\n6pm-10pm Online:\n  Time: Time\n    - MAXD 5163 Week 2 (MAXD 5163)\n    - MAXD 5163 Week 3 (MAXD 5163)\n    - MPSW 5063 Week 8 Room: Refer IPTK Timetable (MPSW 5063 Entrepreneurship (Refer IPTK Timetable))\n    - MAXD 5233 Week 9 (MAXD 5233)\n    - MAXD 5233 Week 10 (MAXD 5233)\n\nMid Sem Break:\n  Time: Time\n    - MAXD 5163 Week 8 (MAXD 5163)\n    - MAXD 5233 Week 12 (MAXD 5233)\n\nMAXD 5163:\n  Time: Time\n    - MAXD 5233 Week 4 (MAXD 5233)\n\n",
+    "courses": [
+      {
+        "course_code": "MAXD 5233",
+        "week": 4,
+        "week_label": "W4",
+        "room": "",
+        "full_text": "MAXD 5233",
+        "time": "Time",
+        "format": "week-based"
+      }
+    ],
+    "raw": {
+      "group": "MAXD-FULL TIME (SENIOR STUDENT Y1S3)",
+      "schedule": {
+        "Monday": [
+          {
+            "course_code": "MAXD 5163",
+            "week": 3,
+            "week_label": "W3",
+            "room": "",
+            "full_text": "MAXD 5163",
+            "time": "6pm-10pm Online",
+            "format": "week-based"
+          },
+          {
+            "course_code": "MAXD 5163",
+            "week": 4,
+            "week_label": "W4",
+            "room": "",
+            "full_text": "MAXD 5163",
+            "time": "6pm-10pm Online",
+            "format": "week-based"
+          },
+          {
+            "course_code": "MPSW 5063",
+            "week": 9,
+            "week_label": "W9",
+            "room": "Refer IPTK Timetable",
+            "full_text": "MPSW 5063 Entrepreneurship (Refer IPTK Timetable)",
+            "time": "6pm-10pm Online",
+            "format": "week-based"
+          },
+          {
+            "course_code": "MAXD 5233",
+            "week": 12,
+            "week_label": "W12",
+            "room": "",
+            "full_text": "MAXD 5233",
+            "time": "6pm-10pm Online",
+            "format": "week-based"
+          },
+          {
+            "course_code": "MAXD 5233",
+            "week": 13,
+            "week_label": "W13",
+            "room": "",
+            "full_text": "MAXD 5233",
+            "time": "6pm-10pm Online",
+            "format": "week-based"
+          }
+        ],
+        "6pm-10pm Online": [
+          {
+            "course_code": "MAXD 5163",
+            "week": 2,
+            "week_label": "W2",
+            "room": "",
+            "full_text": "MAXD 5163",
+            "time": "Time",
+            "format": "week-based"
+          },
+          {
+            "course_code": "MAXD 5163",
+            "week": 3,
+            "week_label": "W3",
+            "room": "",
+            "full_text": "MAXD 5163",
+            "time": "Time",
+            "format": "week-based"
+          },
+          {
+            "course_code": "MPSW 5063",
+            "week": 8,
+            "week_label": "W8",
+            "room": "Refer IPTK Timetable",
+            "full_text": "MPSW 5063 Entrepreneurship (Refer IPTK Timetable)",
+            "time": "Time",
+            "format": "week-based"
+          },
+          {
+            "course_code": "MAXD 5233",
+            "week": 9,
+            "week_label": "W9",
+            "room": "",
+            "full_text": "MAXD 5233",
+            "time": "Time",
+            "format": "week-based"
+          },
+          {
+            "course_code": "MAXD 5233",
+            "week": 10,
+            "week_label": "W10",
+            "room": "",
+            "full_text": "MAXD 5233",
+            "time": "Time",
+            "format": "week-based"
+          }
+        ],
+        "Mid Sem Break": [
+          {
+            "course_code": "MAXD 5163",
+            "week": 8,
+            "week_label": "W8",
+            "room": "",
+            "full_text": "MAXD 5163",
+            "time": "Time",
+            "format": "week-based"
+          },
+          {
+            "course_code": "MAXD 5233",
+            "week": 12,
+            "week_label": "W12",
+            "room": "",
+            "full_text": "MAXD 5233",
+            "time": "Time",
+            "format": "week-based"
+          }
+        ],
+        "MAXD 5163": [
+          {
+            "course_code": "MAXD 5233",
+            "week": 4,
+            "week_label": "W4",
+            "room": "",
+            "full_text": "MAXD 5233",
+            "time": "Time",
+            "format": "week-based"
+          }
+        ]
+      },
+      "format": "week-based",
+      "weeks": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14,
+        15,
+        16,
+        17,
+        18
+      ],
+      "semester": "1",
+      "academic_year": "2025/2026",
+      "courses": []
+    }
+  },
+  {
+    "title": "MAXD 5233 - MAXD 5233",
+    "description": "Course schedule for MAXD 5233 in MAXD-FULL TIME (SENIOR STUDENT Y1S3)",
+    "time": "Semester 1 2025/2026",
+    "group": "MAXD-FULL TIME (SENIOR STUDENT Y1S3)",
+    "course_code": "MAXD 5233",
+    "schedule": "Monday 6pm-10pm Online Week 12 - \nMonday 6pm-10pm Online Week 13 - \n6pm-10pm Online Time Week 9 - \n6pm-10pm Online Time Week 10 - \nMid Sem Break Time Week 12 - \nMAXD 5163 Time Week 4 - ",
+    "raw": {
+      "course_code": "MAXD 5233",
+      "group": "MAXD-FULL TIME (SENIOR STUDENT Y1S3)",
+      "schedule": [
+        "Monday 6pm-10pm Online Week 12 - ",
+        "Monday 6pm-10pm Online Week 13 - ",
+        "6pm-10pm Online Time Week 9 - ",
+        "6pm-10pm Online Time Week 10 - ",
+        "Mid Sem Break Time Week 12 - ",
+        "MAXD 5163 Time Week 4 - "
+      ]
+    }
+  },
+  {
+    "title": "MAXD - PART TIME (SENIOR STUDENT Y1S4) - Semester 1 2025/2026",
+    "description": "Courses: MAXD 5223 - MANUFACTURING ANALYTICS\nChoo Yun Huoy, PM. Dr., Abdul Syukor bin Mohamad Jaya, Dr., MAXD 5233 - SOCIAL MEDIA ANALYTICS\nYogan Jaya Kumar, Dr., Nur Zareen binti Zulkarnain, Dr., MAXD 5163 - MODELLING AND DECISION MAKING\nDr., Ahmad Fadzli Nizam bin Abdul Rahman, Akhtar Hussain. Dr., MPSW 5063 - ENTREPRENEURSHIP (REFER IPTK TIMETABLE) | Schedule: Monday: MAXD 5163 (6pm-10pm Online), MAXD 5163 (6pm-10pm Online), MAXD 5223 (6pm-10pm Online) | 6pm-10pm Online: MAXD 5163 (Time), MAXD 5163 (Time), MAXD 5223 (Time) | Mild Sem Break: MAXD 5163 (Time), MXD 5223 (Time), MAXD 5233 (Time) | MAXD 5163: MXD 5223 (Time), MAXD 5233 (Time)",
+    "time": "Semester 1 2025/2026",
+    "group": "MAXD - PART TIME (SENIOR STUDENT Y1S4)",
+    "semester": "1",
+    "academic_year": "2025/2026",
+    "schedule": "Timetable for MAXD - PART TIME (SENIOR STUDENT Y1S4) - Semester 1 2025/2026\n\nMonday:\n  Time: 6pm-10pm Online\n    - MAXD 5163 Week 3 (MAXD 5163)\n    - MAXD 5163 Week 4 (MAXD 5163)\n    - MAXD 5223 Week 6 (MAXD 5223)\n    - MAXD 5223 Week 7 (MAXD 5223)\n    - MPSW 5063 Week 9 Room: Refer IPTK Timetable (MPSW 5063 Entrepreneurship (Refer IPTK Timetable))\n    - MAXD 5233 Week 12 (MAXD 5233)\n    - MAXD 5233 Week 13 (MAXD 5233)\n\n6pm-10pm Online:\n  Time: Time\n    - MAXD 5163 Week 2 (MAXD 5163)\n    - MAXD 5163 Week 3 (MAXD 5163)\n    - MAXD 5223 Week 5 (MAXD 5223)\n    - MAXD 5223 Week 6 (MAXD 5223)\n    - MPSW 5063 Week 8 Room: Refer IPTK Timetable (MPSW 5063 Entrepreneurship (Refer IPTK Timetable))\n    - MAXD 5233 Week 9 (MAXD 5233)\n    - MAXD 5233 Week 10 (MAXD 5233)\n\nMild Sem Break:\n  Time: Time\n    - MAXD 5163 Week 8 (MAXD 5163)\n    - MXD 5223 Week 10 (MXD 5223)\n    - MAXD 5233 Week 12 (MAXD 5233)\n\nMAXD 5163:\n  Time: Time\n    - MXD 5223 Week 4 (MXD 5223)\n    - MAXD 5233 Week 5 (MAXD 5233)\n\n",
+    "courses": [
+      {
+        "course_code": "MXD 5223",
+        "week": 4,
+        "week_label": "W4",
+        "room": "",
+        "full_text": "MXD 5223",
+        "time": "Time",
+        "format": "week-based"
+      },
+      {
+        "course_code": "MAXD 5233",
+        "week": 5,
+        "week_label": "W5",
+        "room": "",
+        "full_text": "MAXD 5233",
+        "time": "Time",
+        "format": "week-based"
+      }
+    ],
+    "raw": {
+      "group": "MAXD - PART TIME (SENIOR STUDENT Y1S4)",
+      "schedule": {
+        "Monday": [
+          {
+            "course_code": "MAXD 5163",
+            "week": 3,
+            "week_label": "W3",
+            "room": "",
+            "full_text": "MAXD 5163",
+            "time": "6pm-10pm Online",
+            "format": "week-based"
+          },
+          {
+            "course_code": "MAXD 5163",
+            "week": 4,
+            "week_label": "W4",
+            "room": "",
+            "full_text": "MAXD 5163",
+            "time": "6pm-10pm Online",
+            "format": "week-based"
+          },
+          {
+            "course_code": "MAXD 5223",
+            "week": 6,
+            "week_label": "W6",
+            "room": "",
+            "full_text": "MAXD 5223",
+            "time": "6pm-10pm Online",
+            "format": "week-based"
+          },
+          {
+            "course_code": "MAXD 5223",
+            "week": 7,
+            "week_label": "W7",
+            "room": "",
+            "full_text": "MAXD 5223",
+            "time": "6pm-10pm Online",
+            "format": "week-based"
+          },
+          {
+            "course_code": "MPSW 5063",
+            "week": 9,
+            "week_label": "W9",
+            "room": "Refer IPTK Timetable",
+            "full_text": "MPSW 5063 Entrepreneurship (Refer IPTK Timetable)",
+            "time": "6pm-10pm Online",
+            "format": "week-based"
+          },
+          {
+            "course_code": "MAXD 5233",
+            "week": 12,
+            "week_label": "W12",
+            "room": "",
+            "full_text": "MAXD 5233",
+            "time": "6pm-10pm Online",
+            "format": "week-based"
+          },
+          {
+            "course_code": "MAXD 5233",
+            "week": 13,
+            "week_label": "W13",
+            "room": "",
+            "full_text": "MAXD 5233",
+            "time": "6pm-10pm Online",
+            "format": "week-based"
+          }
+        ],
+        "6pm-10pm Online": [
+          {
+            "course_code": "MAXD 5163",
+            "week": 2,
+            "week_label": "W2",
+            "room": "",
+            "full_text": "MAXD 5163",
+            "time": "Time",
+            "format": "week-based"
+          },
+          {
+            "course_code": "MAXD 5163",
+            "week": 3,
+            "week_label": "W3",
+            "room": "",
+            "full_text": "MAXD 5163",
+            "time": "Time",
+            "format": "week-based"
+          },
+          {
+            "course_code": "MAXD 5223",
+            "week": 5,
+            "week_label": "W5",
+            "room": "",
+            "full_text": "MAXD 5223",
+            "time": "Time",
+            "format": "week-based"
+          },
+          {
+            "course_code": "MAXD 5223",
+            "week": 6,
+            "week_label": "W6",
+            "room": "",
+            "full_text": "MAXD 5223",
+            "time": "Time",
+            "format": "week-based"
+          },
+          {
+            "course_code": "MPSW 5063",
+            "week": 8,
+            "week_label": "W8",
+            "room": "Refer IPTK Timetable",
+            "full_text": "MPSW 5063 Entrepreneurship (Refer IPTK Timetable)",
+            "time": "Time",
+            "format": "week-based"
+          },
+          {
+            "course_code": "MAXD 5233",
+            "week": 9,
+            "week_label": "W9",
+            "room": "",
+            "full_text": "MAXD 5233",
+            "time": "Time",
+            "format": "week-based"
+          },
+          {
+            "course_code": "MAXD 5233",
+            "week": 10,
+            "week_label": "W10",
+            "room": "",
+            "full_text": "MAXD 5233",
+            "time": "Time",
+            "format": "week-based"
+          }
+        ],
+        "Mild Sem Break": [
+          {
+            "course_code": "MAXD 5163",
+            "week": 8,
+            "week_label": "W8",
+            "room": "",
+            "full_text": "MAXD 5163",
+            "time": "Time",
+            "format": "week-based"
+          },
+          {
+            "course_code": "MXD 5223",
+            "week": 10,
+            "week_label": "W10",
+            "room": "",
+            "full_text": "MXD 5223",
+            "time": "Time",
+            "format": "week-based"
+          },
+          {
+            "course_code": "MAXD 5233",
+            "week": 12,
+            "week_label": "W12",
+            "room": "",
+            "full_text": "MAXD 5233",
+            "time": "Time",
+            "format": "week-based"
+          }
+        ],
+        "MAXD 5163": [
+          {
+            "course_code": "MXD 5223",
+            "week": 4,
+            "week_label": "W4",
+            "room": "",
+            "full_text": "MXD 5223",
+            "time": "Time",
+            "format": "week-based"
+          },
+          {
+            "course_code": "MAXD 5233",
+            "week": 5,
+            "week_label": "W5",
+            "room": "",
+            "full_text": "MAXD 5233",
+            "time": "Time",
+            "format": "week-based"
+          }
+        ]
+      },
+      "format": "week-based",
+      "weeks": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14,
+        15,
+        16,
+        17,
+        18
+      ],
+      "semester": "1",
+      "academic_year": "2025/2026",
+      "courses": [
+        "MAXD 5223 - MANUFACTURING ANALYTICS\nChoo Yun Huoy, PM. Dr., Abdul Syukor bin Mohamad Jaya, Dr.",
+        "MAXD 5233 - SOCIAL MEDIA ANALYTICS\nYogan Jaya Kumar, Dr., Nur Zareen binti Zulkarnain, Dr.",
+        "MAXD 5163 - MODELLING AND DECISION MAKING\nDr., Ahmad Fadzli Nizam bin Abdul Rahman, Akhtar Hussain. Dr.",
+        "MPSW 5063 - ENTREPRENEURSHIP (REFER IPTK TIMETABLE)"
+      ]
+    }
+  },
+  {
+    "title": "MXD 5223 - MXD 5223",
+    "description": "Course schedule for MXD 5223 in MAXD - PART TIME (SENIOR STUDENT Y1S4)",
+    "time": "Semester 1 2025/2026",
+    "group": "MAXD - PART TIME (SENIOR STUDENT Y1S4)",
+    "course_code": "MXD 5223",
+    "schedule": "Mild Sem Break Time Week 10 - \nMAXD 5163 Time Week 4 - ",
+    "raw": {
+      "course_code": "MXD 5223",
+      "group": "MAXD - PART TIME (SENIOR STUDENT Y1S4)",
+      "schedule": [
+        "Mild Sem Break Time Week 10 - ",
+        "MAXD 5163 Time Week 4 - "
+      ]
+    }
+  },
+  {
+    "title": "MAXD 5233 - MAXD 5233",
+    "description": "Course schedule for MAXD 5233 in MAXD - PART TIME (SENIOR STUDENT Y1S4)",
+    "time": "Semester 1 2025/2026",
+    "group": "MAXD - PART TIME (SENIOR STUDENT Y1S4)",
+    "course_code": "MAXD 5233",
+    "schedule": "Monday 6pm-10pm Online Week 12 - \nMonday 6pm-10pm Online Week 13 - \n6pm-10pm Online Time Week 9 - \n6pm-10pm Online Time Week 10 - \nMild Sem Break Time Week 12 - \nMAXD 5163 Time Week 5 - ",
+    "raw": {
+      "course_code": "MAXD 5233",
+      "group": "MAXD - PART TIME (SENIOR STUDENT Y1S4)",
+      "schedule": [
+        "Monday 6pm-10pm Online Week 12 - ",
+        "Monday 6pm-10pm Online Week 13 - ",
+        "6pm-10pm Online Time Week 9 - ",
+        "6pm-10pm Online Time Week 10 - ",
+        "Mild Sem Break Time Week 12 - ",
+        "MAXD 5163 Time Week 5 - "
+      ]
+    }
+  },
+  {
+    "title": "MAXZ-FULLTIME - Semester 1 2025/2026",
+    "description": "Schedule: Monday: MPSW 5013 (Time), MPSW 5063 (Time) | MPSW 5013 Research Methodology (Refer IPTK Timetable): MPSW 5063 (Time), MITS 5313 (Time), MITS 5313 (Time) | : MITP 5113 (Time), MITS 5313 (Time), MITS 5313 (Time) | Study Week: MITS 5313 (Exam Week), MITP 5113 (Exam Week), MAXZ 5463 (Exam Week)",
+    "time": "Semester 1 2025/2026",
+    "group": "MAXZ-FULLTIME",
+    "semester": "1",
+    "academic_year": "2025/2026",
+    "schedule": "Timetable for MAXZ-FULLTIME - Semester 1 2025/2026\n\nMonday:\n  Time: Time\n    - MPSW 5013 Week 5 Room: Refer IPTK Timetable (MPSW 5013 Research Methodology (Refer IPTK Timetable))\n    - MPSW 5063 Week 9 Room: Refer IPTK Timetable (MPSW 5063 Entrepreneurship (Refer IPTK Timetable))\n\nMPSW 5013 Research Methodology (Refer IPTK Timetable):\n  Time: Time\n    - MPSW 5063 Week 1 Room: Refer IPTK Timetable (MPSW 5063 Entrepreneurship (Refer IPTK Timetable))\n    - MITS 5313 Week 6 (MITS 5313)\n    - MITS 5313 Week 7 (MITS 5313)\n    - MITP 5113 Week 8 (MITP 5113)\n    - MITP 5113 Week 9 (MITP 5113)\n    - MAXZ 5463 Week 10 (MAXZ 5463)\n    - MAXZ 5463 Week 11 (MAXZ 5463)\n    - MAXZ 5493 Week 12 (MAXZ 5493)\n    - MAXZ 5493 Week 13 (MAXZ 5493)\n\n:\n  Time: Time\n    - MITP 5113 Week 1 (MITP 5113)\n    - MITS 5313 Week 5 (MITS 5313)\n    - MITS 5313 Week 5 (MITS 5313)\n    - MAXZ 5463 Week 6 (MAXZ 5463)\n    - MAXZ 5463 Week 7 (MAXZ 5463)\n    - MAXZ 5493 Week 8 (MAXZ 5493)\n    - MAXZ 5493 Week 9 (MAXZ 5493)\n\nStudy Week:\n  Time: Exam Week\n    - MITS 5313 Week 2 Room: MP 1 (MITS 5313 (MP 1))\n    - MITP 5113 Week 4 Room: MP1 (MITP 5113 (MP1))\n    - MAXZ 5463 Week 5 Room: RECAP (MAXZ 5463 (RECAP))\n    - MAXZ 5493 Week 7 Room: MKP 2 (MAXZ 5493 (MKP 2))\n\n",
+    "courses": [
+      {
+        "course_code": "MITS 5313",
+        "week": 2,
+        "week_label": "W2",
+        "room": "MP 1",
+        "full_text": "MITS 5313 (MP 1)",
+        "time": "Exam Week",
+        "format": "week-based"
+      },
+      {
+        "course_code": "MITP 5113",
+        "week": 4,
+        "week_label": "W4",
+        "room": "MP1",
+        "full_text": "MITP 5113 (MP1)",
+        "time": "Exam Week",
+        "format": "week-based"
+      },
+      {
+        "course_code": "MAXZ 5463",
+        "week": 5,
+        "week_label": "W5",
+        "room": "RECAP",
+        "full_text": "MAXZ 5463 (RECAP)",
+        "time": "Exam Week",
+        "format": "week-based"
+      },
+      {
+        "course_code": "MAXZ 5493",
+        "week": 7,
+        "week_label": "W7",
+        "room": "MKP 2",
+        "full_text": "MAXZ 5493 (MKP 2)",
+        "time": "Exam Week",
+        "format": "week-based"
+      }
+    ],
+    "raw": {
+      "group": "MAXZ-FULLTIME",
+      "schedule": {
+        "Monday": [
+          {
+            "course_code": "MPSW 5013",
+            "week": 5,
+            "week_label": "W5",
+            "room": "Refer IPTK Timetable",
+            "full_text": "MPSW 5013 Research Methodology (Refer IPTK Timetable)",
+            "time": "Time",
+            "format": "week-based"
+          },
+          {
+            "course_code": "MPSW 5063",
+            "week": 9,
+            "week_label": "W9",
+            "room": "Refer IPTK Timetable",
+            "full_text": "MPSW 5063 Entrepreneurship (Refer IPTK Timetable)",
+            "time": "Time",
+            "format": "week-based"
+          }
+        ],
+        "MPSW 5013 Research Methodology (Refer IPTK Timetable)": [
+          {
+            "course_code": "MPSW 5063",
+            "week": 1,
+            "week_label": "W1",
+            "room": "Refer IPTK Timetable",
+            "full_text": "MPSW 5063 Entrepreneurship (Refer IPTK Timetable)",
+            "time": "Time",
+            "format": "week-based"
+          },
+          {
+            "course_code": "MITS 5313",
+            "week": 6,
+            "week_label": "W6",
+            "room": "",
+            "full_text": "MITS 5313",
+            "time": "Time",
+            "format": "week-based"
+          },
+          {
+            "course_code": "MITS 5313",
+            "week": 7,
+            "week_label": "W7",
+            "room": "",
+            "full_text": "MITS 5313",
+            "time": "Time",
+            "format": "week-based"
+          },
+          {
+            "course_code": "MITP 5113",
+            "week": 8,
+            "week_label": "W8",
+            "room": "",
+            "full_text": "MITP 5113",
+            "time": "Time",
+            "format": "week-based"
+          },
+          {
+            "course_code": "MITP 5113",
+            "week": 9,
+            "week_label": "W9",
+            "room": "",
+            "full_text": "MITP 5113",
+            "time": "Time",
+            "format": "week-based"
+          },
+          {
+            "course_code": "MAXZ 5463",
+            "week": 10,
+            "week_label": "W10",
+            "room": "",
+            "full_text": "MAXZ 5463",
+            "time": "Time",
+            "format": "week-based"
+          },
+          {
+            "course_code": "MAXZ 5463",
+            "week": 11,
+            "week_label": "W11",
+            "room": "",
+            "full_text": "MAXZ 5463",
+            "time": "Time",
+            "format": "week-based"
+          },
+          {
+            "course_code": "MAXZ 5493",
+            "week": 12,
+            "week_label": "W12",
+            "room": "",
+            "full_text": "MAXZ 5493",
+            "time": "Time",
+            "format": "week-based"
+          },
+          {
+            "course_code": "MAXZ 5493",
+            "week": 13,
+            "week_label": "W13",
+            "room": "",
+            "full_text": "MAXZ 5493",
+            "time": "Time",
+            "format": "week-based"
+          }
+        ],
+        "": [
+          {
+            "course_code": "MITP 5113",
+            "week": 1,
+            "week_label": "W1",
+            "room": "",
+            "full_text": "MITP 5113",
+            "time": "Time",
+            "format": "week-based"
+          },
+          {
+            "course_code": "MITS 5313",
+            "week": 5,
+            "week_label": "W5",
+            "room": "",
+            "full_text": "MITS 5313",
+            "time": "Time",
+            "format": "week-based"
+          },
+          {
+            "course_code": "MITS 5313",
+            "week": 5,
+            "week_label": "W5",
+            "room": "",
+            "full_text": "MITS 5313",
+            "time": "Time",
+            "format": "week-based"
+          },
+          {
+            "course_code": "MAXZ 5463",
+            "week": 6,
+            "week_label": "W6",
+            "room": "",
+            "full_text": "MAXZ 5463",
+            "time": "Time",
+            "format": "week-based"
+          },
+          {
+            "course_code": "MAXZ 5463",
+            "week": 7,
+            "week_label": "W7",
+            "room": "",
+            "full_text": "MAXZ 5463",
+            "time": "Time",
+            "format": "week-based"
+          },
+          {
+            "course_code": "MAXZ 5493",
+            "week": 8,
+            "week_label": "W8",
+            "room": "",
+            "full_text": "MAXZ 5493",
+            "time": "Time",
+            "format": "week-based"
+          },
+          {
+            "course_code": "MAXZ 5493",
+            "week": 9,
+            "week_label": "W9",
+            "room": "",
+            "full_text": "MAXZ 5493",
+            "time": "Time",
+            "format": "week-based"
+          }
+        ],
+        "Study Week": [
+          {
+            "course_code": "MITS 5313",
+            "week": 2,
+            "week_label": "W2",
+            "room": "MP 1",
+            "full_text": "MITS 5313 (MP 1)",
+            "time": "Exam Week",
+            "format": "week-based"
+          },
+          {
+            "course_code": "MITP 5113",
+            "week": 4,
+            "week_label": "W4",
+            "room": "MP1",
+            "full_text": "MITP 5113 (MP1)",
+            "time": "Exam Week",
+            "format": "week-based"
+          },
+          {
+            "course_code": "MAXZ 5463",
+            "week": 5,
+            "week_label": "W5",
+            "room": "RECAP",
+            "full_text": "MAXZ 5463 (RECAP)",
+            "time": "Exam Week",
+            "format": "week-based"
+          },
+          {
+            "course_code": "MAXZ 5493",
+            "week": 7,
+            "week_label": "W7",
+            "room": "MKP 2",
+            "full_text": "MAXZ 5493 (MKP 2)",
+            "time": "Exam Week",
+            "format": "week-based"
+          }
+        ]
+      },
+      "format": "week-based",
+      "weeks": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14,
+        15,
+        16,
+        17,
+        18
+      ],
+      "semester": "1",
+      "academic_year": "2025/2026",
+      "courses": []
+    }
+  },
+  {
+    "title": "MITS 5313 - MITS 5313",
+    "description": "Course schedule for MITS 5313 in MAXZ-FULLTIME",
+    "time": "Semester 1 2025/2026",
+    "group": "MAXZ-FULLTIME",
+    "course_code": "MITS 5313",
+    "schedule": "MPSW 5013 Research Methodology (Refer IPTK Timetable) Time Week 6 - \nMPSW 5013 Research Methodology (Refer IPTK Timetable) Time Week 7 - \n Time Week 5 - \n Time Week 5 - \nStudy Week Exam Week Week 2 - MP 1",
+    "raw": {
+      "course_code": "MITS 5313",
+      "group": "MAXZ-FULLTIME",
+      "schedule": [
+        "MPSW 5013 Research Methodology (Refer IPTK Timetable) Time Week 6 - ",
+        "MPSW 5013 Research Methodology (Refer IPTK Timetable) Time Week 7 - ",
+        " Time Week 5 - ",
+        " Time Week 5 - ",
+        "Study Week Exam Week Week 2 - MP 1"
+      ]
+    }
+  },
+  {
+    "title": "MITP 5113 - MITP 5113",
+    "description": "Course schedule for MITP 5113 in MAXZ-FULLTIME",
+    "time": "Semester 1 2025/2026",
+    "group": "MAXZ-FULLTIME",
+    "course_code": "MITP 5113",
+    "schedule": "MPSW 5013 Research Methodology (Refer IPTK Timetable) Time Week 8 - \nMPSW 5013 Research Methodology (Refer IPTK Timetable) Time Week 9 - \n Time Week 1 - \nStudy Week Exam Week Week 4 - MP1",
+    "raw": {
+      "course_code": "MITP 5113",
+      "group": "MAXZ-FULLTIME",
+      "schedule": [
+        "MPSW 5013 Research Methodology (Refer IPTK Timetable) Time Week 8 - ",
+        "MPSW 5013 Research Methodology (Refer IPTK Timetable) Time Week 9 - ",
+        " Time Week 1 - ",
+        "Study Week Exam Week Week 4 - MP1"
+      ]
+    }
+  },
+  {
+    "title": "MAXZ 5463 - MAXZ 5463",
+    "description": "Course schedule for MAXZ 5463 in MAXZ-FULLTIME",
+    "time": "Semester 1 2025/2026",
+    "group": "MAXZ-FULLTIME",
+    "course_code": "MAXZ 5463",
+    "schedule": "MPSW 5013 Research Methodology (Refer IPTK Timetable) Time Week 10 - \nMPSW 5013 Research Methodology (Refer IPTK Timetable) Time Week 11 - \n Time Week 6 - \n Time Week 7 - \nStudy Week Exam Week Week 5 - RECAP",
+    "raw": {
+      "course_code": "MAXZ 5463",
+      "group": "MAXZ-FULLTIME",
+      "schedule": [
+        "MPSW 5013 Research Methodology (Refer IPTK Timetable) Time Week 10 - ",
+        "MPSW 5013 Research Methodology (Refer IPTK Timetable) Time Week 11 - ",
+        " Time Week 6 - ",
+        " Time Week 7 - ",
+        "Study Week Exam Week Week 5 - RECAP"
+      ]
+    }
+  },
+  {
+    "title": "MAXZ 5493 - MAXZ 5493",
+    "description": "Course schedule for MAXZ 5493 in MAXZ-FULLTIME",
+    "time": "Semester 1 2025/2026",
+    "group": "MAXZ-FULLTIME",
+    "course_code": "MAXZ 5493",
+    "schedule": "MPSW 5013 Research Methodology (Refer IPTK Timetable) Time Week 12 - \nMPSW 5013 Research Methodology (Refer IPTK Timetable) Time Week 13 - \n Time Week 8 - \n Time Week 9 - \nStudy Week Exam Week Week 7 - MKP 2",
+    "raw": {
+      "course_code": "MAXZ 5493",
+      "group": "MAXZ-FULLTIME",
+      "schedule": [
+        "MPSW 5013 Research Methodology (Refer IPTK Timetable) Time Week 12 - ",
+        "MPSW 5013 Research Methodology (Refer IPTK Timetable) Time Week 13 - ",
+        " Time Week 8 - ",
+        " Time Week 9 - ",
+        "Study Week Exam Week Week 7 - MKP 2"
+      ]
+    }
+  },
+  {
+    "title": "MAXZ - PART TIME - Semester 1 2025/2026",
+    "description": "Courses: MITP 5113 – ALGORITHM ANALYSIS AND DESIGN\nTs. Dr. Ummi Rabaah Binti Hashim (P), Dr. Intan Ermahani Binti A. Jalil, MAXZ/MITS 5313 – ADVANCED DATA COMMUNICATIONS AND NETWORKS\nPM. Dr. Othman Bin Mohd (P), Zakiah Binti Ayop, Ts. Dr. Mohd. Fairuz Iskandar Othman, MAXZ 5463 – SECURITY MANAGEMENT PRACTICES\nDr Muhammad Safwan Bin Rosli (P), Ts. Dr. Raihana Syahirah Abdullah, MAXZ 5493 – SECURITY AUDIT AND ASSESSMENT\nPM Dr Mohd Faizal Abdollah (P), Dr Warusia, MPSW 5013 - RESEARCH METHODOLOGY (REFER IPTK SCHEDULE), MPSW 6063 - ENTREPRENURSHIP (REFER IPTK SCHEDULE) | Schedule: Monday: MPSW 5013 (Time) | MPSW 5013 Research Methodology (Refer IPTK Timetable): MITS 5313 (Time), MITS 5313 (Time), MITP 5113 (Time) | MITS 5313: MITS 5313 (Time), MITP 5113 (Time), MAXZ 5463 (Time) | Study Week: MITS 5313 (Exam Week), MITP 5113 (Exam Week), MAXZ 5463 (Exam Week)",
+    "time": "Semester 1 2025/2026",
+    "group": "MAXZ - PART TIME",
+    "semester": "1",
+    "academic_year": "2025/2026",
+    "schedule": "Timetable for MAXZ - PART TIME - Semester 1 2025/2026\n\nMonday:\n  Time: Time\n    - MPSW 5013 Week 5 Room: Refer IPTK Timetable (MPSW 5013 Research Methodology (Refer IPTK Timetable))\n\nMPSW 5013 Research Methodology (Refer IPTK Timetable):\n  Time: Time\n    - MITS 5313 Week 5 (MITS 5313)\n    - MITS 5313 Week 6 (MITS 5313)\n    - MITP 5113 Week 7 (MITP 5113)\n    - MITP 5113 Week 8 (MITP 5113)\n    - MAXZ 5463 Week 12 (MAXZ 5463)\n    - MAXZ 5463 Week 13 (MAXZ 5463)\n\nMITS 5313:\n  Time: Time\n    - MITS 5313 Week 5 (MITS 5313)\n    - MITP 5113 Week 5 (MITP 5113)\n    - MAXZ 5463 Week 6 (MAXZ 5463)\n    - MAXZ 5463 Week 7 (MAXZ 5463)\n\nStudy Week:\n  Time: Exam Week\n    - MITS 5313 Week 2 Room: MP 1 (MITS 5313 (MP 1))\n    - MITP 5113 Week 4 Room: MP1 (MITP 5113 (MP1))\n    - MAXZ 5463 Week 5 Room: RECAP (MAXZ 5463 (RECAP))\n\n",
+    "courses": [
+      {
+        "course_code": "MITS 5313",
+        "week": 2,
+        "week_label": "W2",
+        "room": "MP 1",
+        "full_text": "MITS 5313 (MP 1)",
+        "time": "Exam Week",
+        "format": "week-based"
+      },
+      {
+        "course_code": "MITP 5113",
+        "week": 4,
+        "week_label": "W4",
+        "room": "MP1",
+        "full_text": "MITP 5113 (MP1)",
+        "time": "Exam Week",
+        "format": "week-based"
+      },
+      {
+        "course_code": "MAXZ 5463",
+        "week": 5,
+        "week_label": "W5",
+        "room": "RECAP",
+        "full_text": "MAXZ 5463 (RECAP)",
+        "time": "Exam Week",
+        "format": "week-based"
+      }
+    ],
+    "raw": {
+      "group": "MAXZ - PART TIME",
+      "schedule": {
+        "Monday": [
+          {
+            "course_code": "MPSW 5013",
+            "week": 5,
+            "week_label": "W5",
+            "room": "Refer IPTK Timetable",
+            "full_text": "MPSW 5013 Research Methodology (Refer IPTK Timetable)",
+            "time": "Time",
+            "format": "week-based"
+          }
+        ],
+        "MPSW 5013 Research Methodology (Refer IPTK Timetable)": [
+          {
+            "course_code": "MITS 5313",
+            "week": 5,
+            "week_label": "W5",
+            "room": "",
+            "full_text": "MITS 5313",
+            "time": "Time",
+            "format": "week-based"
+          },
+          {
+            "course_code": "MITS 5313",
+            "week": 6,
+            "week_label": "W6",
+            "room": "",
+            "full_text": "MITS 5313",
+            "time": "Time",
+            "format": "week-based"
+          },
+          {
+            "course_code": "MITP 5113",
+            "week": 7,
+            "week_label": "W7",
+            "room": "",
+            "full_text": "MITP 5113",
+            "time": "Time",
+            "format": "week-based"
+          },
+          {
+            "course_code": "MITP 5113",
+            "week": 8,
+            "week_label": "W8",
+            "room": "",
+            "full_text": "MITP 5113",
+            "time": "Time",
+            "format": "week-based"
+          },
+          {
+            "course_code": "MAXZ 5463",
+            "week": 12,
+            "week_label": "W12",
+            "room": "",
+            "full_text": "MAXZ 5463",
+            "time": "Time",
+            "format": "week-based"
+          },
+          {
+            "course_code": "MAXZ 5463",
+            "week": 13,
+            "week_label": "W13",
+            "room": "",
+            "full_text": "MAXZ 5463",
+            "time": "Time",
+            "format": "week-based"
+          }
+        ],
+        "MITS 5313": [
+          {
+            "course_code": "MITS 5313",
+            "week": 5,
+            "week_label": "W5",
+            "room": "",
+            "full_text": "MITS 5313",
+            "time": "Time",
+            "format": "week-based"
+          },
+          {
+            "course_code": "MITP 5113",
+            "week": 5,
+            "week_label": "W5",
+            "room": "",
+            "full_text": "MITP 5113",
+            "time": "Time",
+            "format": "week-based"
+          },
+          {
+            "course_code": "MAXZ 5463",
+            "week": 6,
+            "week_label": "W6",
+            "room": "",
+            "full_text": "MAXZ 5463",
+            "time": "Time",
+            "format": "week-based"
+          },
+          {
+            "course_code": "MAXZ 5463",
+            "week": 7,
+            "week_label": "W7",
+            "room": "",
+            "full_text": "MAXZ 5463",
+            "time": "Time",
+            "format": "week-based"
+          }
+        ],
+        "Study Week": [
+          {
+            "course_code": "MITS 5313",
+            "week": 2,
+            "week_label": "W2",
+            "room": "MP 1",
+            "full_text": "MITS 5313 (MP 1)",
+            "time": "Exam Week",
+            "format": "week-based"
+          },
+          {
+            "course_code": "MITP 5113",
+            "week": 4,
+            "week_label": "W4",
+            "room": "MP1",
+            "full_text": "MITP 5113 (MP1)",
+            "time": "Exam Week",
+            "format": "week-based"
+          },
+          {
+            "course_code": "MAXZ 5463",
+            "week": 5,
+            "week_label": "W5",
+            "room": "RECAP",
+            "full_text": "MAXZ 5463 (RECAP)",
+            "time": "Exam Week",
+            "format": "week-based"
+          }
+        ]
+      },
+      "format": "week-based",
+      "weeks": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14,
+        15,
+        16,
+        17,
+        18
+      ],
+      "semester": "1",
+      "academic_year": "2025/2026",
+      "courses": [
+        "MITP 5113 – ALGORITHM ANALYSIS AND DESIGN\nTs. Dr. Ummi Rabaah Binti Hashim (P), Dr. Intan Ermahani Binti A. Jalil",
+        "MAXZ/MITS 5313 – ADVANCED DATA COMMUNICATIONS AND NETWORKS\nPM. Dr. Othman Bin Mohd (P), Zakiah Binti Ayop, Ts. Dr. Mohd. Fairuz Iskandar Othman",
+        "MAXZ 5463 – SECURITY MANAGEMENT PRACTICES\nDr Muhammad Safwan Bin Rosli (P), Ts. Dr. Raihana Syahirah Abdullah",
+        "MAXZ 5493 – SECURITY AUDIT AND ASSESSMENT\nPM Dr Mohd Faizal Abdollah (P), Dr Warusia",
+        "MPSW 5013 - RESEARCH METHODOLOGY (REFER IPTK SCHEDULE)",
+        "MPSW 6063 - ENTREPRENURSHIP (REFER IPTK SCHEDULE)"
+      ]
+    }
+  },
+  {
+    "title": "MITS 5313 - MITS 5313",
+    "description": "Course schedule for MITS 5313 in MAXZ - PART TIME",
+    "time": "Semester 1 2025/2026",
+    "group": "MAXZ - PART TIME",
+    "course_code": "MITS 5313",
+    "schedule": "MPSW 5013 Research Methodology (Refer IPTK Timetable) Time Week 5 - \nMPSW 5013 Research Methodology (Refer IPTK Timetable) Time Week 6 - \nMITS 5313 Time Week 5 - \nStudy Week Exam Week Week 2 - MP 1",
+    "raw": {
+      "course_code": "MITS 5313",
+      "group": "MAXZ - PART TIME",
+      "schedule": [
+        "MPSW 5013 Research Methodology (Refer IPTK Timetable) Time Week 5 - ",
+        "MPSW 5013 Research Methodology (Refer IPTK Timetable) Time Week 6 - ",
+        "MITS 5313 Time Week 5 - ",
+        "Study Week Exam Week Week 2 - MP 1"
+      ]
+    }
+  },
+  {
+    "title": "MITP 5113 - MITP 5113",
+    "description": "Course schedule for MITP 5113 in MAXZ - PART TIME",
+    "time": "Semester 1 2025/2026",
+    "group": "MAXZ - PART TIME",
+    "course_code": "MITP 5113",
+    "schedule": "MPSW 5013 Research Methodology (Refer IPTK Timetable) Time Week 7 - \nMPSW 5013 Research Methodology (Refer IPTK Timetable) Time Week 8 - \nMITS 5313 Time Week 5 - \nStudy Week Exam Week Week 4 - MP1",
+    "raw": {
+      "course_code": "MITP 5113",
+      "group": "MAXZ - PART TIME",
+      "schedule": [
+        "MPSW 5013 Research Methodology (Refer IPTK Timetable) Time Week 7 - ",
+        "MPSW 5013 Research Methodology (Refer IPTK Timetable) Time Week 8 - ",
+        "MITS 5313 Time Week 5 - ",
+        "Study Week Exam Week Week 4 - MP1"
+      ]
+    }
+  },
+  {
+    "title": "MAXZ 5463 - MAXZ 5463",
+    "description": "Course schedule for MAXZ 5463 in MAXZ - PART TIME",
+    "time": "Semester 1 2025/2026",
+    "group": "MAXZ - PART TIME",
+    "course_code": "MAXZ 5463",
+    "schedule": "MPSW 5013 Research Methodology (Refer IPTK Timetable) Time Week 12 - \nMPSW 5013 Research Methodology (Refer IPTK Timetable) Time Week 13 - \nMITS 5313 Time Week 6 - \nMITS 5313 Time Week 7 - \nStudy Week Exam Week Week 5 - RECAP",
+    "raw": {
+      "course_code": "MAXZ 5463",
+      "group": "MAXZ - PART TIME",
+      "schedule": [
+        "MPSW 5013 Research Methodology (Refer IPTK Timetable) Time Week 12 - ",
+        "MPSW 5013 Research Methodology (Refer IPTK Timetable) Time Week 13 - ",
+        "MITS 5313 Time Week 6 - ",
+        "MITS 5313 Time Week 7 - ",
+        "Study Week Exam Week Week 5 - RECAP"
+      ]
+    }
+  }
+]

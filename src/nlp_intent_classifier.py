@@ -5,6 +5,7 @@ Now supports dynamic configuration loading from JSON files.
 """
 import os
 import json
+import logging
 from typing import Dict, Tuple, List, Optional
 import re
 from pathlib import Path
@@ -15,7 +16,9 @@ try:
     TRANSFORMERS_AVAILABLE = True
 except ImportError:
     TRANSFORMERS_AVAILABLE = False
-    print("Warning: transformers not available. Install with: pip install transformers torch")
+    logging.getLogger("faix_chatbot").warning(
+        "transformers not available. Install with: pip install transformers torch"
+    )
 
 
 class IntentClassifier:
@@ -58,30 +61,31 @@ class IntentClassifier:
         self.tokenizer = None
         self.classifier = None
         self.device = 'cuda' if TRANSFORMERS_AVAILABLE and torch.cuda.is_available() else 'cpu'
+        self.logger = logging.getLogger("faix_chatbot")
         
         if TRANSFORMERS_AVAILABLE:
             try:
                 if self.use_zero_shot:
-                    print(f"Loading zero-shot classifier (model: {self.model_name})...")
+                    self.logger.info(f"Loading zero-shot intent classifier (model={self.model_name})")
                     self.classifier = pipeline(
                         "zero-shot-classification",
                         model=self.model_name,
                         device=0 if self.device == 'cuda' else -1
                     )
-                    print("✓ Zero-shot intent classifier loaded successfully")
+                    self.logger.info("Zero-shot intent classifier loaded successfully")
                 else:
-                    print(f"Loading fine-tuned model: {self.model_name}...")
+                    self.logger.info(f"Loading fine-tuned intent classifier (model={self.model_name})")
                     self.tokenizer = AutoTokenizer.from_pretrained(self.model_name)
                     self.model = AutoModelForSequenceClassification.from_pretrained(self.model_name)
                     self.model.to(self.device)
                     self.model.eval()
-                    print("✓ Fine-tuned intent classifier loaded successfully")
+                    self.logger.info("Fine-tuned intent classifier loaded successfully")
             except Exception as e:
-                print(f"Warning: Could not load transformer model: {e}")
+                self.logger.warning(f"Could not load transformer model: {e}")
                 self.classifier = None
                 self.model = None
         else:
-            print("Warning: transformers not installed. Intent classification will use fallback method.")
+            self.logger.warning("transformers not installed. Intent classification will use fallback method.")
     
     def _load_config(self, config_path: str = None) -> Dict:
         """Load configuration from JSON file"""
@@ -94,16 +98,22 @@ class IntentClassifier:
         
         # If config file doesn't exist, use defaults
         if not config_path.exists():
-            print(f"Warning: Config file not found at {config_path}. Using default configuration.")
+            logging.getLogger("faix_chatbot").warning(
+                f"Intent config file not found at {config_path}. Using default configuration."
+            )
             return self._get_default_config()
         
         try:
             with open(config_path, 'r', encoding='utf-8') as f:
                 config = json.load(f)
-            print(f"✓ Loaded configuration from {config_path}")
+            logging.getLogger("faix_chatbot").info(
+                f"Loaded intent configuration from {config_path.name}"
+            )
             return config
         except Exception as e:
-            print(f"Warning: Could not load config file: {e}. Using default configuration.")
+            logging.getLogger("faix_chatbot").warning(
+                f"Could not load intent config file: {e}. Using default configuration."
+            )
             return self._get_default_config()
     
     def _get_default_config(self) -> Dict:

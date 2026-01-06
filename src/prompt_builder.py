@@ -27,11 +27,13 @@ def _format_faq_context(faq_docs: List[Dict[str, Any]]) -> str:
 
 
 def _format_schedule_context(schedule_docs: List[Dict[str, Any]]) -> str:
+    """Format schedule documents for context, including timetable links."""
     lines: List[str] = []
     for item in schedule_docs:
         title = item.get("title") or item.get("name") or ""
         desc = item.get("description", "")
         time = item.get("time", "")
+        schedule_text = item.get("schedule", "")
         parts = []
         if title:
             parts.append(title)
@@ -39,8 +41,23 @@ def _format_schedule_context(schedule_docs: List[Dict[str, Any]]) -> str:
             parts.append(f"Time: {time}")
         if desc:
             parts.append(desc)
+        if schedule_text:
+            parts.append(f"Schedule: {schedule_text[:200]}...")  # Truncate long schedules
         if parts:
             lines.append(" - " + " | ".join(parts))
+    
+    # Add timetable links information
+    lines.append("")
+    lines.append("=== OFFICIAL TIMETABLE LINKS ===")
+    lines.append("BAXI (Bachelor of Computer Science - Artificial Intelligence):")
+    lines.append("  https://faix.utem.edu.my/en/academics/academic-resources/timetable/32-baxi-jadualwaktu-sem1-sesi-2025-2026/file.html")
+    lines.append("BAXZ (Bachelor of Computer Science - Cybersecurity):")
+    lines.append("  https://faix.utem.edu.my/en/academics/academic-resources/timetable/31-baxz-jadualwaktu-sem1-sesi-2025-2026/file.html")
+    lines.append("Master Programs (MAXD, MAXZ, BRIDGING):")
+    lines.append("  https://faix.utem.edu.my/en/academics/academic-resources/timetable/30-jadual-master-sem1-2025-2026-v3-faix/file.html")
+    lines.append("")
+    lines.append("IMPORTANT: Always include the appropriate timetable link(s) at the end of your response.")
+    
     return "\n".join(lines).strip()
 
 
@@ -239,13 +256,57 @@ def _format_faix_data_context(faix_data: Dict[str, Any]) -> str:
     # Facilities
     if "facilities" in faix_data:
         facilities = faix_data["facilities"]
+        lines.append("=== FACILITIES ===")
         if "available" in facilities and isinstance(facilities["available"], list):
-            lines.append("=== FACILITIES ===")
+            lines.append("Available Facilities:")
             for facility in facilities["available"]:
                 lines.append(f"  - {facility}")
-            if facilities.get("booking_system"):
-                lines.append(f"Booking System: {facilities['booking_system']}")
+        if facilities.get("booking_system"):
+            lines.append(f"Booking System: {facilities['booking_system']}")
+        
+        # Laboratories - CRITICAL: Include detailed lab information
+        if "laboratories" in facilities:
+            laboratories = facilities["laboratories"]
             lines.append("")
+            lines.append("Laboratories:")
+            
+            # AI Labs
+            if "ai_labs" in laboratories and isinstance(laboratories["ai_labs"], list):
+                lines.append("  AI Labs:")
+                for lab in laboratories["ai_labs"]:
+                    name = lab.get("name", "")
+                    block = lab.get("block", "")
+                    level = lab.get("level", "")
+                    if name:
+                        lab_info = f"    - {name}"
+                        if block:
+                            lab_info += f" (Block: {block}"
+                            if level:
+                                lab_info += f", {level}"
+                            lab_info += ")"
+                        elif level:
+                            lab_info += f" ({level})"
+                        lines.append(lab_info)
+            
+            # Cybersecurity Labs
+            if "cybersec_labs" in laboratories and isinstance(laboratories["cybersec_labs"], list):
+                lines.append("  Cybersecurity Labs:")
+                for lab in laboratories["cybersec_labs"]:
+                    name = lab.get("name", "")
+                    block = lab.get("block", "")
+                    level = lab.get("level", "")
+                    if name:
+                        lab_info = f"    - {name}"
+                        if block:
+                            lab_info += f" (Block: {block}"
+                            if level:
+                                lab_info += f", {level}"
+                            lab_info += ")"
+                        elif level:
+                            lab_info += f" ({level})"
+                        lines.append(lab_info)
+        
+        lines.append("")
     
     # Academic Resources
     if "academic_resources" in faix_data:
@@ -398,18 +459,26 @@ def build_messages(
         "IMPORTANT: Always preserve and include URLs/links from the context in your response, "
         "especially for fee schedules, official resources, or payment information. Links should "
         "be displayed as clickable URLs.\n\n"
+        "LOCATION QUERIES: When users ask 'where is X' or 'location of X', look for Block and Level "
+        "information in the Facilities section. For laboratories, provide the Block and Level details "
+        "from the Laboratories section.\n\n"
         "CRITICAL: Do NOT add disclaimers like 'The final answer to your question is not explicitly stated' "
         "or 'According to the FAQ section:' or similar meta-commentary. Answer directly and naturally "
         "using the provided context. If the answer is not clearly supported by the context, simply say "
         "you are not sure and suggest contacting the FAIX office."
     )
-    # Add reminder for staff queries to keep it short
+    # Staff agent specific instructions
     if agent.id == "staff":
         system_parts.append(
-            "REMINDER: Show ONLY staff names first using markdown list format (- **Name** - Position), 3-5 max. "
-            "Then ask if the user needs contact information. "
-            "Only provide full details (email, phone, office) when specifically requested, "
-            "and format them with line breaks between each detail."
+            "STAFF QUERY HANDLING:\n"
+            "- If user asks about a SPECIFIC staff member by name (e.g., 'who is dr choo', 'contact for Ahmad'):\n"
+            "  → Provide COMPLETE contact information immediately (name, position, department, email, phone, office)\n"
+            "  → Do NOT ask follow-up questions - give all details at once\n"
+            "- If user asks GENERAL questions (e.g., 'who can I contact for X', 'staff in Y department'):\n"
+            "  → Suggest relevant staff (max 5) with names and positions\n"
+            "  → Then ask if they want contact details\n"
+            "- If matched staff are highlighted in context, those are the EXACT matches - use them!\n"
+            "- Format contact details clearly with line breaks between each field."
         )
     
     # Add reminder for fee queries - keep it simple, just provide the link
@@ -417,6 +486,17 @@ def build_messages(
         system_parts.append(
             "IMPORTANT: This is a fee-related query. Provide ONLY the fee schedule link from the context. "
             "Do not add extra explanations. Just provide the URL: https://bendahari.utem.edu.my/ms/jadual-yuran-pelajar.html"
+        )
+    
+    # Add reminder for schedule queries - always include correct timetable links
+    if intent == 'academic_schedule' or agent.id == 'schedule' or any(kw in (user_message.lower() if isinstance(user_message, str) else '') for kw in ['timetable', 'schedule', 'jadual', 'class schedule']):
+        system_parts.append(
+            "IMPORTANT: This is a schedule/timetable query. ALWAYS include the correct timetable link(s) at the end:\n"
+            "- For BAXI queries: https://faix.utem.edu.my/en/academics/academic-resources/timetable/32-baxi-jadualwaktu-sem1-sesi-2025-2026/file.html\n"
+            "- For BAXZ queries: https://faix.utem.edu.my/en/academics/academic-resources/timetable/31-baxz-jadualwaktu-sem1-sesi-2025-2026/file.html\n"
+            "- For Master program queries: https://faix.utem.edu.my/en/academics/academic-resources/timetable/30-jadual-master-sem1-2025-2026-v3-faix/file.html\n"
+            "- For general queries: Include all three links\n"
+            "Use the EXACT links above - DO NOT modify or invent links. Format as: 📅 **View Complete Timetable:** [link]"
         )
     system_content = "\n\n".join(system_parts)
     messages.append({"role": "system", "content": system_content})
@@ -438,11 +518,44 @@ def build_messages(
             context_lines.append(schedule_text)
 
     staff_docs = context.get("staff") or []
+    matched_staff = context.get("matched_staff", [])
     if staff_docs:
         staff_text = _format_staff_context(staff_docs)
         if staff_text:
             context_lines.append("--- Staff Contacts Context (ONLY SOURCE - USE THIS LIST ONLY) ---")
             context_lines.append(f"Total staff members available: {len(staff_docs)}")
+            # If we have matched staff, highlight them VERY prominently
+            if matched_staff:
+                matched_names = [s.get('name', '') for s in matched_staff if s.get('name')]
+                context_lines.append("")
+                context_lines.append("=" * 60)
+                context_lines.append("🎯 MATCHED STAFF - USE THESE TO ANSWER THE QUERY!")
+                context_lines.append("=" * 60)
+                context_lines.append(f"The following {len(matched_staff)} staff member(s) MATCH the user's query:")
+                for i, staff in enumerate(matched_staff[:5], 1):
+                    name = staff.get('name', 'Unknown')
+                    position = staff.get('role', '')
+                    dept = staff.get('department', '')
+                    email = staff.get('email', '')
+                    phone = staff.get('phone', '-')
+                    office = staff.get('office', '-')
+                    context_lines.append(f"{i}. **{name}**")
+                    context_lines.append(f"   - Position: {position}")
+                    context_lines.append(f"   - Department: {dept}")
+                    context_lines.append(f"   - Email: {email}")
+                    if phone and phone != '-':
+                        context_lines.append(f"   - Phone: {phone}")
+                    if office and office != '-':
+                        context_lines.append(f"   - Office: {office}")
+                    context_lines.append("")
+                context_lines.append("⚠️ CRITICAL ANTI-HALLUCINATION RULES:")
+                context_lines.append("⚠️ Use ONLY the names, emails, positions shown above - DO NOT modify or invent")
+                context_lines.append("⚠️ Use EXACT names as shown - DO NOT change spelling, add middle names, or modify in any way")
+                context_lines.append("⚠️ Use EXACT emails as shown - DO NOT invent or modify email addresses")
+                context_lines.append("⚠️ If phone/office shows '-', say 'Not available' - DO NOT invent phone numbers or offices")
+                context_lines.append("⚠️ Copy EXACTLY what appears above - do not paraphrase names or details")
+                context_lines.append("=" * 60)
+                context_lines.append("")
             context_lines.append("You MUST ONLY use staff from this list. Do NOT invent or create any staff members.")
             context_lines.append("")
             context_lines.append(staff_text)

@@ -639,7 +639,7 @@ class QueryProcessor:
         if self.use_nlp and NLP_AVAILABLE:
             try:
                 self.intent_classifier = get_intent_classifier()
-                print("NLP intent classifier initialized")
+                self.logger.info("NLP intent classifier initialized")
             except Exception as e:
                 self.logger.warning(f"Failed to initialize intent classifier: {e}")
                 self.intent_classifier = None
@@ -654,10 +654,10 @@ class QueryProcessor:
                 django.setup()
                 from django_app.models import FAQEntry
                 self.faq_model = FAQEntry
-                print("Django database connected successfully")
+                self.logger.info("Django database connected successfully")
                 
                 entry_count = FAQEntry.objects.filter(is_active=True).count()
-                self.logger.info(f"Query Processor initialized with {entry_count} FAIX entries from database")
+                self.logger.info(f"Query Processor initialized with {entry_count} FAIX FAQ entries from database")
                 
             except Exception as e:
                 self.logger.warning(f"Django not available or setup failed ({e}). Falling back to CSV.")
