@@ -422,68 +422,51 @@ class Chatbot {
     createFeedbackButtons(messageId, botResponse, intent, userMessage) {
         const feedbackContainer = document.createElement('div');
         feedbackContainer.className = 'feedback-buttons';
-        feedbackContainer.style.cssText = `
-            margin-top: 12px;
-            padding: 10px 14px;
-            background-color: #f8f9fa;
-            border-radius: 8px;
-            border: 1px solid #e0e0e0;
-            display: flex;
-            gap: 10px;
-            align-items: center;
-            justify-content: space-between;
-        `;
         
         const label = document.createElement('span');
+        label.className = 'feedback-label';
         label.textContent = 'Was this answer helpful?';
-        label.style.cssText = 'font-size: 13px; color: #495057; font-weight: 500;';
         
         const buttonGroup = document.createElement('div');
-        buttonGroup.style.cssText = 'display: flex; gap: 8px;';
+        buttonGroup.className = 'feedback-button-group';
         
         // Good button
         const goodButton = document.createElement('button');
-        goodButton.innerHTML = '👍 Good';
-        goodButton.style.cssText = `
-            padding: 6px 16px;
-            font-size: 13px;
-            border: 1px solid #28a745;
-            background: #28a745;
-            color: white;
-            border-radius: 6px;
-            cursor: pointer;
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            font-weight: 500;
-            transition: all 0.2s ease;
-            box-shadow: 0 1px 2px rgba(0,0,0,0.1);
-        `;
-        goodButton.onmouseover = () => { goodButton.style.background = '#218838'; goodButton.style.transform = 'scale(1.05)'; };
-        goodButton.onmouseout = () => { goodButton.style.background = '#28a745'; goodButton.style.transform = 'scale(1)'; };
-        goodButton.onclick = () => this.submitFeedback(feedbackContainer, 'good', messageId, botResponse, intent, userMessage);
+        goodButton.className = 'feedback-btn feedback-btn-good';
+        goodButton.type = 'button';
+        goodButton.setAttribute('aria-label', 'Mark this answer as helpful');
+        const goodEmoji = document.createElement('span');
+        goodEmoji.className = 'feedback-emoji';
+        goodEmoji.textContent = '👍';
+        const goodText = document.createElement('span');
+        goodText.className = 'feedback-text';
+        goodText.textContent = 'Good';
+        goodButton.appendChild(goodEmoji);
+        goodButton.appendChild(goodText);
+        goodButton.onclick = () => {
+            goodButton.disabled = true;
+            badButton.disabled = true;
+            this.submitFeedback(feedbackContainer, 'good', messageId, botResponse, intent, userMessage);
+        };
         
         // Bad button
         const badButton = document.createElement('button');
-        badButton.innerHTML = '👎 Not Good';
-        badButton.style.cssText = `
-            padding: 6px 16px;
-            font-size: 13px;
-            border: 1px solid #dc3545;
-            background: #dc3545;
-            color: white;
-            border-radius: 6px;
-            cursor: pointer;
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            font-weight: 500;
-            transition: all 0.2s ease;
-            box-shadow: 0 1px 2px rgba(0,0,0,0.1);
-        `;
-        badButton.onmouseover = () => { badButton.style.background = '#c82333'; badButton.style.transform = 'scale(1.05)'; };
-        badButton.onmouseout = () => { badButton.style.background = '#dc3545'; badButton.style.transform = 'scale(1)'; };
-        badButton.onclick = () => this.submitFeedback(feedbackContainer, 'bad', messageId, botResponse, intent, userMessage);
+        badButton.className = 'feedback-btn feedback-btn-bad';
+        badButton.type = 'button';
+        badButton.setAttribute('aria-label', 'Mark this answer as not helpful');
+        const badEmoji = document.createElement('span');
+        badEmoji.className = 'feedback-emoji';
+        badEmoji.textContent = '👎';
+        const badText = document.createElement('span');
+        badText.className = 'feedback-text';
+        badText.textContent = 'Not Good';
+        badButton.appendChild(badEmoji);
+        badButton.appendChild(badText);
+        badButton.onclick = () => {
+            goodButton.disabled = true;
+            badButton.disabled = true;
+            this.submitFeedback(feedbackContainer, 'bad', messageId, botResponse, intent, userMessage);
+        };
         
         buttonGroup.appendChild(goodButton);
         buttonGroup.appendChild(badButton);
@@ -494,23 +477,20 @@ class Chatbot {
     }
     
     async submitFeedback(container, feedbackType, messageId, botResponse, intent, userMessage) {
-        // Show thank you message immediately
+        // Show thank you message immediately (optimistic UI update)
         const isGood = feedbackType === 'good';
-        container.innerHTML = '';
-        container.style.cssText = `
-            margin-top: 12px;
-            padding: 8px 12px;
-            font-size: 13px;
-            color: ${isGood ? '#28a745' : '#dc3545'};
-            background-color: ${isGood ? '#d4edda' : '#f8d7da'};
-            border: 1px solid ${isGood ? '#c3e6cb' : '#f5c6cb'};
-            border-radius: 6px;
-            font-weight: 500;
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
+        container.className = `feedback-thanks feedback-thanks-${isGood ? 'good' : 'bad'}`;
+        container.innerHTML = `
+            <span class="feedback-check-icon">${isGood ? '✓' : '✓'}</span>
+            <span>${isGood ? 'Thank you for your feedback!' : 'Thanks for helping us improve!'}</span>
         `;
-        container.innerHTML = `<span>✓</span><span>${isGood ? 'Thank you for your feedback!' : 'Thanks for helping us improve!'}</span>`;
+        
+        // Only submit feedback to API if we have messageId and conversationId
+        // This prevents 400 errors for messages loaded from history that don't have IDs
+        if (!messageId || !this.conversationId) {
+            console.log(`Feedback received (${feedbackType}) but cannot be saved - missing message ID or conversation ID`);
+            return;
+        }
         
         // Submit feedback to API
         try {
@@ -530,6 +510,8 @@ class Chatbot {
             console.log(`Feedback submitted: ${feedbackType}`);
         } catch (error) {
             console.error('Error submitting feedback:', error);
+            // Optionally revert the UI change on error, but usually we keep it
+            // since the user has already seen the confirmation
         }
     }
     

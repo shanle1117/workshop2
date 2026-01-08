@@ -486,109 +486,37 @@ function Chatbot() {
                   )}
                   {/* Feedback buttons - show for all bot messages without feedback */}
                   {(msg.role === 'bot' || msg.role === 'assistant') && !msg.feedbackSubmitted && (
-                    <div className="feedback-buttons" style={{ 
-                      marginTop: '12px', 
-                      padding: '10px 14px',
-                      backgroundColor: '#f8f9fa',
-                      borderRadius: '8px',
-                      border: '1px solid #e0e0e0',
-                      display: 'flex', 
-                      gap: '10px', 
-                      alignItems: 'center',
-                      justifyContent: 'space-between',
-                      width: '100%',
-                      boxSizing: 'border-box',
-                      position: 'relative',
-                      zIndex: 10,
-                      visibility: 'visible',
-                      opacity: 1
-                    }}>
-                      <span style={{ fontSize: '13px', color: '#495057', fontWeight: '500', flexShrink: 0 }}>
+                    <div className="feedback-buttons">
+                      <span className="feedback-label">
                         Was this answer helpful?
                       </span>
-                      <div style={{ display: 'flex', gap: '8px', flexShrink: 0 }}>
+                      <div className="feedback-button-group">
                         <button
                           onClick={() => submitFeedback(index, 'good')}
                           type="button"
-                          style={{
-                            padding: '6px 16px',
-                            fontSize: '13px',
-                            border: '1px solid #28a745',
-                            background: '#28a745',
-                            color: 'white',
-                            borderRadius: '6px',
-                            cursor: 'pointer',
-                            display: 'inline-flex',
-                            alignItems: 'center',
-                            gap: '6px',
-                            fontWeight: '500',
-                            transition: 'all 0.2s ease',
-                            boxShadow: '0 1px 2px rgba(0,0,0,0.1)',
-                            whiteSpace: 'nowrap'
-                          }}
-                          onMouseEnter={(e) => {
-                            e.currentTarget.style.background = '#218838';
-                            e.currentTarget.style.transform = 'scale(1.05)';
-                          }}
-                          onMouseLeave={(e) => {
-                            e.currentTarget.style.background = '#28a745';
-                            e.currentTarget.style.transform = 'scale(1)';
-                          }}
+                          className="feedback-btn feedback-btn-good"
+                          aria-label="Mark this answer as helpful"
                           title="This answer was helpful"
                         >
-                          <span>👍</span>
-                          <span>Good</span>
+                          <span className="feedback-emoji">👍</span>
+                          <span className="feedback-text">Good</span>
                         </button>
                         <button
                           onClick={() => submitFeedback(index, 'bad')}
                           type="button"
-                          style={{
-                            padding: '6px 16px',
-                            fontSize: '13px',
-                            border: '1px solid #dc3545',
-                            background: '#dc3545',
-                            color: 'white',
-                            borderRadius: '6px',
-                            cursor: 'pointer',
-                            display: 'inline-flex',
-                            alignItems: 'center',
-                            gap: '6px',
-                            fontWeight: '500',
-                            transition: 'all 0.2s ease',
-                            boxShadow: '0 1px 2px rgba(0,0,0,0.1)',
-                            whiteSpace: 'nowrap'
-                          }}
-                          onMouseEnter={(e) => {
-                            e.currentTarget.style.background = '#c82333';
-                            e.currentTarget.style.transform = 'scale(1.05)';
-                          }}
-                          onMouseLeave={(e) => {
-                            e.currentTarget.style.background = '#dc3545';
-                            e.currentTarget.style.transform = 'scale(1)';
-                          }}
+                          className="feedback-btn feedback-btn-bad"
+                          aria-label="Mark this answer as not helpful"
                           title="This answer needs improvement"
                         >
-                          <span>👎</span>
-                          <span>Not Good</span>
+                          <span className="feedback-emoji">👎</span>
+                          <span className="feedback-text">Not Good</span>
                         </button>
                       </div>
                     </div>
                   )}
                   {msg.role === 'bot' && msg.feedbackSubmitted && (
-                    <div style={{ 
-                      marginTop: '12px', 
-                      padding: '8px 12px',
-                      fontSize: '13px', 
-                      color: msg.feedbackSubmitted === 'good' ? '#28a745' : '#dc3545',
-                      backgroundColor: msg.feedbackSubmitted === 'good' ? '#d4edda' : '#f8d7da',
-                      border: `1px solid ${msg.feedbackSubmitted === 'good' ? '#c3e6cb' : '#f5c6cb'}`,
-                      borderRadius: '6px',
-                      fontWeight: '500',
-                      display: 'inline-flex',
-                      alignItems: 'center',
-                      gap: '6px'
-                    }}>
-                      <span>✓</span>
+                    <div className={`feedback-thanks feedback-thanks-${msg.feedbackSubmitted === 'good' ? 'good' : 'bad'}`}>
+                      <span className="feedback-check-icon">✓</span>
                       <span>{msg.feedbackSubmitted === 'good' ? 'Thank you for your feedback! This helps us improve.' : 'Thanks for helping us improve! We\'ll work on better answers.'}</span>
                     </div>
                   )}

@@ -1498,6 +1498,215 @@ body {
     }
 }
 
+/* ============================================
+   Feedback Buttons Styles
+   ============================================ */
+
+.feedback-buttons {
+    margin-top: 16px;
+    padding: 14px 16px;
+    background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
+    border-radius: 12px;
+    border: 1px solid #e5e7eb;
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.04);
+    transition: all 0.3s ease;
+    animation: fadeInUp 0.3s ease;
+}
+
+.feedback-buttons:hover {
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.08);
+    border-color: #d1d5db;
+}
+
+.feedback-buttons .feedback-label {
+    font-size: 13px;
+    color: #4b5563;
+    font-weight: 500;
+    letter-spacing: -0.01em;
+    flex-shrink: 0;
+}
+
+.feedback-buttons .feedback-button-group {
+    display: flex;
+    gap: 8px;
+    flex-shrink: 0;
+}
+
+.feedback-buttons .feedback-btn {
+    padding: 8px 16px;
+    font-size: 13px;
+    border: 1.5px solid #e5e7eb;
+    background: white;
+    color: #4b5563;
+    border-radius: 8px;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    font-weight: 500;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+    white-space: nowrap;
+    min-width: fit-content;
+    position: relative;
+    overflow: hidden;
+}
+
+.feedback-buttons .feedback-btn::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
+    transition: left 0.5s;
+}
+
+.feedback-buttons .feedback-btn:hover::before {
+    left: 100%;
+}
+
+.feedback-buttons .feedback-btn .feedback-emoji {
+    font-size: 16px;
+    line-height: 1;
+    transition: transform 0.2s ease;
+}
+
+.feedback-buttons .feedback-btn:hover .feedback-emoji {
+    transform: scale(1.2);
+}
+
+.feedback-buttons .feedback-btn .feedback-text {
+    transition: font-weight 0.2s ease;
+}
+
+.feedback-buttons .feedback-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.12);
+}
+
+.feedback-buttons .feedback-btn:active {
+    transform: translateY(0);
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+.feedback-buttons .feedback-btn.feedback-btn-good {
+    border-color: #22c55e;
+    color: #16a34a;
+}
+
+.feedback-buttons .feedback-btn.feedback-btn-good:hover {
+    background: #22c55e;
+    color: white;
+    border-color: #22c55e;
+}
+
+.feedback-buttons .feedback-btn.feedback-btn-good:active {
+    background: #16a34a;
+    border-color: #16a34a;
+}
+
+.feedback-buttons .feedback-btn.feedback-btn-bad {
+    border-color: #ef4444;
+    color: #dc2626;
+}
+
+.feedback-buttons .feedback-btn.feedback-btn-bad:hover {
+    background: #ef4444;
+    color: white;
+    border-color: #ef4444;
+}
+
+.feedback-buttons .feedback-btn.feedback-btn-bad:active {
+    background: #dc2626;
+    border-color: #dc2626;
+}
+
+.feedback-buttons .feedback-btn:focus-visible {
+    outline: 2px solid var(--faix-primary);
+    outline-offset: 2px;
+}
+
+.feedback-buttons .feedback-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none !important;
+}
+
+/* Feedback thank you message */
+.feedback-thanks {
+    margin-top: 16px;
+    padding: 12px 16px;
+    font-size: 13px;
+    font-weight: 500;
+    border-radius: 10px;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    animation: fadeInUp 0.3s ease;
+}
+
+.feedback-thanks.feedback-thanks-good {
+    color: #166534;
+    background: linear-gradient(135deg, #dcfce7 0%, #bbf7d0 100%);
+    border: 1px solid #86efac;
+}
+
+.feedback-thanks.feedback-thanks-bad {
+    color: #991b1b;
+    background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);
+    border: 1px solid #fca5a5;
+}
+
+.feedback-thanks .feedback-check-icon {
+    font-size: 16px;
+    line-height: 1;
+}
+
+/* Responsive feedback buttons */
+@media (max-width: 480px) {
+    .feedback-buttons {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 10px;
+        padding: 12px;
+    }
+    
+    .feedback-buttons .feedback-label {
+        text-align: center;
+        width: 100%;
+    }
+    
+    .feedback-buttons .feedback-button-group {
+        width: 100%;
+        justify-content: stretch;
+    }
+    
+    .feedback-buttons .feedback-btn {
+        flex: 1;
+        padding: 10px 12px;
+    }
+    
+    /* Icon-only on very small screens */
+    @media (max-width: 360px) {
+        .feedback-buttons .feedback-btn .feedback-text {
+            display: none;
+        }
+        
+        .feedback-buttons .feedback-btn {
+            padding: 10px;
+            min-width: 44px;
+        }
+    }
+}
+
 /* Responsive Chatbot */
 @media (max-width: 480px) {
     .chatbot-container {
@@ -1550,6 +1759,39 @@ body {
     .chatbot-input-container {
         background: #1a202c;
         border-top-color: #4a5568;
+    }
+    
+    /* Dark mode for feedback buttons */
+    .feedback-buttons {
+        background: linear-gradient(135deg, #2d3748 0%, #1a202c 100%) !important;
+        border-color: #4a5568 !important;
+    }
+    
+    .feedback-buttons .feedback-label {
+        color: #e2e8f0 !important;
+    }
+    
+    .feedback-buttons .feedback-btn {
+        background: #4a5568 !important;
+        border-color: #4a5568 !important;
+        color: #e2e8f0 !important;
+    }
+    
+    .feedback-buttons .feedback-btn:hover {
+        background: #556278 !important;
+        border-color: #556278 !important;
+    }
+    
+    .feedback-buttons .feedback-btn.feedback-btn-good:hover {
+        background: #16a34a !important;
+        border-color: #16a34a !important;
+        color: white !important;
+    }
+    
+    .feedback-buttons .feedback-btn.feedback-btn-bad:hover {
+        background: #dc2626 !important;
+        border-color: #dc2626 !important;
+        color: white !important;
     }
 }
 

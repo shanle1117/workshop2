@@ -18,7 +18,7 @@ KEYWORD_MATCH_WEIGHT = 2
 EXACT_MATCH_BONUS = 1
 STRONG_INDICATOR_WEIGHT = 3
 ENGLISH_INDICATOR_WEIGHT = 2
-SPECIFIC_INTENT_BOOST = 1
+SPECIFIC_INTENT_BOOST = 2
 
 # Suppress warnings
 os.environ['TF_ENABLE_ONEDNN_OPTS'] = '0'
@@ -1080,53 +1080,142 @@ class QueryProcessor:
             'program_info': [
                 'what programs', 'what programmes', 'what programs does',
                 'what programmes does', 'what programs are', 'what programmes are',
-                'what degrees', 'programs available', 'programmes available'
+                'what programs does faix', 'programs does faix', 'programs does faix offer',
+                'what degrees', 'programs available', 'programmes available',
+                'tell me about bcsai', 'tell me about bcscs', 'tell me about program'
             ],
             'staff_contact': [
                 'who can i contact', 'who should i contact', 'who should i email',
                 'who can i', 'how do i contact', 'contact information',
-                'staff contact', 'email address', 'phone number'
+                'staff contact', 'email address', 'phone number',
+                'contact staff', 'get in touch', 'staff email', 'staff phone',
+                'faculty contact', 'who can i', 'contact information',
+                'who can i contact?', 'contact staff', 'staff email', 'staff phone'
             ],
             'academic_schedule': [
                 'academic calendar', 'when does the semester', 'when is the semester',
-                'semester dates', 'important dates', 'when are classes'
+                'when is semester', 'when does semester', 'semester start',
+                'semester dates', 'semester start date', 'when does semester start',
+                'important dates', 'when are classes', 'when are class',
+                'when is the', 'when are the'
+            ],
+            'admission': [
+                'admission', 'admission requirements', 'what are admission', 'entry requirements',
+                'admission criteria', 'what are the admission', 'admission requirement',
+                'entry criteria', 'how to apply'
             ],
             'facility_info': [
                 'what facilities', 'what labs', 'what laboratories', 'facilities available',
                 'labs available', 'laboratories available'
             ],
             'research': [
-                'what research', 'research areas', 'research focus', 'research projects'
+                'what research', 'research areas', 'research areas are',
+                'research focus', 'research focus areas', 'what research are',
+                'research projects', 'faculty research', 'what research areas are',
+                'research areas are the', 'what research areas'
             ]
         }
         
         # Check priority patterns first (exact phrase matching)
+        # Order matters - check more specific patterns first
         for intent, patterns in priority_patterns.items():
             for pattern in patterns:
-                if pattern in text_lower:
-                    result = (intent, 0.9)  # High confidence for exact pattern match
-                    self._intent_cache[cache_key] = result
-                    return result
+                # Use word boundary matching for single words to avoid false positives
+                if ' ' in pattern:
+                    # Multi-word pattern: check if pattern is in text
+                    if pattern in text_lower:
+                        result = (intent, 0.9)  # High confidence for exact pattern match
+                        self._intent_cache[cache_key] = result
+                        return result
+                else:
+                    # Single-word pattern: check with word boundaries for exact match
+                    if pattern == text_lower.strip() or f" {pattern} " in f" {text_lower} " or text_lower.startswith(pattern + " ") or text_lower.endswith(" " + pattern):
+                        result = (intent, 0.9)  # High confidence for exact pattern match
+                        self._intent_cache[cache_key] = result
+                        return result
         
         intent_scores = {}
         
+        # Define specific high-weight keywords for better intent differentiation
+        specific_keywords = {
+            'program_info': ['bcsai', 'bcscs', 'mcsss', 'mtdsa', 'ai programme', 'cybersecurity programme', 
+                           'computer science', 'artificial intelligence', 'cyber security', 'data science',
+                           'what programs', 'what programmes', 'programs available', 'programs does faix'],
+            'course_info': ['subject', 'subjects', 'module', 'modules', 'curriculum', 'coursework', 'practical',
+                          'what courses', 'what subjects', 'what modules'],
+            'admission': ['admission requirements', 'entry requirements', 'admission criteria', 'how to apply',
+                         'application process', 'cgpa', 'muet', 'eligibility'],
+            'staff_contact': ['who can i contact', 'staff email', 'staff phone', 'contact information',
+                            'faculty contact', 'get in touch'],
+            'academic_schedule': ['academic calendar', 'when is semester', 'when does semester', 'semester dates',
+                                'when are classes', 'important dates'],
+            'research': ['research areas', 'research focus', 'what research', 'faculty research'],
+            'fees': ['tuition fees', 'tuition', 'how much', 'payment schedule']
+        }
+        
+        # Define ambiguous keywords that should have lower weight
+        ambiguous_keywords = ['program', 'programme', 'course', 'contact', 'about', 'information']
+        
         for intent, keywords in language_patterns.items():
             score = 0
+            keyword_match_count = 0
+            has_multiword_match = False
+            
             for keyword in keywords:
+                keyword_lower = keyword.lower()
+                keyword_weight = 2  # Default weight
+                
+                # Higher weight for specific keywords
+                if intent in specific_keywords and keyword_lower in specific_keywords[intent]:
+                    keyword_weight = 4
+                # Lower weight for ambiguous keywords (unless in specific list)
+                elif keyword_lower in ambiguous_keywords:
+                    if intent not in specific_keywords or keyword_lower not in specific_keywords[intent]:
+                        keyword_weight = 1
+                
+                # Check for multi-word keywords (boost if found)
+                is_multiword = ' ' in keyword
+                
                 # For Chinese and Arabic, check if keyword is in text directly
                 if language in ['zh', 'ar']:
                     if keyword in text:
-                        score += 3
+                        score += keyword_weight
+                        keyword_match_count += 1
+                        if is_multiword:
+                            has_multiword_match = True
                         # Bonus for exact word match
                         if f" {keyword} " in f" {text} " or text.startswith(keyword + " ") or text.endswith(" " + keyword):
                             score += 1
                 else:
                     # For other languages, check in lowercase text
                     if keyword in text_lower:
-                        score += 2
+                        score += keyword_weight
+                        keyword_match_count += 1
+                        if is_multiword:
+                            has_multiword_match = True
                         # Bonus for exact word match
                         if f" {keyword} " in f" {text_lower} ":
                             score += 1
+            
+            # Boost for multi-word matches (indicates more specific intent)
+            if has_multiword_match:
+                score += 1
+            
+            # Special handling for program_info vs course_info distinction
+            if intent == 'program_info':
+                # Boost if we have specific program keywords
+                program_specific = ['bcsai', 'bcscs', 'degree', 'bachelor', 'master', 'undergraduate', 'postgraduate']
+                if any(kw in text_lower for kw in program_specific):
+                    score += 2
+            elif intent == 'course_info':
+                # Only boost course_info if we have course-specific keywords (not just "program")
+                course_specific = ['subject', 'module', 'curriculum', 'coursework', 'practical']
+                if any(kw in text_lower for kw in course_specific):
+                    score += 2
+                # Penalize if "program" appears without course-specific context
+                if 'program' in text_lower and not any(kw in text_lower for kw in course_specific):
+                    # Don't boost course_info if "program" appears
+                    pass
             
             # Prioritize specific intents over general_query
             # If a specific intent has any score, reduce general_query's influence
@@ -1135,7 +1224,8 @@ class QueryProcessor:
                 score += SPECIFIC_INTENT_BOOST
             
             if score > 0:
-                intent_scores[intent] = score
+                # Store score and keyword match count together
+                intent_scores[intent] = (score, keyword_match_count)
         
         # Remove general_query from scores if we have any specific intents
         # Greetings and farewells are handled as specific intents now
@@ -1143,10 +1233,15 @@ class QueryProcessor:
             del intent_scores['general_query']
         
         if intent_scores:
-            # Get best intent
-            best_intent = max(intent_scores.items(), key=lambda x: x[1])
+            # Get best intent (compare by score, which is first element of tuple)
+            best_intent = max(intent_scores.items(), key=lambda x: x[1][0] if isinstance(x[1], tuple) else x[1])
             intent_name = best_intent[0]
-            raw_score = best_intent[1]
+            # Extract score and keyword match count
+            if isinstance(best_intent[1], tuple):
+                raw_score, keyword_match_count = best_intent[1]
+            else:
+                raw_score = best_intent[1]
+                keyword_match_count = 1  # Fallback if not tracked
             
             # Improved confidence calculation that doesn't penalize short queries
             # For short queries (1-2 words), use a simpler normalization
@@ -1154,41 +1249,55 @@ class QueryProcessor:
             
             if query_word_count <= 2:
                 # Short queries: normalize by typical score for 1-2 keyword matches
-                # A single keyword match with exact bonus = 2 + 1 + boost = 4
+                # A single keyword match with exact bonus = 2 + 1 + boost = 5 (with new boost of 2)
                 # Short queries with single keyword should get 0.6-0.8 confidence
-                base_score = 4.0  # Typical score for 1 keyword match
+                base_score = 5.0  # Typical score for 1 keyword match (updated for new boost)
                 confidence = raw_score / base_score
                 
                 # For short queries, apply intelligent confidence scaling
-                if raw_score >= 6:
+                if raw_score >= 8:
                     confidence = 0.85  # Strong match (multiple keywords)
-                elif raw_score >= 4:
+                elif raw_score >= 6:
+                    confidence = 0.75  # Good match (multiple keywords)
+                elif raw_score >= 5:
                     confidence = 0.70  # Good match (1 keyword with bonuses)
+                elif raw_score >= 4:
+                    confidence = 0.65  # Decent match
                 elif raw_score >= 3:
-                    confidence = 0.60  # Decent match
-                elif raw_score >= 2:
-                    confidence = 0.50  # Basic match
+                    confidence = 0.60  # Basic match
                 else:
-                    confidence = 0.40  # Weak match
+                    confidence = 0.50  # Weak match (raised from 0.40)
                 
                 # Cap at 0.9 for short queries (leave room for priority patterns)
                 confidence = min(confidence, 0.9)
             else:
-                # Longer queries: use traditional normalization but with improvements
-                max_possible_score = len(language_patterns.get(intent_name, [])) * 3
+                # Longer queries: use improved normalization with query length consideration
+                # Consider query word count in normalization to avoid penalizing longer queries
+                max_possible_score = len(language_patterns.get(intent_name, [])) * 4  # Increased multiplier
+                
+                # Base normalization
                 confidence = min(raw_score / max(max_possible_score, 1), 1.0)
                 
-                # Boost for longer queries that got good scores
-                if raw_score >= 6:
+                # Boost for longer queries with good keyword matches
+                # Queries with 2+ keyword matches get additional boost
+                if keyword_match_count >= 2:
+                    confidence = min(confidence * 1.4, 0.95)
+                elif raw_score >= 8:
                     confidence = min(confidence * 1.3, 0.95)
+                elif raw_score >= 6:
+                    confidence = min(confidence * 1.25, 0.90)
                 elif raw_score >= 4:
                     confidence = min(confidence * 1.2, 0.85)
             
-            # Minimum confidence threshold for any keyword match
-            if raw_score >= 2:
-                confidence = max(confidence, 0.5)  # At least 50% confidence if we matched something
+            # Improved minimum confidence thresholds
+            if raw_score >= 6:
+                confidence = max(confidence, 0.8)  # At least 80% confidence for strong matches
+            elif raw_score >= 4:
+                confidence = max(confidence, 0.7)  # At least 70% confidence for good matches
+            elif raw_score >= 2:
+                confidence = max(confidence, 0.6)  # At least 60% confidence if we matched something (raised from 0.5)
             elif raw_score >= 1:
-                confidence = max(confidence, 0.3)  # At least 30% confidence for any match
+                confidence = max(confidence, 0.5)  # At least 50% confidence for any match (raised from 0.3)
             
             # Minimum confidence boost for Chinese and Arabic
             if language in ['zh', 'ar'] and confidence < 0.3:
@@ -1203,7 +1312,8 @@ class QueryProcessor:
             return result
         
         # Default to about_faix (general FAIX info) with low confidence when no match
-        result = ('about_faix', 0.2 if language == 'zh' else 0.1)
+        # Increased default confidence to better reflect uncertainty
+        result = ('about_faix', 0.2 if language == 'zh' else 0.3)
         # Cache the result
         if len(self._intent_cache) > INTENT_CACHE_SIZE:
             self._intent_cache = dict(list(self._intent_cache.items())[INTENT_CACHE_SIZE // 2:])
@@ -1215,15 +1325,18 @@ class QueryProcessor:
         Detect the main intent of the user query.
         Uses NLP model if available, otherwise falls back to keyword matching.
         """
+        nlp_intent = None
+        nlp_confidence = 0.0
+        
         # Try NLP-based classification first (for English)
         if self.use_nlp and self.intent_classifier and language == 'en':
             try:
                 intent, confidence, all_scores = self.intent_classifier.classify(text)
                 
-                # Map to our intent categories
+                # Map to our intent categories - improved mapping
                 intent_mapping = {
                     'course_info': 'course_info',
-                    'course_info_program': 'program_info',
+                    'course_info_program': 'program_info',  # Maps program-related courses to program_info
                     'registration': 'registration',
                     'schedule': 'academic_schedule',
                     'staff': 'staff_contact',
@@ -1234,19 +1347,53 @@ class QueryProcessor:
                     'about': 'about_faix',
                     'research': 'research',
                     'greeting': 'greeting',
-                    'farewell': 'farewell'
+                    'farewell': 'farewell',
+                    'program_info': 'program_info',  # Direct mapping if NLP returns this
+                    'academic_schedule': 'academic_schedule',  # Direct mapping
+                    'staff_contact': 'staff_contact'  # Direct mapping
                 }
                 
-                mapped_intent = intent_mapping.get(intent, 'about_faix')
+                mapped_intent = intent_mapping.get(intent, None)
                 
-                # Use NLP result if confidence is reasonable
-                if confidence >= 0.3:
-                    return mapped_intent, confidence
+                # Store NLP results for comparison with keyword matching
+                if mapped_intent:
+                    nlp_intent = mapped_intent
+                    nlp_confidence = confidence
+                    
+                    # Use NLP result only if confidence is reasonable (raised threshold to 0.4)
+                    # BUT first check if keyword matching would give better results
+                    keyword_intent, keyword_confidence = self.detect_intent_keyword(text, language)
+                    
+                    # If keyword matching found a significantly better match (priority patterns), use it
+                    # Priority patterns return 0.9, so they should always win
+                    if keyword_confidence >= 0.8 and keyword_confidence > nlp_confidence:
+                        return keyword_intent, keyword_confidence
+                    
+                    # Use NLP result if confidence is reasonable
+                    if confidence >= 0.4:
+                        return mapped_intent, confidence
+                
+                # If NLP confidence is low or intent not mapped, fall through to keyword matching
+                # This avoids defaulting to about_faix unnecessarily
             except Exception as e:
                 self.logger.debug(f"NLP classification failed, using fallback: {e}")
         
         # Use keyword-based detection for all languages
-        return self.detect_intent_keyword(text, language)
+        # This will find the best match and not default to about_faix unless truly no matches
+        keyword_intent, keyword_confidence = self.detect_intent_keyword(text, language)
+        
+        # Compare NLP and keyword results if NLP was attempted and hasn't returned yet
+        if nlp_intent and nlp_confidence >= 0.3:
+            # If keyword matching found a significantly better match, use it
+            # Priority patterns (0.9) should always win over NLP
+            if keyword_confidence > nlp_confidence + 0.2:
+                return keyword_intent, keyword_confidence
+            # If NLP confidence is close or better, use NLP result
+            elif nlp_confidence >= keyword_confidence - 0.1:
+                return nlp_intent, nlp_confidence
+        
+        # Return keyword result (better than defaulting to about_faix)
+        return keyword_intent, keyword_confidence
     
     def extract_entities(self, text: str, language: str) -> Dict[str, List[str]]:
         """Extract important entities from the text for specific language"""

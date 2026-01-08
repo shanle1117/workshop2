@@ -42,7 +42,8 @@
             "keywords": [
               "admin",
               "sukor",
-              "muhammad"
+              "muhammad",
+              "zubair"
             ]
           },
           {
@@ -110,7 +111,9 @@
             "office": "-",
             "keywords": [
               "aboobaider",
-              "professor"
+              "professor",
+              "burhanuddin",
+              "burhan"
             ]
           },
           {
@@ -124,7 +127,7 @@
               "associate",
               "associate professor",
               "professor",
-              "huoy"
+              "choo"
             ]
           },
           {
@@ -138,7 +141,7 @@
               "associate",
               "associate professor",
               "professor",
-              "ahmad"
+              "sharifah"
             ]
           },
           {
@@ -152,7 +155,7 @@
               "associate",
               "associate professor",
               "professor",
-              "selamat"
+              "siti rahayu"
             ]
           },
           {
@@ -166,7 +169,7 @@
               "associate",
               "associate professor",
               "professor",
-              "yusoh"
+              "zeratul"
             ]
           },
           {
@@ -180,7 +183,7 @@
               "associate",
               "associate professor",
               "professor",
-              "ahmad"
+              "asmala"
             ]
           },
           {
@@ -194,7 +197,7 @@
               "associate",
               "associate professor",
               "professor",
-              "abdollah"
+              "faizal"
             ]
           },
           {
@@ -207,7 +210,7 @@
             "keywords": [
               "associate",
               "associate professor",
-              "abu",
+              "azman",
               "professor"
             ]
           },
@@ -219,7 +222,7 @@
             "phone": "-",
             "office": "-",
             "keywords": [
-              "jaya",
+              "syukor",
               "lecturer",
               "ts.",
               "senior lecturer"
@@ -233,7 +236,7 @@
             "phone": "-",
             "office": "-",
             "keywords": [
-              "yusof",
+              "norfadzlia",
               "lecturer",
               "ts.",
               "senior lecturer"
@@ -247,7 +250,7 @@
             "phone": "-",
             "office": "-",
             "keywords": [
-              "abdullah",
+              "raihana",
               "lecturer",
               "ts.",
               "senior lecturer"
@@ -261,7 +264,7 @@
             "phone": "-",
             "office": "-",
             "keywords": [
-              "razali",
+              "sazalinsyah",
               "lecturer",
               "ts.",
               "senior lecturer"
@@ -275,7 +278,7 @@
             "phone": "-",
             "office": "-",
             "keywords": [
-              "yassin",
+              "warusia",
               "lecturer",
               "ts.",
               "senior lecturer"
@@ -289,7 +292,7 @@
             "phone": "-",
             "office": "-",
             "keywords": [
-              "kumar",
+              "yogan",
               "lecturer",
               "dr.",
               "senior lecturer"
@@ -303,7 +306,7 @@
             "phone": "-",
             "office": "-",
             "keywords": [
-              "muslim",
+              "zulkiflee",
               "lecturer",
               "ts.",
               "senior lecturer"
@@ -317,7 +320,7 @@
             "phone": "-",
             "office": "-",
             "keywords": [
-              "choon",
+              "ngo",
               "lecturer",
               "ts.",
               "senior lecturer"
@@ -331,7 +334,7 @@
             "phone": "-",
             "office": "-",
             "keywords": [
-              "wee",
+              "sek",
               "lecturer",
               "ts.",
               "senior lecturer"
@@ -345,10 +348,13 @@
             "phone": "-",
             "office": "-",
             "keywords": [
-              "bejuri",
+              "wan ya'akob",
               "lecturer",
               "ts.",
-              "senior lecturer"
+              "senior lecturer",
+              "yaakob"
+
+
             ]
           },
           {
@@ -359,10 +365,11 @@
             "phone": "-",
             "office": "-",
             "keywords": [
-              "latip",
+              "shekh faisal",
               "lecturer",
               "dr.",
-              "senior lecturer"
+              "senior lecturer",
+              "faisal"
             ]
           },
           {
@@ -373,7 +380,7 @@
             "phone": "-",
             "office": "-",
             "keywords": [
-              "kasmin",
+              "fauziah",
               "lecturer",
               "dr.",
               "senior lecturer"
@@ -387,7 +394,7 @@
             "phone": "-",
             "office": "-",
             "keywords": [
-              "zulkarnain",
+              "zareen",
               "lecturer",
               "dr.",
               "senior lecturer"
@@ -401,7 +408,7 @@
             "phone": "-",
             "office": "-",
             "keywords": [
-              "othman",
+              "fadzilah",
               "lecturer",
               "dr.",
               "senior lecturer"
@@ -418,7 +425,8 @@
               "amiri",
               "lecturer",
               "dr.",
-              "senior lecturer"
+              "senior lecturer",
+              "soleimani"
             ]
           },
           {
@@ -429,7 +437,7 @@
             "phone": "-",
             "office": "-",
             "keywords": [
-              "basiron",
+              "halizah",
               "lecturer",
               "ts.",
               "senior lecturer"
@@ -443,10 +451,11 @@
             "phone": "-",
             "office": "-",
             "keywords": [
-              "mas'ud",
+              "mohd zaki",
               "lecturer",
               "ts.",
-              "senior lecturer"
+              "senior lecturer",
+              "zaki"
             ]
           },
           {
@@ -457,10 +466,11 @@
             "phone": "-",
             "office": "-",
             "keywords": [
-              "zainudin",
+              "muhammad noorazlan",
               "lecturer",
               "ts.",
-              "senior lecturer"
+              "senior lecturer",
+              "noorazlan"
             ]
           },
           {
@@ -471,10 +481,10 @@
             "phone": "-",
             "office": "-",
             "keywords": [
-              "abidin",
               "lecturer",
               "dr.",
-              "senior lecturer"
+              "senior lecturer",
+              "zaheera"
             ]
           },
           {
@@ -485,7 +495,7 @@
             "phone": "-",
             "office": "-",
             "keywords": [
-              "yunos",
+              "norhazwani",
               "lecturer",
               "dr.",
               "senior lecturer"
@@ -499,7 +509,7 @@
             "phone": "-",
             "office": "-",
             "keywords": [
-              "burhanuddin",
+              "kharismi",
               "lecturer",
               "dr.",
               "senior lecturer"
@@ -513,7 +523,7 @@
             "phone": "-",
             "office": "-",
             "keywords": [
-              "yusof",
+              "noor fazilla",
               "lecturer",
               "dr.",
               "senior lecturer"
@@ -527,7 +537,7 @@
             "phone": "-",
             "office": "-",
             "keywords": [
-              "salleh",
+              "nurhashikin",
               "lecturer",
               "ts."
             ]
@@ -540,9 +550,10 @@
             "phone": "-",
             "office": "-",
             "keywords": [
-              "masdzarif",
+              "nur diana",
               "puan",
-              "lecturer"
+              "lecturer",
+              "izzani"
             ]
           }
         ]
