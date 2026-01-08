@@ -1,0 +1,80 @@
+{
+  "programmes": {
+    "undergraduate": [
+      {
+        "name": "Bachelor of Computer Science (Artificial Intelligence) with Honours",
+        "code": "BAXI",
+        "duration": "4 years",
+        "focus_areas": [
+          "AI technology",
+          "Machine learning",
+          "Neural networks",
+          "Fuzzy logic",
+          "Evolutionary computing",
+          "Intelligent agents"
+        ],
+        "career_opportunities": [
+          "Knowledge engineer",
+          "Smart systems developer",
+          "Expert system developer",
+          "Systems analyst",
+          "Systems programmer",
+          "Systems designer",
+          "Software developer",
+          "Software consultant",
+          "Computer scientist",
+          "Researcher"
+        ],
+        "learning_distribution": {
+          "coursework": "70%",
+          "practical_projects": "30%"
+        },
+        "graduate_attributes": [
+          "Able to acquire and apply knowledge in computer science and information technology",
+          "Able to analyze, design and develop ICT applications",
+          "Can use artificial intelligence techniques when developing systems"
+        ]
+      },
+      {
+        "name": "Bachelor of Computer Science (Computer Security) with Honours",
+        "code": "BAXZ",
+        "duration": "4 years",
+        "focus_areas": [
+          "Cybersecurity",
+          "Digital forensics",
+          "Network security",
+          "Information security",
+          "Security systems"
+        ],
+        "career_opportunities": [
+          "Cybersecurity analyst",
+          "Security consultant",
+          "Penetration tester",
+          "Digital forensics specialist",
+          "Security architect",
+          "Information security manager"
+        ]
+      }
+    ],
+    "postgraduate": [
+      {
+        "name": "Master of Computer Science (Security Science)",
+        "code": "MCSSS",
+        "type": "Coursework/Research",
+        "focus": "Advanced cybersecurity and security science research"
+      },
+      {
+        "name": "Master of Technology (Data Science and Analytics)",
+        "code": "MTDSA",
+        "type": "Coursework",
+        "focus": "Data science, analytics, and big data technologies"
+      },
+      {
+        "name": "Master of Technology in Data Science and Analytics (Open and Distance Learning - ODL)",
+        "code": "MTDSA-ODL",
+        "type": "ODL",
+        "focus": "Flexible learning for working professionals in data science"
+      }
+    ]
+  }
+}

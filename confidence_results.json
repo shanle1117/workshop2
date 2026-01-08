@@ -1,0 +1,1550 @@
+{
+  "timestamp": "2026-01-09 02:06:48",
+  "suites": [
+    {
+      "category": "short_queries",
+      "tests": [
+        {
+          "query": "hello",
+          "language": "en",
+          "detected_intent": "greeting",
+          "confidence": 0.7,
+          "confidence_level": "medium",
+          "expected_intent": "greeting",
+          "expected_confidence_range": [
+            0.5,
+            1.0
+          ],
+          "test_passed": true,
+          "error": null,
+          "metadata": {
+            "query_length": 1,
+            "processed_data": {
+              "intent": "greeting",
+              "confidence": 0.7,
+              "language": "en"
+            }
+          }
+        },
+        {
+          "query": "hi",
+          "language": "en",
+          "detected_intent": "greeting",
+          "confidence": 0.7,
+          "confidence_level": "medium",
+          "expected_intent": "greeting",
+          "expected_confidence_range": [
+            0.5,
+            1.0
+          ],
+          "test_passed": true,
+          "error": null,
+          "metadata": {
+            "query_length": 1,
+            "processed_data": {
+              "intent": "greeting",
+              "confidence": 0.7,
+              "language": "en"
+            }
+          }
+        },
+        {
+          "query": "bye",
+          "language": "en",
+          "detected_intent": "farewell",
+          "confidence": 0.7,
+          "confidence_level": "medium",
+          "expected_intent": "farewell",
+          "expected_confidence_range": [
+            0.5,
+            1.0
+          ],
+          "test_passed": true,
+          "error": null,
+          "metadata": {
+            "query_length": 1,
+            "processed_data": {
+              "intent": "farewell",
+              "confidence": 0.7,
+              "language": "en"
+            }
+          }
+        },
+        {
+          "query": "programs",
+          "language": "en",
+          "detected_intent": "course_info",
+          "confidence": 0.33,
+          "confidence_level": "low",
+          "expected_intent": "program_info",
+          "expected_confidence_range": [
+            0.4,
+            1.0
+          ],
+          "test_passed": false,
+          "error": "Intent mismatch: expected 'program_info', got 'course_info'; Confidence 0.33 not in range (0.4, 1.0)",
+          "metadata": {
+            "query_length": 1,
+            "processed_data": {
+              "intent": "course_info",
+              "confidence": 0.33,
+              "language": "en"
+            }
+          }
+        },
+        {
+          "query": "fees",
+          "language": "en",
+          "detected_intent": "fees",
+          "confidence": 0.85,
+          "confidence_level": "high",
+          "expected_intent": "fees",
+          "expected_confidence_range": [
+            0.4,
+            1.0
+          ],
+          "test_passed": true,
+          "error": null,
+          "metadata": {
+            "query_length": 1,
+            "processed_data": {
+              "intent": "fees",
+              "confidence": 0.85,
+              "language": "en"
+            }
+          }
+        },
+        {
+          "query": "admission",
+          "language": "en",
+          "detected_intent": "about_faix",
+          "confidence": 0.9,
+          "confidence_level": "high",
+          "expected_intent": "admission",
+          "expected_confidence_range": [
+            0.4,
+            1.0
+          ],
+          "test_passed": false,
+          "error": "Intent mismatch: expected 'admission', got 'about_faix'",
+          "metadata": {
+            "query_length": 1,
+            "processed_data": {
+              "intent": "about_faix",
+              "confidence": 0.9,
+              "language": "en"
+            }
+          }
+        },
+        {
+          "query": "contact",
+          "language": "en",
+          "detected_intent": "staff_contact",
+          "confidence": 0.7,
+          "confidence_level": "medium",
+          "expected_intent": "staff_contact",
+          "expected_confidence_range": [
+            0.4,
+            1.0
+          ],
+          "test_passed": true,
+          "error": null,
+          "metadata": {
+            "query_length": 1,
+            "processed_data": {
+              "intent": "staff_contact",
+              "confidence": 0.7,
+              "language": "en"
+            }
+          }
+        },
+        {
+          "query": "BCSAI program",
+          "language": "en",
+          "detected_intent": "program_info",
+          "confidence": 0.7,
+          "confidence_level": "medium",
+          "expected_intent": "program_info",
+          "expected_confidence_range": [
+            0.6,
+            1.0
+          ],
+          "test_passed": true,
+          "error": null,
+          "metadata": {
+            "query_length": 2,
+            "processed_data": {
+              "intent": "program_info",
+              "confidence": 0.7,
+              "language": "en"
+            }
+          }
+        },
+        {
+          "query": "tuition fees",
+          "language": "en",
+          "detected_intent": "fees",
+          "confidence": 0.85,
+          "confidence_level": "high",
+          "expected_intent": "fees",
+          "expected_confidence_range": [
+            0.6,
+            1.0
+          ],
+          "test_passed": true,
+          "error": null,
+          "metadata": {
+            "query_length": 2,
+            "processed_data": {
+              "intent": "fees",
+              "confidence": 0.85,
+              "language": "en"
+            }
+          }
+        },
+        {
+          "query": "entry requirements",
+          "language": "en",
+          "detected_intent": "admission",
+          "confidence": 0.85,
+          "confidence_level": "high",
+          "expected_intent": "admission",
+          "expected_confidence_range": [
+            0.6,
+            1.0
+          ],
+          "test_passed": true,
+          "error": null,
+          "metadata": {
+            "query_length": 2,
+            "processed_data": {
+              "intent": "admission",
+              "confidence": 0.85,
+              "language": "en"
+            }
+          }
+        },
+        {
+          "query": "staff contact",
+          "language": "en",
+          "detected_intent": "about_faix",
+          "confidence": 0.35,
+          "confidence_level": "low",
+          "expected_intent": "staff_contact",
+          "expected_confidence_range": [
+            0.6,
+            1.0
+          ],
+          "test_passed": false,
+          "error": "Intent mismatch: expected 'staff_contact', got 'about_faix'; Confidence 0.35 not in range (0.6, 1.0)",
+          "metadata": {
+            "query_length": 2,
+            "processed_data": {
+              "intent": "about_faix",
+              "confidence": 0.35,
+              "language": "en"
+            }
+          }
+        },
+        {
+          "query": "academic calendar",
+          "language": "en",
+          "detected_intent": "academic_schedule",
+          "confidence": 0.9,
+          "confidence_level": "high",
+          "expected_intent": "academic_schedule",
+          "expected_confidence_range": [
+            0.6,
+            1.0
+          ],
+          "test_passed": true,
+          "error": null,
+          "metadata": {
+            "query_length": 2,
+            "processed_data": {
+              "intent": "academic_schedule",
+              "confidence": 0.9,
+              "language": "en"
+            }
+          }
+        },
+        {
+          "query": "research areas",
+          "language": "en",
+          "detected_intent": "research",
+          "confidence": 0.9,
+          "confidence_level": "high",
+          "expected_intent": "research",
+          "expected_confidence_range": [
+            0.6,
+            1.0
+          ],
+          "test_passed": true,
+          "error": null,
+          "metadata": {
+            "query_length": 2,
+            "processed_data": {
+              "intent": "research",
+              "confidence": 0.9,
+              "language": "en"
+            }
+          }
+        }
+      ],
+      "total": 13,
+      "passed": 10,
+      "failed": 3,
+      "avg_confidence": 0.7253846153846154,
+      "min_confidence": 0.33,
+      "max_confidence": 0.9
+    },
+    {
+      "category": "long_queries",
+      "tests": [
+        {
+          "query": "What programs does FAIX offer for undergraduate students?",
+          "language": "en",
+          "detected_intent": "program_info",
+          "confidence": 0.9,
+          "confidence_level": "high",
+          "expected_intent": "program_info",
+          "expected_confidence_range": [
+            0.7,
+            1.0
+          ],
+          "test_passed": true,
+          "error": null,
+          "metadata": {
+            "query_length": 8,
+            "processed_data": {
+              "intent": "program_info",
+              "confidence": 0.9,
+              "language": "en"
+            }
+          }
+        },
+        {
+          "query": "How much are the tuition fees for the BCSAI program?",
+          "language": "en",
+          "detected_intent": "fees",
+          "confidence": 0.45,
+          "confidence_level": "low",
+          "expected_intent": "fees",
+          "expected_confidence_range": [
+            0.7,
+            1.0
+          ],
+          "test_passed": false,
+          "error": "Confidence 0.45 not in range (0.7, 1.0)",
+          "metadata": {
+            "query_length": 10,
+            "processed_data": {
+              "intent": "fees",
+              "confidence": 0.45,
+              "language": "en"
+            }
+          }
+        },
+        {
+          "query": "What are the admission requirements for international students?",
+          "language": "en",
+          "detected_intent": "admission",
+          "confidence": 0.53,
+          "confidence_level": "medium",
+          "expected_intent": "admission",
+          "expected_confidence_range": [
+            0.7,
+            1.0
+          ],
+          "test_passed": false,
+          "error": "Confidence 0.53 not in range (0.7, 1.0)",
+          "metadata": {
+            "query_length": 8,
+            "processed_data": {
+              "intent": "admission",
+              "confidence": 0.53,
+              "language": "en"
+            }
+          }
+        },
+        {
+          "query": "Who can I contact if I have questions about course registration?",
+          "language": "en",
+          "detected_intent": "about_faix",
+          "confidence": 0.56,
+          "confidence_level": "medium",
+          "expected_intent": "staff_contact",
+          "expected_confidence_range": [
+            0.8,
+            1.0
+          ],
+          "test_passed": false,
+          "error": "Intent mismatch: expected 'staff_contact', got 'about_faix'; Confidence 0.56 not in range (0.8, 1.0)",
+          "metadata": {
+            "query_length": 11,
+            "processed_data": {
+              "intent": "about_faix",
+              "confidence": 0.56,
+              "language": "en"
+            }
+          }
+        },
+        {
+          "query": "When does the new academic semester start?",
+          "language": "en",
+          "detected_intent": "about_faix",
+          "confidence": 0.54,
+          "confidence_level": "medium",
+          "expected_intent": "academic_schedule",
+          "expected_confidence_range": [
+            0.7,
+            1.0
+          ],
+          "test_passed": false,
+          "error": "Intent mismatch: expected 'academic_schedule', got 'about_faix'; Confidence 0.54 not in range (0.7, 1.0)",
+          "metadata": {
+            "query_length": 7,
+            "processed_data": {
+              "intent": "about_faix",
+              "confidence": 0.54,
+              "language": "en"
+            }
+          }
+        },
+        {
+          "query": "What research areas are the faculty members working on?",
+          "language": "en",
+          "detected_intent": "about_faix",
+          "confidence": 0.36,
+          "confidence_level": "low",
+          "expected_intent": "research",
+          "expected_confidence_range": [
+            0.7,
+            1.0
+          ],
+          "test_passed": false,
+          "error": "Intent mismatch: expected 'research', got 'about_faix'; Confidence 0.36 not in range (0.7, 1.0)",
+          "metadata": {
+            "query_length": 9,
+            "processed_data": {
+              "intent": "about_faix",
+              "confidence": 0.36,
+              "language": "en"
+            }
+          }
+        },
+        {
+          "query": "Can you tell me about the facilities available in the faculty?",
+          "language": "en",
+          "detected_intent": "facility_info",
+          "confidence": 0.9,
+          "confidence_level": "high",
+          "expected_intent": "facility_info",
+          "expected_confidence_range": [
+            0.7,
+            1.0
+          ],
+          "test_passed": true,
+          "error": null,
+          "metadata": {
+            "query_length": 11,
+            "processed_data": {
+              "intent": "facility_info",
+              "confidence": 0.9,
+              "language": "en"
+            }
+          }
+        },
+        {
+          "query": "I need information about the academic handbook and forms",
+          "language": "en",
+          "detected_intent": "academic_resources",
+          "confidence": 0.5,
+          "confidence_level": "medium",
+          "expected_intent": "academic_resources",
+          "expected_confidence_range": [
+            0.7,
+            1.0
+          ],
+          "test_passed": false,
+          "error": "Confidence 0.50 not in range (0.7, 1.0)",
+          "metadata": {
+            "query_length": 9,
+            "processed_data": {
+              "intent": "academic_resources",
+              "confidence": 0.5,
+              "language": "en"
+            }
+          }
+        }
+      ],
+      "total": 8,
+      "passed": 2,
+      "failed": 6,
+      "avg_confidence": 0.5925,
+      "min_confidence": 0.36,
+      "max_confidence": 0.9
+    },
+    {
+      "category": "priority_patterns",
+      "tests": [
+        {
+          "query": "when was faix established",
+          "language": "en",
+          "detected_intent": "about_faix",
+          "confidence": 0.9,
+          "confidence_level": "high",
+          "expected_intent": "about_faix",
+          "expected_confidence_range": [
+            0.8,
+            1.0
+          ],
+          "test_passed": true,
+          "error": null,
+          "metadata": {
+            "query_length": 4,
+            "processed_data": {
+              "intent": "about_faix",
+              "confidence": 0.9,
+              "language": "en"
+            }
+          }
+        },
+        {
+          "query": "when was faix founded",
+          "language": "en",
+          "detected_intent": "about_faix",
+          "confidence": 0.9,
+          "confidence_level": "high",
+          "expected_intent": "about_faix",
+          "expected_confidence_range": [
+            0.8,
+            1.0
+          ],
+          "test_passed": true,
+          "error": null,
+          "metadata": {
+            "query_length": 4,
+            "processed_data": {
+              "intent": "about_faix",
+              "confidence": 0.9,
+              "language": "en"
+            }
+          }
+        },
+        {
+          "query": "what programs does faix offer",
+          "language": "en",
+          "detected_intent": "course_info",
+          "confidence": 0.34,
+          "confidence_level": "low",
+          "expected_intent": "program_info",
+          "expected_confidence_range": [
+            0.8,
+            1.0
+          ],
+          "test_passed": false,
+          "error": "Intent mismatch: expected 'program_info', got 'course_info'; Confidence 0.34 not in range (0.8, 1.0)",
+          "metadata": {
+            "query_length": 5,
+            "processed_data": {
+              "intent": "course_info",
+              "confidence": 0.34,
+              "language": "en"
+            }
+          }
+        },
+        {
+          "query": "who can i contact",
+          "language": "en",
+          "detected_intent": "about_faix",
+          "confidence": 0.33,
+          "confidence_level": "low",
+          "expected_intent": "staff_contact",
+          "expected_confidence_range": [
+            0.8,
+            1.0
+          ],
+          "test_passed": false,
+          "error": "Intent mismatch: expected 'staff_contact', got 'about_faix'; Confidence 0.33 not in range (0.8, 1.0)",
+          "metadata": {
+            "query_length": 4,
+            "processed_data": {
+              "intent": "about_faix",
+              "confidence": 0.33,
+              "language": "en"
+            }
+          }
+        },
+        {
+          "query": "what is the vision of faix",
+          "language": "en",
+          "detected_intent": "about_faix",
+          "confidence": 0.9,
+          "confidence_level": "high",
+          "expected_intent": "about_faix",
+          "expected_confidence_range": [
+            0.8,
+            1.0
+          ],
+          "test_passed": true,
+          "error": null,
+          "metadata": {
+            "query_length": 6,
+            "processed_data": {
+              "intent": "about_faix",
+              "confidence": 0.9,
+              "language": "en"
+            }
+          }
+        },
+        {
+          "query": "what is the mission",
+          "language": "en",
+          "detected_intent": "about_faix",
+          "confidence": 0.9,
+          "confidence_level": "high",
+          "expected_intent": "about_faix",
+          "expected_confidence_range": [
+            0.8,
+            1.0
+          ],
+          "test_passed": true,
+          "error": null,
+          "metadata": {
+            "query_length": 4,
+            "processed_data": {
+              "intent": "about_faix",
+              "confidence": 0.9,
+              "language": "en"
+            }
+          }
+        },
+        {
+          "query": "when is the semester",
+          "language": "en",
+          "detected_intent": "about_faix",
+          "confidence": 0.39,
+          "confidence_level": "low",
+          "expected_intent": "academic_schedule",
+          "expected_confidence_range": [
+            0.8,
+            1.0
+          ],
+          "test_passed": false,
+          "error": "Intent mismatch: expected 'academic_schedule', got 'about_faix'; Confidence 0.39 not in range (0.8, 1.0)",
+          "metadata": {
+            "query_length": 4,
+            "processed_data": {
+              "intent": "about_faix",
+              "confidence": 0.39,
+              "language": "en"
+            }
+          }
+        }
+      ],
+      "total": 7,
+      "passed": 4,
+      "failed": 3,
+      "avg_confidence": 0.6657142857142857,
+      "min_confidence": 0.33,
+      "max_confidence": 0.9
+    },
+    {
+      "category": "low_confidence",
+      "tests": [
+        {
+          "query": "random text xyz",
+          "language": "en",
+          "detected_intent": "about_faix",
+          "confidence": 0.1,
+          "confidence_level": "very_low",
+          "expected_intent": null,
+          "expected_confidence_range": [
+            0.0,
+            0.3
+          ],
+          "test_passed": true,
+          "error": null,
+          "metadata": {
+            "query_length": 3,
+            "processed_data": {
+              "intent": "about_faix",
+              "confidence": 0.1,
+              "language": "en"
+            }
+          }
+        },
+        {
+          "query": "asdfghjkl",
+          "language": "en",
+          "detected_intent": "about_faix",
+          "confidence": 0.1,
+          "confidence_level": "very_low",
+          "expected_intent": null,
+          "expected_confidence_range": [
+            0.0,
+            0.3
+          ],
+          "test_passed": true,
+          "error": null,
+          "metadata": {
+            "query_length": 1,
+            "processed_data": {
+              "intent": "about_faix",
+              "confidence": 0.1,
+              "language": "en"
+            }
+          }
+        },
+        {
+          "query": "123456",
+          "language": "en",
+          "detected_intent": "about_faix",
+          "confidence": 0.1,
+          "confidence_level": "very_low",
+          "expected_intent": null,
+          "expected_confidence_range": [
+            0.0,
+            0.3
+          ],
+          "test_passed": true,
+          "error": null,
+          "metadata": {
+            "query_length": 1,
+            "processed_data": {
+              "intent": "about_faix",
+              "confidence": 0.1,
+              "language": "en"
+            }
+          }
+        },
+        {
+          "query": "???",
+          "language": "en",
+          "detected_intent": "about_faix",
+          "confidence": 0.1,
+          "confidence_level": "very_low",
+          "expected_intent": null,
+          "expected_confidence_range": [
+            0.0,
+            0.3
+          ],
+          "test_passed": true,
+          "error": null,
+          "metadata": {
+            "query_length": 1,
+            "processed_data": {
+              "intent": "about_faix",
+              "confidence": 0.1,
+              "language": "en"
+            }
+          }
+        },
+        {
+          "query": "",
+          "language": "en",
+          "detected_intent": "about_faix",
+          "confidence": 0.1,
+          "confidence_level": "very_low",
+          "expected_intent": null,
+          "expected_confidence_range": [
+            0.0,
+            0.3
+          ],
+          "test_passed": true,
+          "error": null,
+          "metadata": {
+            "query_length": 0,
+            "processed_data": {
+              "intent": "about_faix",
+              "confidence": 0.1,
+              "language": "en"
+            }
+          }
+        },
+        {
+          "query": "maybe possibly perhaps",
+          "language": "en",
+          "detected_intent": "about_faix",
+          "confidence": 0.1,
+          "confidence_level": "very_low",
+          "expected_intent": null,
+          "expected_confidence_range": [
+            0.0,
+            0.4
+          ],
+          "test_passed": true,
+          "error": null,
+          "metadata": {
+            "query_length": 3,
+            "processed_data": {
+              "intent": "about_faix",
+              "confidence": 0.1,
+              "language": "en"
+            }
+          }
+        }
+      ],
+      "total": 6,
+      "passed": 6,
+      "failed": 0,
+      "avg_confidence": 0.09999999999999999,
+      "min_confidence": 0.1,
+      "max_confidence": 0.1
+    },
+    {
+      "category": "multilingual",
+      "tests": [
+        {
+          "query": "program apa yang ditawarkan",
+          "language": "ms",
+          "detected_intent": "program_info",
+          "confidence": 0.5,
+          "confidence_level": "medium",
+          "expected_intent": "program_info",
+          "expected_confidence_range": [
+            0.5,
+            1.0
+          ],
+          "test_passed": true,
+          "error": null,
+          "metadata": {
+            "query_length": 4,
+            "processed_data": {
+              "intent": "program_info",
+              "confidence": 0.5,
+              "language": "ms"
+            }
+          }
+        },
+        {
+          "query": "yuran berapa",
+          "language": "ms",
+          "detected_intent": "fees",
+          "confidence": 0.7,
+          "confidence_level": "medium",
+          "expected_intent": "fees",
+          "expected_confidence_range": [
+            0.5,
+            1.0
+          ],
+          "test_passed": true,
+          "error": null,
+          "metadata": {
+            "query_length": 2,
+            "processed_data": {
+              "intent": "fees",
+              "confidence": 0.7,
+              "language": "ms"
+            }
+          }
+        },
+        {
+          "query": "siapa boleh saya hubungi",
+          "language": "ms",
+          "detected_intent": "staff_contact",
+          "confidence": 0.5,
+          "confidence_level": "medium",
+          "expected_intent": "staff_contact",
+          "expected_confidence_range": [
+            0.5,
+            1.0
+          ],
+          "test_passed": true,
+          "error": null,
+          "metadata": {
+            "query_length": 4,
+            "processed_data": {
+              "intent": "staff_contact",
+              "confidence": 0.5,
+              "language": "ms"
+            }
+          }
+        },
+        {
+          "query": "程序",
+          "language": "zh",
+          "detected_intent": "course_info",
+          "confidence": 0.7,
+          "confidence_level": "medium",
+          "expected_intent": null,
+          "expected_confidence_range": [
+            0.3,
+            1.0
+          ],
+          "test_passed": true,
+          "error": null,
+          "metadata": {
+            "query_length": 1,
+            "processed_data": {
+              "intent": "course_info",
+              "confidence": 0.7,
+              "language": "zh"
+            }
+          }
+        },
+        {
+          "query": "费用",
+          "language": "zh",
+          "detected_intent": "fees",
+          "confidence": 0.7,
+          "confidence_level": "medium",
+          "expected_intent": null,
+          "expected_confidence_range": [
+            0.3,
+            1.0
+          ],
+          "test_passed": true,
+          "error": null,
+          "metadata": {
+            "query_length": 1,
+            "processed_data": {
+              "intent": "fees",
+              "confidence": 0.7,
+              "language": "zh"
+            }
+          }
+        }
+      ],
+      "total": 5,
+      "passed": 5,
+      "failed": 0,
+      "avg_confidence": 0.6199999999999999,
+      "min_confidence": 0.5,
+      "max_confidence": 0.7
+    },
+    {
+      "category": "confidence_thresholds",
+      "tests": [
+        {
+          "query": "when was faix established",
+          "language": "en",
+          "detected_intent": "about_faix",
+          "confidence": 0.9,
+          "confidence_level": "high",
+          "expected_intent": null,
+          "expected_confidence_range": [
+            0.8,
+            1.0
+          ],
+          "test_passed": true,
+          "error": null,
+          "metadata": {
+            "query_length": 4,
+            "processed_data": {
+              "intent": "about_faix",
+              "confidence": 0.9,
+              "language": "en"
+            },
+            "threshold_high": true,
+            "threshold_medium": false,
+            "threshold_low": false,
+            "threshold_very_low": false
+          }
+        },
+        {
+          "query": "what programs does faix offer",
+          "language": "en",
+          "detected_intent": "course_info",
+          "confidence": 0.34,
+          "confidence_level": "low",
+          "expected_intent": null,
+          "expected_confidence_range": [
+            0.8,
+            1.0
+          ],
+          "test_passed": false,
+          "error": "Confidence 0.34 not in range (0.8, 1.0)",
+          "metadata": {
+            "query_length": 5,
+            "processed_data": {
+              "intent": "course_info",
+              "confidence": 0.34,
+              "language": "en"
+            },
+            "threshold_high": false,
+            "threshold_medium": false,
+            "threshold_low": true,
+            "threshold_very_low": false
+          }
+        },
+        {
+          "query": "programs available",
+          "language": "en",
+          "detected_intent": "program_info",
+          "confidence": 0.9,
+          "confidence_level": "high",
+          "expected_intent": null,
+          "expected_confidence_range": [
+            0.5,
+            0.8
+          ],
+          "test_passed": false,
+          "error": "Confidence 0.90 not in range (0.5, 0.8)",
+          "metadata": {
+            "query_length": 2,
+            "processed_data": {
+              "intent": "program_info",
+              "confidence": 0.9,
+              "language": "en"
+            },
+            "threshold_high": true,
+            "threshold_medium": false,
+            "threshold_low": false,
+            "threshold_very_low": false
+          }
+        },
+        {
+          "query": "tell me about fees",
+          "language": "en",
+          "detected_intent": "about_faix",
+          "confidence": 0.5,
+          "confidence_level": "medium",
+          "expected_intent": null,
+          "expected_confidence_range": [
+            0.5,
+            0.8
+          ],
+          "test_passed": true,
+          "error": null,
+          "metadata": {
+            "query_length": 4,
+            "processed_data": {
+              "intent": "about_faix",
+              "confidence": 0.5,
+              "language": "en"
+            },
+            "threshold_high": false,
+            "threshold_medium": true,
+            "threshold_low": false,
+            "threshold_very_low": false
+          }
+        },
+        {
+          "query": "information",
+          "language": "en",
+          "detected_intent": "about_faix",
+          "confidence": 0.1,
+          "confidence_level": "very_low",
+          "expected_intent": null,
+          "expected_confidence_range": [
+            0.3,
+            0.5
+          ],
+          "test_passed": false,
+          "error": "Confidence 0.10 not in range (0.3, 0.5)",
+          "metadata": {
+            "query_length": 1,
+            "processed_data": {
+              "intent": "about_faix",
+              "confidence": 0.1,
+              "language": "en"
+            },
+            "threshold_high": false,
+            "threshold_medium": false,
+            "threshold_low": false,
+            "threshold_very_low": true
+          }
+        },
+        {
+          "query": "help",
+          "language": "en",
+          "detected_intent": "about_faix",
+          "confidence": 0.1,
+          "confidence_level": "very_low",
+          "expected_intent": null,
+          "expected_confidence_range": [
+            0.3,
+            0.5
+          ],
+          "test_passed": false,
+          "error": "Confidence 0.10 not in range (0.3, 0.5)",
+          "metadata": {
+            "query_length": 1,
+            "processed_data": {
+              "intent": "about_faix",
+              "confidence": 0.1,
+              "language": "en"
+            },
+            "threshold_high": false,
+            "threshold_medium": false,
+            "threshold_low": false,
+            "threshold_very_low": true
+          }
+        },
+        {
+          "query": "xyz abc",
+          "language": "en",
+          "detected_intent": "about_faix",
+          "confidence": 0.1,
+          "confidence_level": "very_low",
+          "expected_intent": null,
+          "expected_confidence_range": [
+            0.0,
+            0.3
+          ],
+          "test_passed": true,
+          "error": null,
+          "metadata": {
+            "query_length": 2,
+            "processed_data": {
+              "intent": "about_faix",
+              "confidence": 0.1,
+              "language": "en"
+            },
+            "threshold_high": false,
+            "threshold_medium": false,
+            "threshold_low": false,
+            "threshold_very_low": true
+          }
+        },
+        {
+          "query": "random text",
+          "language": "en",
+          "detected_intent": "about_faix",
+          "confidence": 0.1,
+          "confidence_level": "very_low",
+          "expected_intent": null,
+          "expected_confidence_range": [
+            0.0,
+            0.3
+          ],
+          "test_passed": true,
+          "error": null,
+          "metadata": {
+            "query_length": 2,
+            "processed_data": {
+              "intent": "about_faix",
+              "confidence": 0.1,
+              "language": "en"
+            },
+            "threshold_high": false,
+            "threshold_medium": false,
+            "threshold_low": false,
+            "threshold_very_low": true
+          }
+        }
+      ],
+      "total": 8,
+      "passed": 4,
+      "failed": 4,
+      "avg_confidence": 0.38000000000000006,
+      "min_confidence": 0.1,
+      "max_confidence": 0.9
+    },
+    {
+      "category": "intent_distribution",
+      "tests": [
+        {
+          "query": "What programs does FAIX offer?",
+          "language": "en",
+          "detected_intent": "course_info",
+          "confidence": 0.33,
+          "confidence_level": "low",
+          "expected_intent": "program_info",
+          "expected_confidence_range": [
+            0.4,
+            1.0
+          ],
+          "test_passed": false,
+          "error": "Intent mismatch: expected 'program_info', got 'course_info'; Confidence 0.33 not in range (0.4, 1.0)",
+          "metadata": {
+            "query_length": 5,
+            "processed_data": {
+              "intent": "course_info",
+              "confidence": 0.33,
+              "language": "en"
+            }
+          }
+        },
+        {
+          "query": "Tell me about BCSAI",
+          "language": "en",
+          "detected_intent": "about_faix",
+          "confidence": 0.5,
+          "confidence_level": "medium",
+          "expected_intent": "program_info",
+          "expected_confidence_range": [
+            0.4,
+            1.0
+          ],
+          "test_passed": false,
+          "error": "Intent mismatch: expected 'program_info', got 'about_faix'",
+          "metadata": {
+            "query_length": 4,
+            "processed_data": {
+              "intent": "about_faix",
+              "confidence": 0.5,
+              "language": "en"
+            }
+          }
+        },
+        {
+          "query": "What degrees are available?",
+          "language": "en",
+          "detected_intent": "program_info",
+          "confidence": 0.9,
+          "confidence_level": "high",
+          "expected_intent": "program_info",
+          "expected_confidence_range": [
+            0.4,
+            1.0
+          ],
+          "test_passed": true,
+          "error": null,
+          "metadata": {
+            "query_length": 4,
+            "processed_data": {
+              "intent": "program_info",
+              "confidence": 0.9,
+              "language": "en"
+            }
+          }
+        },
+        {
+          "query": "What are the admission requirements?",
+          "language": "en",
+          "detected_intent": "about_faix",
+          "confidence": 0.9,
+          "confidence_level": "high",
+          "expected_intent": "admission",
+          "expected_confidence_range": [
+            0.4,
+            1.0
+          ],
+          "test_passed": false,
+          "error": "Intent mismatch: expected 'admission', got 'about_faix'",
+          "metadata": {
+            "query_length": 5,
+            "processed_data": {
+              "intent": "about_faix",
+              "confidence": 0.9,
+              "language": "en"
+            }
+          }
+        },
+        {
+          "query": "How to apply?",
+          "language": "en",
+          "detected_intent": "admission",
+          "confidence": 0.5,
+          "confidence_level": "medium",
+          "expected_intent": "admission",
+          "expected_confidence_range": [
+            0.4,
+            1.0
+          ],
+          "test_passed": true,
+          "error": null,
+          "metadata": {
+            "query_length": 3,
+            "processed_data": {
+              "intent": "admission",
+              "confidence": 0.5,
+              "language": "en"
+            }
+          }
+        },
+        {
+          "query": "Entry criteria",
+          "language": "en",
+          "detected_intent": "admission",
+          "confidence": 0.85,
+          "confidence_level": "high",
+          "expected_intent": "admission",
+          "expected_confidence_range": [
+            0.4,
+            1.0
+          ],
+          "test_passed": true,
+          "error": null,
+          "metadata": {
+            "query_length": 2,
+            "processed_data": {
+              "intent": "admission",
+              "confidence": 0.85,
+              "language": "en"
+            }
+          }
+        },
+        {
+          "query": "How much are the fees?",
+          "language": "en",
+          "detected_intent": "fees",
+          "confidence": 0.5,
+          "confidence_level": "medium",
+          "expected_intent": "fees",
+          "expected_confidence_range": [
+            0.4,
+            1.0
+          ],
+          "test_passed": true,
+          "error": null,
+          "metadata": {
+            "query_length": 5,
+            "processed_data": {
+              "intent": "fees",
+              "confidence": 0.5,
+              "language": "en"
+            }
+          }
+        },
+        {
+          "query": "Tuition costs",
+          "language": "en",
+          "detected_intent": "fees",
+          "confidence": 0.31,
+          "confidence_level": "low",
+          "expected_intent": "fees",
+          "expected_confidence_range": [
+            0.4,
+            1.0
+          ],
+          "test_passed": false,
+          "error": "Confidence 0.31 not in range (0.4, 1.0)",
+          "metadata": {
+            "query_length": 2,
+            "processed_data": {
+              "intent": "fees",
+              "confidence": 0.31,
+              "language": "en"
+            }
+          }
+        },
+        {
+          "query": "Payment schedule",
+          "language": "en",
+          "detected_intent": "academic_schedule",
+          "confidence": 0.7,
+          "confidence_level": "medium",
+          "expected_intent": "fees",
+          "expected_confidence_range": [
+            0.4,
+            1.0
+          ],
+          "test_passed": false,
+          "error": "Intent mismatch: expected 'fees', got 'academic_schedule'",
+          "metadata": {
+            "query_length": 2,
+            "processed_data": {
+              "intent": "academic_schedule",
+              "confidence": 0.7,
+              "language": "en"
+            }
+          }
+        },
+        {
+          "query": "Who can I contact?",
+          "language": "en",
+          "detected_intent": "about_faix",
+          "confidence": 0.36,
+          "confidence_level": "low",
+          "expected_intent": "staff_contact",
+          "expected_confidence_range": [
+            0.4,
+            1.0
+          ],
+          "test_passed": false,
+          "error": "Intent mismatch: expected 'staff_contact', got 'about_faix'; Confidence 0.36 not in range (0.4, 1.0)",
+          "metadata": {
+            "query_length": 4,
+            "processed_data": {
+              "intent": "about_faix",
+              "confidence": 0.36,
+              "language": "en"
+            }
+          }
+        },
+        {
+          "query": "Staff email",
+          "language": "en",
+          "detected_intent": "staff_contact",
+          "confidence": 0.85,
+          "confidence_level": "high",
+          "expected_intent": "staff_contact",
+          "expected_confidence_range": [
+            0.4,
+            1.0
+          ],
+          "test_passed": true,
+          "error": null,
+          "metadata": {
+            "query_length": 2,
+            "processed_data": {
+              "intent": "staff_contact",
+              "confidence": 0.85,
+              "language": "en"
+            }
+          }
+        },
+        {
+          "query": "Contact information",
+          "language": "en",
+          "detected_intent": "staff_contact",
+          "confidence": 0.9,
+          "confidence_level": "high",
+          "expected_intent": "staff_contact",
+          "expected_confidence_range": [
+            0.4,
+            1.0
+          ],
+          "test_passed": true,
+          "error": null,
+          "metadata": {
+            "query_length": 2,
+            "processed_data": {
+              "intent": "staff_contact",
+              "confidence": 0.9,
+              "language": "en"
+            }
+          }
+        },
+        {
+          "query": "Tell me about FAIX",
+          "language": "en",
+          "detected_intent": "about_faix",
+          "confidence": 0.5,
+          "confidence_level": "medium",
+          "expected_intent": "about_faix",
+          "expected_confidence_range": [
+            0.4,
+            1.0
+          ],
+          "test_passed": true,
+          "error": null,
+          "metadata": {
+            "query_length": 4,
+            "processed_data": {
+              "intent": "about_faix",
+              "confidence": 0.5,
+              "language": "en"
+            }
+          }
+        },
+        {
+          "query": "What is FAIX?",
+          "language": "en",
+          "detected_intent": "about_faix",
+          "confidence": 0.9,
+          "confidence_level": "high",
+          "expected_intent": "about_faix",
+          "expected_confidence_range": [
+            0.4,
+            1.0
+          ],
+          "test_passed": true,
+          "error": null,
+          "metadata": {
+            "query_length": 3,
+            "processed_data": {
+              "intent": "about_faix",
+              "confidence": 0.9,
+              "language": "en"
+            }
+          }
+        },
+        {
+          "query": "Faculty information",
+          "language": "en",
+          "detected_intent": "staff_contact",
+          "confidence": 0.7,
+          "confidence_level": "medium",
+          "expected_intent": "about_faix",
+          "expected_confidence_range": [
+            0.4,
+            1.0
+          ],
+          "test_passed": false,
+          "error": "Intent mismatch: expected 'about_faix', got 'staff_contact'",
+          "metadata": {
+            "query_length": 2,
+            "processed_data": {
+              "intent": "staff_contact",
+              "confidence": 0.7,
+              "language": "en"
+            }
+          }
+        },
+        {
+          "query": "When is the semester?",
+          "language": "en",
+          "detected_intent": "about_faix",
+          "confidence": 0.59,
+          "confidence_level": "medium",
+          "expected_intent": "academic_schedule",
+          "expected_confidence_range": [
+            0.4,
+            1.0
+          ],
+          "test_passed": false,
+          "error": "Intent mismatch: expected 'academic_schedule', got 'about_faix'",
+          "metadata": {
+            "query_length": 4,
+            "processed_data": {
+              "intent": "about_faix",
+              "confidence": 0.59,
+              "language": "en"
+            }
+          }
+        },
+        {
+          "query": "Academic calendar",
+          "language": "en",
+          "detected_intent": "academic_schedule",
+          "confidence": 0.9,
+          "confidence_level": "high",
+          "expected_intent": "academic_schedule",
+          "expected_confidence_range": [
+            0.4,
+            1.0
+          ],
+          "test_passed": true,
+          "error": null,
+          "metadata": {
+            "query_length": 2,
+            "processed_data": {
+              "intent": "academic_schedule",
+              "confidence": 0.9,
+              "language": "en"
+            }
+          }
+        },
+        {
+          "query": "Important dates",
+          "language": "en",
+          "detected_intent": "academic_schedule",
+          "confidence": 0.9,
+          "confidence_level": "high",
+          "expected_intent": "academic_schedule",
+          "expected_confidence_range": [
+            0.4,
+            1.0
+          ],
+          "test_passed": true,
+          "error": null,
+          "metadata": {
+            "query_length": 2,
+            "processed_data": {
+              "intent": "academic_schedule",
+              "confidence": 0.9,
+              "language": "en"
+            }
+          }
+        }
+      ],
+      "total": 18,
+      "passed": 10,
+      "failed": 8,
+      "avg_confidence": 0.6716666666666667,
+      "min_confidence": 0.31,
+      "max_confidence": 0.9
+    }
+  ],
+  "summary": {
+    "total_tests": 65,
+    "total_passed": 41,
+    "total_failed": 24,
+    "overall_avg_confidence": 0.5793846153846154
+  }
+}

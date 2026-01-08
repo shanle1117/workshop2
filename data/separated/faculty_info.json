@@ -1,0 +1,24 @@
+{
+  "faculty_info": {
+    "name": "Faculty of Artificial Intelligence and Cyber Security (FAIX)",
+    "university": "Universiti Teknikal Malaysia Melaka (UTeM)",
+    "established": "July 22, 2024",
+    "dean": "Associate Professor Ts. Dr. Muhammad Hafidz Fazli Bin Md Fauadi",
+    "staff_count": {
+      "academic": 25,
+      "administrative": 5
+    },
+    "address": {
+      "street": "Hang Tuah Jaya",
+      "postcode": "76100",
+      "city": "Durian Tunggal",
+      "state": "Melaka",
+      "country": "Malaysia"
+    },
+    "contact": {
+      "email": "faix@utem.edu.my",
+      "phone": "+606 270 4540",
+      "website": "https://faix.utem.edu.my/en/"
+    }
+  }
+}

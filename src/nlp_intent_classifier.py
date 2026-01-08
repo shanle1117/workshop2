@@ -66,20 +66,20 @@ class IntentClassifier:
         if TRANSFORMERS_AVAILABLE:
             try:
                 if self.use_zero_shot:
-                    self.logger.info(f"Loading zero-shot intent classifier (model={self.model_name})")
+                    # Silent loading - reduce startup noise
                     self.classifier = pipeline(
                         "zero-shot-classification",
                         model=self.model_name,
                         device=0 if self.device == 'cuda' else -1
                     )
-                    self.logger.info("Zero-shot intent classifier loaded successfully")
+                    self.logger.debug("Intent classifier ready")
                 else:
-                    self.logger.info(f"Loading fine-tuned intent classifier (model={self.model_name})")
+                    # Silent loading - reduce startup noise
                     self.tokenizer = AutoTokenizer.from_pretrained(self.model_name)
                     self.model = AutoModelForSequenceClassification.from_pretrained(self.model_name)
                     self.model.to(self.device)
                     self.model.eval()
-                    self.logger.info("Fine-tuned intent classifier loaded successfully")
+                    self.logger.debug("Intent classifier ready")
             except Exception as e:
                 self.logger.warning(f"Could not load transformer model: {e}")
                 self.classifier = None
@@ -106,8 +106,9 @@ class IntentClassifier:
         try:
             with open(config_path, 'r', encoding='utf-8') as f:
                 config = json.load(f)
-            logging.getLogger("faix_chatbot").info(
-                f"Loaded intent configuration from {config_path.name}"
+            # Silent loading - reduce startup noise
+            logging.getLogger("faix_chatbot").debug(
+                f"Intent config loaded from {config_path.name}"
             )
             return config
         except Exception as e:

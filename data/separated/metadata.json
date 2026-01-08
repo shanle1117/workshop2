@@ -1,0 +1,9 @@
+{
+  "metadata": {
+    "last_updated": "2024-12-26",
+    "data_source": "FAIX Official Website",
+    "website": "https://faix.utem.edu.my/en/",
+    "scraped_by": "FAIX Chatbot Project",
+    "note": "All data consolidated into single JSON file (staff_contacts, schedule, course_info, FAQs merged)"
+  }
+}

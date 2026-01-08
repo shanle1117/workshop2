@@ -275,14 +275,14 @@ class Chatbot {
                     this.conversationId = data.conversation_id;
                 }
                 
-                // Add bot response to UI
+                // Add bot response to UI with feedback data
                 this.hideTyping();
                 if (data.response) {
-                    this.addMessage('bot', data.response, data.pdf_url);  // Pass PDF URL
+                    this.addMessage('bot', data.response, data.pdf_url, data.message_id, data.intent, message);
                     // Track assistant turn in history
                     this.history.push({ role: 'assistant', content: data.response });
                 } else {
-                    this.addMessage('bot', 'Sorry, I received an empty response. Please try again.');
+                    this.addMessage('bot', 'Sorry, I received an empty response. Please try again.', null, null, null, null);
                 }
                 
             } else {
@@ -307,7 +307,7 @@ class Chatbot {
                 }
                 
                 this.hideTyping();
-                this.addMessage('bot', errorMessage);
+                this.addMessage('bot', errorMessage, null, null, null, null);
             }
         } catch (error) {
             this.hideTyping();
@@ -321,14 +321,14 @@ class Chatbot {
                 }
             }
             
-            this.addMessage('bot', errorMessage);
+            this.addMessage('bot', errorMessage, null, null, null, null);
             console.error('Network error:', error);
         } finally {
             this.setLoading(false);
         }
     }
     
-    addMessage(role, content, pdfUrl = null) {
+    addMessage(role, content, pdfUrl = null, messageId = null, intent = null, userMessage = null) {
         if (!this.messagesContainer) {
             console.error('Chatbot messages container not found');
             return;
@@ -398,16 +398,13 @@ class Chatbot {
             pdfLink.onmouseout = function() { this.style.background = '#007bff'; };
             pdfContainer.appendChild(pdfLink);
             
-            // Optional: Add embedded PDF viewer (uncomment to enable)
-            /*
-            const pdfEmbed = document.createElement('iframe');
-            pdfEmbed.src = pdfUrl + '#toolbar=1';
-            pdfEmbed.style.cssText = 'width: 100%; height: 600px; border: 1px solid #ddd; margin-top: 12px; border-radius: 4px;';
-            pdfEmbed.title = 'Academic Handbook PDF';
-            pdfContainer.appendChild(pdfEmbed);
-            */
-            
             messageContent.appendChild(pdfContainer);
+        }
+        
+        // Add feedback buttons for bot messages
+        if (isAssistant) {
+            const feedbackContainer = this.createFeedbackButtons(messageId, content, intent, userMessage);
+            messageContent.appendChild(feedbackContainer);
         }
         
         const time = document.createElement('span');
@@ -420,6 +417,120 @@ class Chatbot {
         
         this.messagesContainer.appendChild(messageDiv);
         this.scrollToBottom();
+    }
+    
+    createFeedbackButtons(messageId, botResponse, intent, userMessage) {
+        const feedbackContainer = document.createElement('div');
+        feedbackContainer.className = 'feedback-buttons';
+        feedbackContainer.style.cssText = `
+            margin-top: 12px;
+            padding: 10px 14px;
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            border: 1px solid #e0e0e0;
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            justify-content: space-between;
+        `;
+        
+        const label = document.createElement('span');
+        label.textContent = 'Was this answer helpful?';
+        label.style.cssText = 'font-size: 13px; color: #495057; font-weight: 500;';
+        
+        const buttonGroup = document.createElement('div');
+        buttonGroup.style.cssText = 'display: flex; gap: 8px;';
+        
+        // Good button
+        const goodButton = document.createElement('button');
+        goodButton.innerHTML = '👍 Good';
+        goodButton.style.cssText = `
+            padding: 6px 16px;
+            font-size: 13px;
+            border: 1px solid #28a745;
+            background: #28a745;
+            color: white;
+            border-radius: 6px;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-weight: 500;
+            transition: all 0.2s ease;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+        `;
+        goodButton.onmouseover = () => { goodButton.style.background = '#218838'; goodButton.style.transform = 'scale(1.05)'; };
+        goodButton.onmouseout = () => { goodButton.style.background = '#28a745'; goodButton.style.transform = 'scale(1)'; };
+        goodButton.onclick = () => this.submitFeedback(feedbackContainer, 'good', messageId, botResponse, intent, userMessage);
+        
+        // Bad button
+        const badButton = document.createElement('button');
+        badButton.innerHTML = '👎 Not Good';
+        badButton.style.cssText = `
+            padding: 6px 16px;
+            font-size: 13px;
+            border: 1px solid #dc3545;
+            background: #dc3545;
+            color: white;
+            border-radius: 6px;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-weight: 500;
+            transition: all 0.2s ease;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+        `;
+        badButton.onmouseover = () => { badButton.style.background = '#c82333'; badButton.style.transform = 'scale(1.05)'; };
+        badButton.onmouseout = () => { badButton.style.background = '#dc3545'; badButton.style.transform = 'scale(1)'; };
+        badButton.onclick = () => this.submitFeedback(feedbackContainer, 'bad', messageId, botResponse, intent, userMessage);
+        
+        buttonGroup.appendChild(goodButton);
+        buttonGroup.appendChild(badButton);
+        feedbackContainer.appendChild(label);
+        feedbackContainer.appendChild(buttonGroup);
+        
+        return feedbackContainer;
+    }
+    
+    async submitFeedback(container, feedbackType, messageId, botResponse, intent, userMessage) {
+        // Show thank you message immediately
+        const isGood = feedbackType === 'good';
+        container.innerHTML = '';
+        container.style.cssText = `
+            margin-top: 12px;
+            padding: 8px 12px;
+            font-size: 13px;
+            color: ${isGood ? '#28a745' : '#dc3545'};
+            background-color: ${isGood ? '#d4edda' : '#f8d7da'};
+            border: 1px solid ${isGood ? '#c3e6cb' : '#f5c6cb'};
+            border-radius: 6px;
+            font-weight: 500;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        `;
+        container.innerHTML = `<span>✓</span><span>${isGood ? 'Thank you for your feedback!' : 'Thanks for helping us improve!'}</span>`;
+        
+        // Submit feedback to API
+        try {
+            await this.apiCall('/api/feedback/', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    message_id: messageId,
+                    conversation_id: this.conversationId,
+                    feedback_type: feedbackType,
+                    user_message: userMessage || '',
+                    bot_response: botResponse,
+                    intent: intent,
+                    session_id: this.sessionId
+                })
+            });
+            console.log(`Feedback submitted: ${feedbackType}`);
+        } catch (error) {
+            console.error('Error submitting feedback:', error);
+        }
     }
     
     showTyping() {
@@ -488,7 +599,7 @@ class Chatbot {
                 if (data.messages && Array.isArray(data.messages) && data.messages.length > 0) {
                     data.messages.forEach(msg => {
                         if (msg.role !== 'system' && msg.content) {
-                            this.addMessage(msg.role, msg.content);
+                            this.addMessage(msg.role, msg.content, null, null, null, null);
                         }
                     });
                 }
@@ -546,7 +657,7 @@ class Chatbot {
     
     toggleSpeechRecognition() {
         if (!this.speechSupported || !this.recognition) {
-            this.addMessage('bot', 'Speech recognition is not supported in your browser. Please use Chrome or Edge for voice input.');
+            this.addMessage('bot', 'Speech recognition is not supported in your browser. Please use Chrome or Edge for voice input.', null, null, null, null);
             return;
         }
         
@@ -628,7 +739,7 @@ class Chatbot {
         setTimeout(() => {
             this.updateMicButtonState('inactive');
             if (error !== 'aborted') {
-                this.addMessage('bot', errorMessage);
+                this.addMessage('bot', errorMessage, null, null, null, null);
             }
         }, 100);
     }

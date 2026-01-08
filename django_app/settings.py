@@ -13,7 +13,7 @@ SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-dev-key-change-in-pro
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['*']
+ALLOWED_HOSTS = ['*']  # Allow access from any host (development only)
 
 # Application definition
 INSTALLED_APPS = [
@@ -115,14 +115,9 @@ MEDIA_ROOT = BASE_DIR / 'media'
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-# CORS settings
-CORS_ALLOWED_ORIGINS = [
-    "http://localhost:8000",
-    "http://127.0.0.1:8000",
-    # Frontend hosted on Vercel
-    "https://workshop2-rouge.vercel.app",
-]
-
+# CORS settings (allowing all origins for local network access)
+# In production, restrict this to specific domains
+CORS_ALLOW_ALL_ORIGINS = True  # Allows access from other devices on local network
 CORS_ALLOW_CREDENTIALS = True
 
 # Firebase configuration (optional)

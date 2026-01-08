@@ -12,6 +12,7 @@ function Chatbot() {
       role: 'bot',
       content: "👋 Hello! Welcome to FAIX AI Chatbot. I'm here to help you with questions about course registration, staff contacts, schedules, and other student inquiries. How can I assist you today?",
       timestamp: new Date(),
+      feedbackSubmitted: undefined, // Allow feedback on welcome message
     },
   ]);
   const [inputValue, setInputValue] = useState('');
@@ -215,6 +216,11 @@ function Chatbot() {
             content: data.response,
             timestamp: new Date(),
             pdfUrl: data.pdf_url,
+            messageId: data.message_id, // Store message ID for feedback
+            conversationId: data.conversation_id,
+            intent: data.intent,
+            userMessage: message, // Store the user message that prompted this response
+            feedbackSubmitted: undefined, // Explicitly allow feedback buttons
           };
           setMessages(prev => [...prev, botMessage]);
           setHistory(prev => [...prev, { role: 'assistant', content: data.response }]);
@@ -266,8 +272,66 @@ function Chatbot() {
       role: 'bot',
       content: content,
       timestamp: new Date(),
+      feedbackSubmitted: undefined, // Ensure feedback buttons can show
     };
     setMessages(prev => [...prev, botMessage]);
+  };
+
+  const submitFeedback = async (messageIndex, feedbackType) => {
+    const message = messages[messageIndex];
+    if (!message || message.role !== 'bot') {
+      return;
+    }
+
+    // Optimistically update UI
+    setMessages(prev => prev.map((msg, idx) => 
+      idx === messageIndex 
+        ? { ...msg, feedbackSubmitted: feedbackType }
+        : msg
+    ));
+
+    try {
+      // Only submit if we have a messageId (newer messages)
+      if (message.messageId) {
+        const response = await apiCall('/api/feedback/', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            message_id: message.messageId,
+            conversation_id: message.conversationId || conversationId,
+            feedback_type: feedbackType,
+            user_message: message.userMessage || '',
+            bot_response: message.content,
+            intent: message.intent,
+            session_id: sessionId,
+          }),
+        });
+
+        if (!response.ok) {
+          console.error('Failed to submit feedback');
+          // Revert optimistic update on error
+          setMessages(prev => prev.map((msg, idx) => 
+            idx === messageIndex 
+              ? { ...msg, feedbackSubmitted: undefined }
+              : msg
+          ));
+        }
+      } else {
+        // For older messages without messageId, still show confirmation
+        // but we can't store it in the database
+        console.log(`Feedback received (${feedbackType}) for message without ID`);
+      }
+    } catch (error) {
+      console.error('Error submitting feedback:', error);
+      // Revert optimistic update on error
+      setMessages(prev => prev.map((msg, idx) => 
+        idx === messageIndex 
+          ? { ...msg, feedbackSubmitted: undefined }
+          : msg
+      ));
+    }
   };
 
   const toggleSpeechRecognition = () => {
@@ -418,6 +482,114 @@ function Chatbot() {
                       >
                         📚 View Academic Handbook PDF
                       </a>
+                    </div>
+                  )}
+                  {/* Feedback buttons - show for all bot messages without feedback */}
+                  {(msg.role === 'bot' || msg.role === 'assistant') && !msg.feedbackSubmitted && (
+                    <div className="feedback-buttons" style={{ 
+                      marginTop: '12px', 
+                      padding: '10px 14px',
+                      backgroundColor: '#f8f9fa',
+                      borderRadius: '8px',
+                      border: '1px solid #e0e0e0',
+                      display: 'flex', 
+                      gap: '10px', 
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      width: '100%',
+                      boxSizing: 'border-box',
+                      position: 'relative',
+                      zIndex: 10,
+                      visibility: 'visible',
+                      opacity: 1
+                    }}>
+                      <span style={{ fontSize: '13px', color: '#495057', fontWeight: '500', flexShrink: 0 }}>
+                        Was this answer helpful?
+                      </span>
+                      <div style={{ display: 'flex', gap: '8px', flexShrink: 0 }}>
+                        <button
+                          onClick={() => submitFeedback(index, 'good')}
+                          type="button"
+                          style={{
+                            padding: '6px 16px',
+                            fontSize: '13px',
+                            border: '1px solid #28a745',
+                            background: '#28a745',
+                            color: 'white',
+                            borderRadius: '6px',
+                            cursor: 'pointer',
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '6px',
+                            fontWeight: '500',
+                            transition: 'all 0.2s ease',
+                            boxShadow: '0 1px 2px rgba(0,0,0,0.1)',
+                            whiteSpace: 'nowrap'
+                          }}
+                          onMouseEnter={(e) => {
+                            e.currentTarget.style.background = '#218838';
+                            e.currentTarget.style.transform = 'scale(1.05)';
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.style.background = '#28a745';
+                            e.currentTarget.style.transform = 'scale(1)';
+                          }}
+                          title="This answer was helpful"
+                        >
+                          <span>👍</span>
+                          <span>Good</span>
+                        </button>
+                        <button
+                          onClick={() => submitFeedback(index, 'bad')}
+                          type="button"
+                          style={{
+                            padding: '6px 16px',
+                            fontSize: '13px',
+                            border: '1px solid #dc3545',
+                            background: '#dc3545',
+                            color: 'white',
+                            borderRadius: '6px',
+                            cursor: 'pointer',
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '6px',
+                            fontWeight: '500',
+                            transition: 'all 0.2s ease',
+                            boxShadow: '0 1px 2px rgba(0,0,0,0.1)',
+                            whiteSpace: 'nowrap'
+                          }}
+                          onMouseEnter={(e) => {
+                            e.currentTarget.style.background = '#c82333';
+                            e.currentTarget.style.transform = 'scale(1.05)';
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.style.background = '#dc3545';
+                            e.currentTarget.style.transform = 'scale(1)';
+                          }}
+                          title="This answer needs improvement"
+                        >
+                          <span>👎</span>
+                          <span>Not Good</span>
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                  {msg.role === 'bot' && msg.feedbackSubmitted && (
+                    <div style={{ 
+                      marginTop: '12px', 
+                      padding: '8px 12px',
+                      fontSize: '13px', 
+                      color: msg.feedbackSubmitted === 'good' ? '#28a745' : '#dc3545',
+                      backgroundColor: msg.feedbackSubmitted === 'good' ? '#d4edda' : '#f8d7da',
+                      border: `1px solid ${msg.feedbackSubmitted === 'good' ? '#c3e6cb' : '#f5c6cb'}`,
+                      borderRadius: '6px',
+                      fontWeight: '500',
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '6px'
+                    }}>
+                      <span>✓</span>
+                      <span>{msg.feedbackSubmitted === 'good' ? 'Thank you for your feedback! This helps us improve.' : 'Thanks for helping us improve! We\'ll work on better answers.'}</span>
                     </div>
                   )}
                   <span className="message-time">{formatTime(msg.timestamp)}</span>

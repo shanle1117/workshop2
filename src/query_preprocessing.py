@@ -639,7 +639,7 @@ class QueryProcessor:
         if self.use_nlp and NLP_AVAILABLE:
             try:
                 self.intent_classifier = get_intent_classifier()
-                self.logger.info("NLP intent classifier initialized")
+                self.logger.debug("NLP intent classifier ready")
             except Exception as e:
                 self.logger.warning(f"Failed to initialize intent classifier: {e}")
                 self.intent_classifier = None
@@ -654,19 +654,15 @@ class QueryProcessor:
                 django.setup()
                 from django_app.models import FAQEntry
                 self.faq_model = FAQEntry
-                self.logger.info("Django database connected successfully")
-                
                 entry_count = FAQEntry.objects.filter(is_active=True).count()
-                self.logger.info(f"Query Processor initialized with {entry_count} FAIX FAQ entries from database")
+                self.logger.debug(f"Query Processor: {entry_count} FAQ entries from database")
                 
             except Exception as e:
-                self.logger.warning(f"Django not available or setup failed ({e}). Falling back to CSV.")
+                self.logger.debug(f"Django unavailable, using CSV fallback: {e}")
                 self.use_database = False
                 self.faix_data = self.load_faix_data(self.data_path)
-                self.logger.info(f"Query Processor initialized with {len(self.faix_data)} FAIX entries from CSV")
         else:
             self.faix_data = self.load_faix_data(self.data_path)
-            self.logger.info(f"Query Processor initialized with {len(self.faix_data)} FAIX entries from CSV")
 
         # Language detector
         self.language_detector = LanguageDetector()
@@ -812,7 +808,7 @@ class QueryProcessor:
         # Language-specific patterns for intent detection
         self.patterns = self._initialize_patterns()
 
-        print("Query Processor ready!")
+        # Startup complete - no verbose message needed
     
     def setup_logging(self):
         """Setup logging for debugging and monitoring"""
@@ -1075,7 +1071,11 @@ class QueryProcessor:
             'about_faix': [
                 'when was faix', 'when was the faculty', 'when was faix established',
                 'when was faix founded', 'when is faix', 'history of faix',
-                'what is faix', 'what is the faculty'
+                'what is faix', 'what is the faculty', 'who is dean', 'who is the dean',
+                'dean', 'head of faculty', 'who is the head', 'vision', 'mission',
+                'what is the vision', 'what is the mission', 'faix vision', 'faix mission',
+                'objective', 'objectives', 'what are the objectives', 'faix objectives',
+                'top management', 'management', 'leadership', 'who are the leaders'
             ],
             'program_info': [
                 'what programs', 'what programmes', 'what programs does',
@@ -1148,9 +1148,47 @@ class QueryProcessor:
             intent_name = best_intent[0]
             raw_score = best_intent[1]
             
-            # Calculate confidence (normalize to 0-1)
-            max_possible_score = len(language_patterns.get(intent_name, [])) * 3
-            confidence = min(raw_score / max(max_possible_score, 1), 1.0)
+            # Improved confidence calculation that doesn't penalize short queries
+            # For short queries (1-2 words), use a simpler normalization
+            query_word_count = len(text.strip().split())
+            
+            if query_word_count <= 2:
+                # Short queries: normalize by typical score for 1-2 keyword matches
+                # A single keyword match with exact bonus = 2 + 1 + boost = 4
+                # Short queries with single keyword should get 0.6-0.8 confidence
+                base_score = 4.0  # Typical score for 1 keyword match
+                confidence = raw_score / base_score
+                
+                # For short queries, apply intelligent confidence scaling
+                if raw_score >= 6:
+                    confidence = 0.85  # Strong match (multiple keywords)
+                elif raw_score >= 4:
+                    confidence = 0.70  # Good match (1 keyword with bonuses)
+                elif raw_score >= 3:
+                    confidence = 0.60  # Decent match
+                elif raw_score >= 2:
+                    confidence = 0.50  # Basic match
+                else:
+                    confidence = 0.40  # Weak match
+                
+                # Cap at 0.9 for short queries (leave room for priority patterns)
+                confidence = min(confidence, 0.9)
+            else:
+                # Longer queries: use traditional normalization but with improvements
+                max_possible_score = len(language_patterns.get(intent_name, [])) * 3
+                confidence = min(raw_score / max(max_possible_score, 1), 1.0)
+                
+                # Boost for longer queries that got good scores
+                if raw_score >= 6:
+                    confidence = min(confidence * 1.3, 0.95)
+                elif raw_score >= 4:
+                    confidence = min(confidence * 1.2, 0.85)
+            
+            # Minimum confidence threshold for any keyword match
+            if raw_score >= 2:
+                confidence = max(confidence, 0.5)  # At least 50% confidence if we matched something
+            elif raw_score >= 1:
+                confidence = max(confidence, 0.3)  # At least 30% confidence for any match
             
             # Minimum confidence boost for Chinese and Arabic
             if language in ['zh', 'ar'] and confidence < 0.3:
@@ -1282,10 +1320,102 @@ class QueryProcessor:
     
     def search_faix_knowledge(self, query: str, intent: str, keywords: List[str], language: str) -> List[Dict[str, Any]]:
         """Search FAIX knowledge base using appropriate data source"""
+        # For program_info queries, check JSON data first (from separated files)
+        if intent == 'program_info':
+            json_matches = self._search_programs_json(query, language)
+            if json_matches:
+                return json_matches
+        
         if self.use_database and self.faq_model:
             return self._search_database(query, intent, keywords, language)
         else:
             return self._search_csv(query, intent, keywords, language)
+    
+    def _search_programs_json(self, query: str, language: str) -> List[Dict[str, Any]]:
+        """Search programs from JSON data files"""
+        try:
+            import json
+            from pathlib import Path
+            
+            # Load programmes.json
+            base_dir = Path(__file__).parent.parent
+            programmes_path = base_dir / 'data' / 'separated' / 'programmes.json'
+            
+            if not programmes_path.exists():
+                return []
+            
+            with open(programmes_path, 'r', encoding='utf-8') as f:
+                programmes_data = json.load(f)
+            
+            programmes = programmes_data.get('programmes', {})
+            undergraduate = programmes.get('undergraduate', [])
+            postgraduate = programmes.get('postgraduate', [])
+            
+            query_lower = query.lower()
+            matches = []
+            
+            # Check if query is about undergraduate programs
+            if any(kw in query_lower for kw in ['undergraduate', 'bachelor', 'degree']):
+                for prog in undergraduate:
+                    matches.append({
+                        'id': f"prog_{prog.get('code', '').lower()}",
+                        'question': f"What is {prog.get('name', '')}?",
+                        'answer': self._format_program_answer(prog),
+                        'category': 'program_info',
+                        'match_score': 10,
+                        'keywords': [prog.get('code', '').lower()] + prog.get('focus_areas', [])[:3],
+                        'language': language
+                    })
+                if matches:
+                    return matches
+            
+            # Check if query is about postgraduate programs
+            if any(kw in query_lower for kw in ['master', 'postgraduate', 'graduate']):
+                for prog in postgraduate:
+                    matches.append({
+                        'id': f"prog_{prog.get('code', '').lower()}",
+                        'question': f"What is {prog.get('name', '')}?",
+                        'answer': f"**{prog.get('name', '')}** ({prog.get('code', '')})\n  - Type: {prog.get('type', '')}\n  - Focus: {prog.get('focus', '')}",
+                        'category': 'program_info',
+                        'match_score': 10,
+                        'keywords': [prog.get('code', '').lower()],
+                        'language': language
+                    })
+                if matches:
+                    return matches
+            
+            # For general program queries, return all undergraduate programs (most common)
+            for prog in undergraduate:
+                matches.append({
+                    'id': f"prog_{prog.get('code', '').lower()}",
+                    'question': f"What is {prog.get('name', '')}?",
+                    'answer': self._format_program_answer(prog),
+                    'category': 'program_info',
+                    'match_score': 8,
+                    'keywords': [prog.get('code', '').lower()] + prog.get('focus_areas', [])[:3],
+                    'language': language
+                })
+            
+            return matches
+            
+        except Exception as e:
+            self.logger.debug(f"Error searching programs JSON: {e}")
+            return []
+    
+    def _format_program_answer(self, prog: Dict) -> str:
+        """Format program information as answer"""
+        answer = f"**{prog.get('name', '')}** ({prog.get('code', '')})\n\n"
+        if prog.get('duration'):
+            answer += f"- **Duration:** {prog['duration']}\n"
+        if prog.get('focus_areas'):
+            answer += f"- **Focus Areas:** {', '.join(prog['focus_areas'][:5])}\n"
+        if prog.get('learning_distribution'):
+            dist = prog['learning_distribution']
+            answer += f"- **Learning:** {dist.get('coursework', '')} coursework, {dist.get('practical_projects', '')} practical\n"
+        if prog.get('career_opportunities'):
+            careers = prog['career_opportunities'][:5]
+            answer += f"\n**Career Opportunities:** {', '.join(careers)}"
+        return answer
     
     def _search_database(self, query: str, intent: str, keywords: List[str], language: str) -> List[Dict[str, Any]]:
         """Search FAIX knowledge base in Django database"""

@@ -34,14 +34,17 @@ class SemanticSearch:
         
         if SENTENCE_TRANSFORMERS_AVAILABLE:
             try:
-                print(f"Loading sentence transformer model: {model_name}...")
+                # Silent loading - no verbose output
+                import logging
+                logging.getLogger("sentence_transformers").setLevel(logging.ERROR)
+                import warnings
+                warnings.filterwarnings('ignore')
                 self.model = SentenceTransformer(model_name)
-                print("✓ Semantic search model loaded successfully")
             except Exception as e:
-                print(f"Warning: Could not load sentence transformer model: {e}")
                 self.model = None
         else:
-            print("Warning: sentence-transformers not installed. Semantic search disabled.")
+            # Only show warning if explicitly needed
+            pass
     
     def encode(self, texts: List[str], batch_size: int = 32) -> np.ndarray:
         """

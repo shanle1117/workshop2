@@ -145,7 +145,14 @@ def _format_faix_data_context(faix_data: Dict[str, Any]) -> str:
         if vm.get("vision"):
             lines.append(f"Vision: {vm['vision']}")
         if vm.get("mission"):
-            lines.append(f"Mission: {vm['mission']}")
+            mission = vm["mission"]
+            # Handle both string and array formats
+            if isinstance(mission, list):
+                lines.append("Mission:")
+                for item in mission:
+                    lines.append(f"  - {item}")
+            else:
+                lines.append(f"Mission: {mission}")
         if vm.get("objectives") and isinstance(vm["objectives"], list):
             lines.append("Objectives:")
             for obj in vm["objectives"]:
@@ -449,6 +456,30 @@ def build_messages(
     )
     if intent:
         system_parts.append(f"The detected intent for this query is: '{intent}'.")
+    
+    # Add follow-up question requirements based on intent
+    follow_up_instruction = ""
+    if intent in ['staff_contact']:
+        follow_up_instruction = (
+            "\nFOLLOW-UP QUESTIONS (REQUIRED for staff/faculty queries):\n"
+            "- After providing the main answer, ALWAYS ask a specific follow-up question\n"
+            "- For faculty queries, ask what specific information they need: research/courses/contact/office hours\n"
+            "- Format: [Main Answer]\n\n[Follow-up Question]\n"
+            "- Only skip follow-ups if user explicitly says 'No thanks', 'That's all', or similar\n"
+        )
+    elif intent in ['course_info']:
+        follow_up_instruction = (
+            "\nFOLLOW-UP QUESTIONS (REQUIRED for course queries):\n"
+            "- Always ask for semester and level (undergraduate/graduate)\n"
+            "- Format: [Main Answer]\n\n[Follow-up Question]\n"
+        )
+    elif intent in ['research']:
+        follow_up_instruction = (
+            "\nFOLLOW-UP QUESTIONS (REQUIRED for research queries):\n"
+            "- Always ask for specific field (AI/systems/theory/cybersecurity)\n"
+            "- Format: [Main Answer]\n\n[Follow-up Question]\n"
+        )
+    
     system_parts.append(
         "Use the provided context sections when answering. Format your response using markdown:\n"
         "- Use **bold** for emphasis\n"
@@ -456,6 +487,7 @@ def build_messages(
         "- Use - or * for bullet lists (NOT •)\n"
         "- Use proper line breaks between paragraphs\n"
         "Ensure your response is well-formatted and easy to read.\n\n"
+        + follow_up_instruction +
         "IMPORTANT: Always preserve and include URLs/links from the context in your response, "
         "especially for fee schedules, official resources, or payment information. Links should "
         "be displayed as clickable URLs.\n\n"

@@ -40,17 +40,18 @@ except Exception as e:
 
 class KnowledgeBase:
     """
-    Knowledge Base module that retrieves answers from database, CSV, and FAIX JSON data.
-    Supports both database-backed and CSV-based modes, with FAIX JSON as primary data source.
+    Knowledge Base module that retrieves answers from FAIX JSON data (primary) and CSV (fallback).
+    Uses JSON files from data/separated/ directory as the primary data source.
+    CSV is only used as fallback for non-FAIX-specific queries when database is unavailable.
     """
     
-    def __init__(self, csv_path: Optional[str] = None, use_database: bool = True, use_semantic_search: bool = True):
+    def __init__(self, csv_path: Optional[str] = None, use_database: bool = False, use_semantic_search: bool = True):
         """
         Initialize KnowledgeBase.
         
         Args:
-            csv_path: Path to CSV file (fallback if database unavailable)
-            use_database: Whether to use database (default: True)
+            csv_path: Path to CSV file (fallback for non-FAIX queries, optional)
+            use_database: Whether to use database (default: False - JSON-only mode)
             use_semantic_search: Whether to use semantic search (default: True)
         """
         self.use_database = use_database and DJANGO_AVAILABLE
@@ -67,16 +68,14 @@ class KnowledgeBase:
         # Load intent-to-data mapping from intent_config.json
         self.faix_data_mapping = self._load_intent_mapping()
         
-        # Initialize semantic search if available
+        # Initialize semantic search if available (silent unless error)
         if self.use_semantic_search:
             try:
                 self.semantic_search = get_semantic_search()
-                if self.semantic_search.is_available():
-                    logger.info("Semantic search enabled")
-                else:
+                if not self.semantic_search.is_available():
                     self.use_semantic_search = False
             except Exception as e:
-                logger.warning("Could not initialize semantic search: %s", e)
+                logger.debug("Semantic search unavailable: %s", e)
                 self.use_semantic_search = False
         
         if self.use_database:
@@ -90,22 +89,37 @@ class KnowledgeBase:
                 if default_path.exists():
                     self._init_csv(str(default_path))
                 else:
-                    logger.warning("No CSV file found, using FAIX JSON data only")
+                    # JSON-only mode - this is expected and normal
+                    logger.debug("CSV not found, using JSON data only")
                     self.entries = []
                     self.vectorizer = TfidfVectorizer()
                     self.question_vectors = None
     
     def _load_faix_json_data(self) -> Dict[str, Any]:
-        """Load FAIX comprehensive data from faix_json_data.json"""
+        """Load FAIX comprehensive data from separated JSON files or merged file."""
+        data = {}
+        
+        # First try: Load from separated files (preferred)
+        try:
+            from src.agents import _load_faix_json_data as load_separated_data
+            separated_data = load_separated_data()
+            if separated_data:
+                logger.debug("FAIX data loaded from separated JSON files")
+                return separated_data
+        except Exception as e:
+            logger.debug("Could not load from separated files: %s", e)
+        
+        # Fallback: Try merged file
         try:
             json_path = Path(__file__).parent.parent / 'data' / 'faix_json_data.json'
             if json_path.exists():
                 with open(json_path, 'r', encoding='utf-8') as f:
                     data = json.load(f)
-                logger.info("Loaded FAIX JSON data from %s", json_path.name)
+                logger.debug("FAIX data loaded from merged JSON file")
                 return data
         except Exception as e:
             logger.warning("Could not load FAIX JSON data: %s", e)
+        
         return {}
     
     def _load_intent_mapping(self) -> Dict[str, List[str]]:
@@ -137,6 +151,24 @@ class KnowledgeBase:
         
         # Priority 1: Check for specific keywords in user text regardless of intent
         # This handles cases where intent detection is wrong
+        
+        # Staff member queries - check for specific staff names/keywords
+        # Look for queries that might be asking about a staff member by name
+        staff_keywords = ['dr.', 'doctor', 'professor', 'associate professor', 'lecturer', 'senior lecturer', 'ts. dr.', 'ts dr']
+        has_staff_keyword = any(kw in user_lower for kw in staff_keywords)
+        
+        # Check if query might contain a staff name (has words that could be names)
+        # This catches queries like "Ts. Dr. Choo Yun Huoy" or "who is dr choo"
+        words = [w.strip().strip('.,!?') for w in user_text.split() if len(w.strip()) > 2]
+        # Look for capitalized words that might be names
+        has_name_like_words = len([w for w in words if w[0].isupper() and w.lower() not in ['who', 'what', 'when', 'where', 'why', 'how', 'is', 'are', 'the', 'for', 'contact', 'info', 'information']]) >= 1
+        
+        if has_staff_keyword or has_name_like_words:
+            # Try to find a specific staff member first (only if we might have a name)
+            # Don't return general contact info, only return if we found a specific staff member
+            staff_answer = self._get_staff_by_name(user_lower, user_text)
+            if staff_answer:
+                return staff_answer
         
         # Dean queries (can come from staff_contact or about_faix intent)
         if any(kw in user_lower for kw in ['who is dean', 'who is the dean', 'dean', 'head of faculty']):
@@ -206,13 +238,35 @@ class KnowledgeBase:
         if any(kw in user_text for kw in ['mission']):
             mission = vision_mission.get('mission', '')
             if mission:
-                return f"**FAIX Mission:**\n\n{mission}"
+                # Handle both string and array formats
+                if isinstance(mission, list):
+                    mission_text = '\n'.join([f"- {item}" for item in mission])
+                    return f"**FAIX Mission:**\n\n{mission_text}"
+                else:
+                    return f"**FAIX Mission:**\n\n{mission}"
         
-        if any(kw in user_text for kw in ['objective']):
+        if any(kw in user_text for kw in ['objective', 'objectives']):
             objectives = vision_mission.get('objectives', [])
             if objectives:
                 obj_list = '\n'.join([f"- {obj}" for obj in objectives])
                 return f"**FAIX Objectives:**\n\n{obj_list}"
+        
+        # Top management queries
+        if any(kw in user_text for kw in ['top management', 'management', 'leadership', 'leaders', 'who are the leaders']):
+            top_management = self.faix_data.get('top_management', [])
+            if top_management and isinstance(top_management, list):
+                mgmt_list = []
+                for person in top_management:
+                    name = person.get('name', '')
+                    position = person.get('position', '')
+                    email = person.get('email', '')
+                    if name and position:
+                        mgmt_item = f"**{name}**\n- Position: {position}"
+                        if email:
+                            mgmt_item += f"\n- Email: {email}"
+                        mgmt_list.append(mgmt_item)
+                if mgmt_list:
+                    return f"**FAIX Top Management:**\n\n" + "\n\n".join(mgmt_list)
         
         if any(kw in user_text for kw in ['department']):
             if departments:
@@ -289,10 +343,24 @@ class KnowledgeBase:
         
         if any(kw in user_text for kw in ['undergraduate', 'bachelor', 'degree']):
             if undergraduate:
+                # Concise format for general queries - just name, code, and duration
                 prog_list = []
                 for prog in undergraduate:
-                    prog_list.append(f"- **{prog.get('name', '')}** ({prog.get('code', '')})\n  - Duration: {prog.get('duration', '')}")
-                return f"**Undergraduate Programmes at FAIX:**\n\n" + '\n'.join(prog_list)
+                    name = prog.get('name', '')
+                    code = prog.get('code', '')
+                    duration = prog.get('duration', '')
+                    # Extract main focus from name or use first focus area
+                    if 'artificial intelligence' in name.lower():
+                        focus_hint = "AI and Machine Learning"
+                    elif 'security' in name.lower():
+                        focus_hint = "Cybersecurity"
+                    else:
+                        focus_areas = prog.get('focus_areas', [])
+                        focus_hint = focus_areas[0] if focus_areas else ""
+                    
+                    prog_list.append(f"- **{name}** ({code}) - {duration} - Focus: {focus_hint}")
+                
+                return f"**Undergraduate Programmes at FAIX:**\n\n" + '\n'.join(prog_list) + "\n\n💡 Ask about a specific program (e.g., 'Tell me about BAXI' or 'What is BAXZ?') for more details."
         
         # General programmes listing
         answer = "**Programmes Offered at FAIX:**\n\n"
@@ -499,8 +567,139 @@ class KnowledgeBase:
         
         return None
     
+    def _get_staff_by_name(self, user_text_lower: str, user_text_original: str) -> Optional[str]:
+        """Search for a specific staff member by name/keywords. Returns None if no specific staff found."""
+        staff_contacts = self.faix_data.get('staff_contacts', {})
+        departments = staff_contacts.get('departments', {})
+        
+        if not departments:
+            return None
+        
+        # Collect all staff members from all departments
+        all_staff = []
+        for dept_key, dept_info in departments.items():
+            if isinstance(dept_info, dict):
+                dept_name = dept_info.get('name', '')
+                staff_list = dept_info.get('staff', [])
+                if isinstance(staff_list, list):
+                    for staff in staff_list:
+                        if isinstance(staff, dict):
+                            staff['department'] = dept_name
+                            all_staff.append(staff)
+        
+        # Try to match staff by name or keywords
+        matched_staff = []
+        query_words = [w.strip() for w in user_text_lower.split() 
+                      if len(w.strip()) > 2 and w.strip() not in ['who', 'is', 'the', 'contact', 'info', 'information', 'about', 'for']]
+        
+        if not query_words:
+            return None
+        
+        for staff in all_staff:
+            staff_name = staff.get('name', '').lower()
+            staff_keywords = [kw.lower() for kw in staff.get('keywords', [])]
+            
+            # Check if any query word matches staff name or keywords
+            match_score = 0
+            for query_word in query_words:
+                # Check name match
+                if query_word in staff_name:
+                    match_score += 2
+                # Check keyword match
+                if any(query_word in kw or kw in query_word for kw in staff_keywords):
+                    match_score += 1
+            
+            if match_score > 0:
+                matched_staff.append((staff, match_score))
+        
+        # Sort by match score and return best matches
+        if not matched_staff:
+            return None
+        
+        matched_staff.sort(key=lambda x: x[1], reverse=True)
+        # Get top matches (same score)
+        top_score = matched_staff[0][1]
+        best_matches = [staff for staff, score in matched_staff if score == top_score]
+        
+        # Format staff details
+        if len(best_matches) == 1:
+            staff = best_matches[0]
+            answer = f"**{staff.get('name', 'Unknown')}**\n\n"
+            answer += f"- **Position:** {staff.get('position', 'N/A')}\n"
+            if staff.get('department'):
+                answer += f"- **Department:** {staff['department']}\n"
+            answer += f"- **Email:** {staff.get('email', 'N/A')}\n"
+            if staff.get('phone') and staff['phone'] != '-':
+                answer += f"- **Phone:** {staff['phone']}\n"
+            if staff.get('office') and staff['office'] != '-':
+                answer += f"- **Office:** {staff['office']}\n"
+            return answer
+        else:
+            # Multiple matches - list them all
+            answer = f"Found {len(best_matches)} matching staff member(s):\n\n"
+            for i, staff in enumerate(best_matches[:5], 1):
+                answer += f"{i}. **{staff.get('name', 'Unknown')}**\n"
+                answer += f"   - Position: {staff.get('position', 'N/A')}\n"
+                if staff.get('department'):
+                    answer += f"   - Department: {staff['department']}\n"
+                answer += f"   - Email: {staff.get('email', 'N/A')}\n"
+                answer += "\n"
+            return answer
+    
     def _get_contact_answer(self, user_text: str) -> Optional[str]:
-        """Get contact information"""
+        """Get contact information - searches for specific staff members first, then general contact"""
+        user_lower = user_text.lower()
+        
+        # Check for general staff category queries (academic staff, administrative staff, etc.)
+        staff_contacts = self.faix_data.get('staff_contacts', {})
+        departments = staff_contacts.get('departments', {})
+        
+        # Handle "academic staff" queries
+        if any(kw in user_lower for kw in ['academic staff', 'academic', 'lecturers', 'professors']):
+            academic_dept = departments.get('academic', {})
+            if academic_dept and isinstance(academic_dept, dict):
+                academic_staff = academic_dept.get('staff', [])
+                if academic_staff:
+                    answer = f"**Academic Staff ({len(academic_staff)} members):**\n\n"
+                    for i, staff in enumerate(academic_staff[:10], 1):  # Limit to first 10
+                        name = staff.get('name', 'Unknown')
+                        position = staff.get('position', '')
+                        email = staff.get('email', '')
+                        answer += f"{i}. **{name}**\n"
+                        if position:
+                            answer += f"   - Position: {position}\n"
+                        if email:
+                            answer += f"   - Email: {email}\n"
+                        answer += "\n"
+                    if len(academic_staff) > 10:
+                        answer += f"... and {len(academic_staff) - 10} more academic staff members.\n"
+                    return answer
+        
+        # Handle "administrative staff" queries
+        if any(kw in user_lower for kw in ['administrative staff', 'admin staff', 'administration']):
+            admin_dept = departments.get('administration', {})
+            if admin_dept and isinstance(admin_dept, dict):
+                admin_staff = admin_dept.get('staff', [])
+                if admin_staff:
+                    answer = f"**Administrative Staff ({len(admin_staff)} members):**\n\n"
+                    for i, staff in enumerate(admin_staff, 1):
+                        name = staff.get('name', 'Unknown')
+                        position = staff.get('position', '')
+                        email = staff.get('email', '')
+                        answer += f"{i}. **{name}**\n"
+                        if position:
+                            answer += f"   - Position: {position}\n"
+                        if email:
+                            answer += f"   - Email: {email}\n"
+                        answer += "\n"
+                    return answer
+        
+        # First, try to find a specific staff member by name
+        staff_answer = self._get_staff_by_name(user_lower, user_text)
+        if staff_answer:
+            return staff_answer
+        
+        # No specific staff member found - return general contact information
         faculty_info = self.faix_data.get('faculty_info', {})
         contact = faculty_info.get('contact', {})
         address = faculty_info.get('address', {})
@@ -677,12 +876,10 @@ class KnowledgeBase:
         self.vectorizer = TfidfVectorizer()
         self.question_vectors = self.vectorizer.fit_transform(clean_questions)
         
-        print(f"✓ Loaded {len(self.entries)} FAQ entries from database")
+        logger.debug(f"Loaded {len(self.entries)} FAQ entries from database")
     
     def _init_csv(self, csv_path: str):
         """Initialize CSV-backed knowledge base (fallback mode)"""
-        print(f"Initializing Knowledge Base from CSV: {csv_path}")
-        
         import pandas as pd
         self.df = pd.read_csv(csv_path).fillna("")
         
@@ -695,7 +892,7 @@ class KnowledgeBase:
         self.vectorizer = TfidfVectorizer()
         self.question_vectors = self.vectorizer.fit_transform(clean_questions)
         
-        print(f"✓ Loaded {len(self.df)} entries from CSV")
+        logger.debug(f"Loaded {len(self.df)} entries from CSV fallback")
     
     def preprocess(self, text: str) -> str:
         """Clean and normalize text"""
@@ -988,9 +1185,8 @@ class KnowledgeBase:
         # Try FAIX JSON data first (primary data source)
         faix_answer = self.get_faix_answer(intent, user_text)
         if faix_answer:
-            # Add handbook note for program_info queries
-            if intent == 'program_info' or 'handbook' in user_text_lower:
-                faix_answer += "\n\n📚 The complete Academic Handbook PDF is available below with detailed program information."
+            # Don't automatically add handbook - let the chatbot ask the user first
+            # This allows the user to decide if they need the handbook
             return faix_answer
         
         # For specific FAIX-related queries, don't fall back to database to avoid wrong answers
@@ -1015,9 +1211,8 @@ class KnowledgeBase:
                 "Try asking about FAIX programmes, admission, fees, career opportunities, or contact information."
             )
         
-        # Add handbook note for program_info queries
-        if intent == 'program_info' or 'handbook' in user_text_lower:
-            answer += "\n\n📚 The complete Academic Handbook PDF is available below with detailed program information."
+        # Don't automatically add handbook - let the chatbot ask the user first
+        # This allows the user to decide if they need the handbook
         
         return answer
 
@@ -1038,6 +1233,95 @@ class KnowledgeBase:
         """
         intent_norm = intent.lower() if isinstance(intent, str) else None
         user_clean = self.preprocess(user_text)
+        
+        # For program_info queries, return programs from JSON data as documents
+        if intent_norm == 'program_info':
+            programmes = self.faix_data.get('programmes', {})
+            undergraduate = programmes.get('undergraduate', [])
+            postgraduate = programmes.get('postgraduate', [])
+            user_text_lower = user_text.lower() if user_text else ""
+            
+            docs = []
+            
+            # Check if query is about undergraduate programs
+            if any(kw in user_text_lower for kw in ['undergraduate', 'bachelor', 'degree']):
+                # Check if asking about a specific program
+                is_specific = any(code in user_text_lower for code in ['bcsai', 'bcscs', 'baxi', 'baxz', 'ai program', 'security program'])
+                
+                if is_specific:
+                    # Return full details for specific program queries
+                    for prog in undergraduate:
+                        prog_code = prog.get('code', '').upper()
+                        prog_name = prog.get('name', '').lower()
+                        if (prog_code in user_text_lower.upper() or 
+                            ('ai' in user_text_lower and 'artificial intelligence' in prog_name) or
+                            ('security' in user_text_lower and 'security' in prog_name)):
+                            docs.append({
+                                "question": f"What is {prog.get('name', '')}?",
+                                "answer": self._format_program_details(prog),
+                                "category": "program_info",
+                                "score": 0.9,
+                            })
+                else:
+                    # Return concise format for general undergraduate queries
+                    prog_list = []
+                    for prog in undergraduate:
+                        name = prog.get('name', '')
+                        code = prog.get('code', '')
+                        duration = prog.get('duration', '')
+                        if 'artificial intelligence' in name.lower():
+                            focus_hint = "AI and Machine Learning"
+                        elif 'security' in name.lower():
+                            focus_hint = "Cybersecurity"
+                        else:
+                            focus_areas = prog.get('focus_areas', [])
+                            focus_hint = focus_areas[0] if focus_areas else ""
+                        prog_list.append(f"- **{name}** ({code}) - {duration} - Focus: {focus_hint}")
+                    
+                    answer = f"**Undergraduate Programmes at FAIX:**\n\n" + '\n'.join(prog_list) + "\n\n💡 Ask about a specific program (e.g., 'Tell me about BAXI') for more details."
+                    docs.append({
+                        "question": "What undergraduate programmes does FAIX offer?",
+                        "answer": answer,
+                        "category": "program_info",
+                        "score": 0.9,
+                    })
+                
+                if docs:
+                    return docs[:top_k]
+            
+            # Check if query is about postgraduate programs
+            if any(kw in user_text_lower for kw in ['master', 'postgraduate', 'graduate']):
+                for prog in postgraduate:
+                    docs.append({
+                        "question": f"What is {prog.get('name', '')}?",
+                        "answer": f"**{prog.get('name', '')}** ({prog.get('code', '')})\n  - Type: {prog.get('type', '')}\n  - Focus: {prog.get('focus', '')}",
+                        "category": "program_info",
+                        "score": 0.9,
+                    })
+                if docs:
+                    return docs[:top_k]
+            
+            # For general program queries, return all programs
+            # Return undergraduate programs first (most common query)
+            for prog in undergraduate:
+                docs.append({
+                    "question": f"What is {prog.get('name', '')}?",
+                    "answer": self._format_program_details(prog),
+                    "category": "program_info",
+                    "score": 0.85,
+                })
+            
+            # Add postgraduate programs
+            for prog in postgraduate:
+                docs.append({
+                    "question": f"What is {prog.get('name', '')}?",
+                    "answer": f"**{prog.get('name', '')}** ({prog.get('code', '')})\n  - Type: {prog.get('type', '')}\n  - Focus: {prog.get('focus', '')}",
+                    "category": "program_info",
+                    "score": 0.8,
+                })
+            
+            if docs:
+                return docs[:top_k]
 
         # Database-backed mode
         if self.use_database:

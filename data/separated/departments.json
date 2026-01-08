@@ -1,0 +1,12 @@
+{
+  "departments": [
+    {
+      "name": "Department of Cyber Security",
+      "focus": "Cybersecurity education, research, and development"
+    },
+    {
+      "name": "Department of Intelligent Computing and Analytics",
+      "focus": "AI, machine learning, data analytics, and intelligent systems"
+    }
+  ]
+}

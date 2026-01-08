@@ -1,0 +1,185 @@
+{
+  "top_management": [
+    {
+      "name": "Associate Professor Ts. Dr. Muhammad Hafidz Fazli bin Md Fauadi",
+      "position": "Dean",
+      "title": "Associate Professor Ts. Dr.",
+      "email": "hafidz.fazli@utem.edu.my",
+      "category": "leadership",
+      "keywords": [
+        "dean",
+        "hafidz",
+        "fazli",
+        "fauadi",
+        "muhammad"
+      ]
+    },
+    {
+      "name": "Associate Professor Ts. Dr. Siti Azirah Binti Asmai",
+      "position": "Deputy Dean (Academic)",
+      "title": "Associate Professor Ts. Dr.",
+      "email": "siti.azirah@utem.edu.my",
+      "category": "leadership",
+      "keywords": [
+        "deputy dean",
+        "academic",
+        "azirah",
+        "asmai",
+        "siti"
+      ]
+    },
+    {
+      "name": "Associate Professor Ts. Dr. Zuraida Binti Abal Abas",
+      "position": "Deputy Dean (Research & Postgraduate Studies)",
+      "title": "Associate Professor Ts. Dr.",
+      "email": "zuraida@utem.edu.my",
+      "category": "leadership",
+      "keywords": [
+        "deputy dean",
+        "research",
+        "postgraduate",
+        "zuraida",
+        "abal",
+        "abas"
+      ]
+    },
+    {
+      "name": "Ts. Dr. Muhammad Noorazlan Shah bin Zainudin",
+      "position": "Deputy Dean (Student Development and Alumni)",
+      "title": "Ts. Dr.",
+      "email": "noorazlan.shah@utem.edu.my",
+      "category": "leadership",
+      "keywords": [
+        "deputy dean",
+        "student development",
+        "alumni",
+        "noorazlan",
+        "shah",
+        "zainudin",
+        "muhammad"
+      ]
+    },
+    {
+      "name": "Mdm. Nur Azriah Binti Amir",
+      "position": "Deputy Registrar",
+      "title": "Mdm.",
+      "email": "azriah@utem.edu.my",
+      "category": "administration",
+      "keywords": [
+        "deputy registrar",
+        "azriah",
+        "amir",
+        "nur",
+        "registrar"
+      ]
+    },
+    {
+      "name": "Ts. Dr. Abdul Syukor Bin Mohamad",
+      "position": "Head of Department - Intelligent Computing And Analytics",
+      "title": "Ts. Dr.",
+      "email": "abdul.syukor@utem.edu.my",
+      "category": "department",
+      "keywords": [
+        "head of department",
+        "intelligent computing",
+        "analytics",
+        "syukor",
+        "mohamad",
+        "abdul",
+        "ica"
+      ]
+    },
+    {
+      "name": "Ts. Dr. S.M. Warusia Mohamed Bin S.M.M Yassin",
+      "position": "Head of Department - Cyber Security (CX)",
+      "title": "Ts. Dr.",
+      "email": "warusia@utem.edu.my",
+      "category": "department",
+      "keywords": [
+        "head of department",
+        "cyber security",
+        "cybersecurity",
+        "warusia",
+        "yassin",
+        "cx"
+      ]
+    },
+    {
+      "name": "Ts. Dr. Mohd Zaki bin Mas'ud",
+      "position": "Laboratory Coordinator",
+      "title": "Ts. Dr.",
+      "email": "zaki.masud@utem.edu.my",
+      "category": "coordination",
+      "keywords": [
+        "laboratory",
+        "coordinator",
+        "zaki",
+        "masud",
+        "mohd"
+      ]
+    },
+    {
+      "name": "Mdm. Hazrin Binti Kasim",
+      "position": "Senior Assistant Registrar",
+      "title": "Mdm.",
+      "email": "hazrin@utem.edu.my",
+      "category": "administration",
+      "keywords": [
+        "senior assistant registrar",
+        "hazrin",
+        "kasim",
+        "registrar"
+      ]
+    },
+    {
+      "name": "Associate Professor Ts. Dr. Halizah binti Basiron",
+      "position": "Head of Program - Masters by Taught Course and Mixed Mode",
+      "title": "Associate Professor Ts. Dr.",
+      "email": "halizah@utem.edu.my",
+      "category": "program",
+      "keywords": [
+        "head of program",
+        "masters",
+        "taught course",
+        "mixed mode",
+        "halizah",
+        "basiron",
+        "postgraduate"
+      ]
+    },
+    {
+      "name": "Dr. Noor Fazilla binti Abd Yusof",
+      "position": "Program Coordinator - Bachelor of Computer Science (Artificial Intelligence)",
+      "title": "Dr.",
+      "email": "fazilla@utem.edu.my",
+      "category": "program",
+      "keywords": [
+        "program coordinator",
+        "bachelor",
+        "artificial intelligence",
+        "ai",
+        "fazilla",
+        "yusof",
+        "noor",
+        "baxi"
+      ]
+    },
+    {
+      "name": "Dr. Nur Fadzilah binti Othman",
+      "position": "Program Coordinator - Bachelor of Computer Science (Computer Security)",
+      "title": "Dr.",
+      "email": "fadzilah@utem.edu.my",
+      "category": "program",
+      "keywords": [
+        "program coordinator",
+        "bachelor",
+        "computer security",
+        "cybersecurity",
+        "fadzilah",
+        "othman",
+        "nur",
+        "baxz"
+      ]
+    }
+  ]
+}

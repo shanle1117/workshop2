@@ -79,14 +79,16 @@ def main():
     print("[3/3] Starting Django development server...")
     print()
     print("=" * 50)
-    print("Server starting at http://127.0.0.1:8000")
+    print("Server starting at http://0.0.0.0:8000")
+    print("Access from this device: http://localhost:8000 or http://127.0.0.1:8000")
+    print("Access from other devices: http://<your-ip-address>:8000")
     print("Press Ctrl+C to stop")
     print("=" * 50)
     print()
     
-    # Run Django server using venv Python
+    # Run Django server using venv Python (bind to 0.0.0.0 for network access)
     try:
-        subprocess.run([str(venv_python), 'manage.py', 'runserver'], check=True)
+        subprocess.run([str(venv_python), 'manage.py', 'runserver', '0.0.0.0:8000'], check=True)
     except KeyboardInterrupt:
         print("\n\nShutting down...")
         sys.exit(0)

@@ -178,3 +178,33 @@ class Schedule(models.Model):
     def __str__(self):
         return f"{self.title} - {self.semester or 'N/A'}"
 
+
+class ResponseFeedback(models.Model):
+    """Store user feedback on bot responses for reinforcement learning"""
+    FEEDBACK_CHOICES = [
+        ('good', 'Good'),
+        ('bad', 'Bad'),
+    ]
+
+    message = models.ForeignKey(Message, on_delete=models.CASCADE, related_name='feedbacks')
+    conversation = models.ForeignKey(Conversation, on_delete=models.CASCADE, related_name='feedbacks')
+    feedback_type = models.CharField(max_length=10, choices=FEEDBACK_CHOICES)
+    user_message = models.TextField(help_text="The original user message that prompted this response")
+    bot_response = models.TextField(help_text="The bot response that received feedback")
+    intent = models.CharField(max_length=50, blank=True, null=True, help_text="Detected intent for the user message")
+    user_comment = models.TextField(blank=True, null=True, help_text="Optional user comment explaining the feedback")
+    session_id = models.CharField(max_length=100, blank=True, null=True, db_index=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['-created_at']
+        indexes = [
+            models.Index(fields=['message', 'feedback_type']),
+            models.Index(fields=['intent', 'feedback_type']),
+            models.Index(fields=['session_id']),
+            models.Index(fields=['created_at']),
+        ]
+
+    def __str__(self):
+        return f"Feedback on Message {self.message.id}: {self.feedback_type}"

@@ -20,6 +20,7 @@ urlpatterns = [
     
     # API endpoints
     path('api/chat/', views.chat_api, name='chat_api'),
+    path('api/feedback/', views.submit_feedback, name='submit_feedback'),
     path('api/conversations/', views.get_conversation_history, name='conversation_history'),
     path('api/admin/dashboard/', views.admin_dashboard_data, name='admin_dashboard_data'),
     path('api/admin/kb/', views.manage_knowledge_base, name='manage_kb'),

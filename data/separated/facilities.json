@@ -1,0 +1,52 @@
+{
+  "facilities": {
+    "available": [
+      "FAIX facilities",
+      "Room booking system",
+      "Laboratory facilities",
+      "Research centers"
+    ],
+    "booking_system": "https://rbs.utem.edu.my/ftmk/web/",
+    "laboratories": {
+      "ai_labs": [
+        {
+          "name": "Makmal Kepintaran Buatan 1",
+          "block": "DB1-2",
+          "level": "Level 2"
+        },
+        {
+          "name": "Makmal Kepintaran Buatan 2",
+          "block": "DB1-2",
+          "level": "Level 2"
+        },
+        {
+          "name": "Makmal Kepintaran Buatan 3",
+          "block": "DB1-2",
+          "level": "Level 2"
+        },
+        {
+          "name": "Makmal Kepintaran Buatan 4",
+          "block": "DB1-2",
+          "level": "Level 2"
+        }
+      ],
+      "cybersec_labs": [
+        {
+          "name": "Makmal Keselamatan 2",
+          "block": "DB2-2",
+          "level": "Level 3"
+        },
+        {
+          "name": "Makmal CMERP",
+          "block": "DB1-2",
+          "level": "Level 3"
+        },
+        {
+          "name": "Makmal UTeM Cyscc",
+          "block": "DB2-2",
+          "level": "Level 2"
+        }
+      ]
+    }
+  }
+}

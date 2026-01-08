@@ -6,7 +6,7 @@ import hashlib
 import threading
 import logging
 from pathlib import Path
-from typing import List, Dict, Set
+from typing import List, Dict, Set, Optional, Tuple
 from django.http import JsonResponse, HttpResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
@@ -15,24 +15,33 @@ from django.db import transaction
 from django.db.models import Q
 from django.core.cache import cache
 
-# Setup structured logging
+# Setup structured logging (reduced verbosity for cleaner startup)
 logger = logging.getLogger('faix_chatbot')
-logger.setLevel(logging.INFO)
+logger.setLevel(logging.WARNING)  # Only show warnings/errors during startup
 
 # Create console handler if not exists
 if not logger.handlers:
     handler = logging.StreamHandler()
-    handler.setLevel(logging.INFO)
+    handler.setLevel(logging.WARNING)  # Only warnings/errors by default
     formatter = logging.Formatter('%(asctime)s | %(levelname)s | %(message)s', datefmt='%H:%M:%S')
     handler.setFormatter(formatter)
     logger.addHandler(handler)
+
+# Separate logger for chat operations (INFO level)
+chat_logger = logging.getLogger('faix_chatbot.chat')
+chat_logger.setLevel(logging.INFO)
+if not chat_logger.handlers:
+    chat_handler = logging.StreamHandler()
+    chat_handler.setLevel(logging.INFO)
+    chat_handler.setFormatter(formatter)
+    chat_logger.addHandler(chat_handler)
 
 # Setup paths for imports
 BASE_DIR = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(BASE_DIR / 'src'))
 
 from django_app.models import (
-    UserSession, Conversation, Message, FAQEntry
+    UserSession, Conversation, Message, FAQEntry, ResponseFeedback
 )
 from src.query_preprocessing import QueryProcessor
 from src.knowledge_base import KnowledgeBase
@@ -43,7 +52,33 @@ from src.prompt_builder import build_messages
 
 # Initialize global instances
 query_processor = QueryProcessor()
-knowledge_base = KnowledgeBase(use_database=True)
+# Use JSON-only mode (no database) - all data comes from data/separated/*.json files
+knowledge_base = KnowledgeBase(use_database=False)
+
+# Print clean startup summary (after all initialization)
+import sys
+def print_startup_summary():
+    """Print a clean, simple startup summary"""
+    print("\n" + "="*60)
+    print("FAIX Chatbot - Ready")
+    print("="*60)
+    print("✓ Query Processor")
+    print("✓ Knowledge Base (JSON)")
+    if knowledge_base.faix_data:
+        sections = len([k for k in knowledge_base.faix_data.keys() if knowledge_base.faix_data[k]])
+        print(f"✓ {sections} data sections loaded")
+    if knowledge_base.use_semantic_search and knowledge_base.semantic_search:
+        print("✓ Semantic search")
+    print("="*60 + "\n")
+
+# Delay summary until after Django startup completes
+import threading
+def delayed_summary():
+    import time
+    time.sleep(0.5)  # Wait for Django to finish initializing
+    print_startup_summary()
+
+threading.Thread(target=delayed_summary, daemon=True).start()
 
 # Cached tokens for fast staff-name detection in queries
 STAFF_NAME_TOKENS: Set[str] = set()
@@ -677,6 +712,118 @@ def get_query_cache_key(user_message: str, agent_id: str, intent: str) -> str:
     return f"chat_response:{query_hash}"
 
 
+def detect_yes_no_response(user_message: str) -> Optional[bool]:
+    """
+    Detect if user message is a yes/no response.
+    Returns True for yes, False for no, None if not clear.
+    """
+    message_lower = user_message.lower().strip()
+    
+    # Yes patterns
+    yes_patterns = ['yes', 'yeah', 'yep', 'yup', 'sure', 'ok', 'okay', 'okey', 
+                    'correct', 'right', 'that\'s right', 'please', 'yes please',
+                    'i need', 'i want', 'i would like', 'give me', 'show me',
+                    'send me', 'provide', 'yes i need', 'yes i want', 'ya', 'yea']
+    
+    # No patterns
+    no_patterns = ['no', 'nope', 'nah', 'not', "don't", "dont", 'no thanks', 
+                   'no thank you', 'skip', 'maybe later', 'later', 'not now',
+                   'i don\'t need', "i don't need", 'i dont need', 'no i dont',
+                   'no i don\'t', 'cancel', 'never mind', 'not needed']
+    
+    # Check for yes
+    if any(pattern in message_lower for pattern in yes_patterns):
+        # Make sure it's not a double negative
+        if not any(no_pattern in message_lower for no_pattern in ['no', 'not', 'don\'t', 'dont']):
+            return True
+    
+    # Check for no
+    if any(pattern in message_lower for pattern in no_patterns):
+        return False
+    
+    return None
+
+
+def should_ask_for_handbook(intent: str, user_message: str, context: dict) -> bool:
+    """
+    Determine if we should ask the user if they need the academic handbook.
+    Returns True if we should ask, False otherwise.
+    """
+    user_message_lower = user_message.lower()
+    is_handbook_query = 'handbook' in user_message_lower or 'academic handbook' in user_message_lower
+    
+    # If user explicitly asked about handbook, don't ask again
+    if is_handbook_query:
+        return False
+    
+    # If we already asked about handbook in this context, don't ask again
+    if context.get('handbook_asked', False):
+        return False
+    
+    # Ask for program_info intent
+    if intent == 'program_info':
+        return True
+    
+    return False
+
+
+def handle_handbook_request(user_message: str, context: dict, language_code: str = 'en') -> Tuple[Optional[str], Optional[str], dict]:
+    """
+    Handle academic handbook requests - ask user if they need it, or provide if confirmed.
+    Returns: (answer, pdf_url, updated_context)
+    """
+    import os
+    from django.conf import settings
+    
+    pdf_path = os.path.join(settings.MEDIA_ROOT, 'Academic_Handbook.pdf')
+    pdf_exists = os.path.exists(pdf_path)
+    
+    # Check if we previously asked about handbook
+    if context.get('handbook_asked', False):
+        # Check if user confirmed
+        yes_no = detect_yes_no_response(user_message)
+        
+        if yes_no is True:
+            # User confirmed, provide handbook
+            context['handbook_asked'] = False  # Reset flag
+            if pdf_exists:
+                pdf_url = settings.MEDIA_URL + 'Academic_Handbook.pdf'
+                answer = get_multilang_response({
+                    'en': "📚 Here is the Academic Handbook PDF with detailed program information, courses, academic policies, and graduation requirements.",
+                    'ms': "📚 Berikut adalah PDF Buku Panduan Akademik dengan maklumat program terperinci, kursus, dasar akademik, dan keperluan graduasi.",
+                    'zh': "📚 以下是包含详细课程信息、课程、学术政策和毕业要求的学术手册PDF。"
+                }, language_code)
+                return answer, pdf_url, context
+            else:
+                answer = get_multilang_response({
+                    'en': "📚 I'm sorry, but the Academic Handbook PDF is not available on this system. Please contact the FAIX office at faix@utem.edu.my for access to the handbook.",
+                    'ms': "📚 Maaf, PDF Buku Panduan Akademik tidak tersedia dalam sistem ini. Sila hubungi pejabat FAIX di faix@utem.edu.my untuk mendapatkan akses kepada buku panduan.",
+                    'zh': "📚 抱歉，本系统不提供学术手册PDF。请联系FAIX办公室 faix@utem.edu.my 获取手册访问权限。"
+                }, language_code)
+                context['handbook_asked'] = False  # Reset flag
+                return answer, None, context
+        elif yes_no is False:
+            # User declined
+            context['handbook_asked'] = False  # Reset flag
+            answer = get_multilang_response({
+                'en': "No problem! If you need the Academic Handbook later, just let me know.",
+                'ms': "Tiada masalah! Jika anda memerlukan Buku Panduan Akademik kemudian, beritahu saya sahaja.",
+                'zh': "没问题！如果您以后需要学术手册，告诉我即可。"
+            }, language_code)
+            return answer, None, context
+        # If unclear, continue conversation normally
+    
+    # If not asked yet, ask user if they need handbook
+    context['handbook_asked'] = True
+    answer = get_multilang_response({
+        'en': "Would you like me to provide the Academic Handbook PDF? It contains detailed information about programs, courses, academic policies, and graduation requirements.",
+        'ms': "Adakah anda ingin saya menyediakan PDF Buku Panduan Akademik? Ia mengandungi maklumat terperinci mengenai program, kursus, dasar akademik, dan keperluan graduasi.",
+        'zh': "您需要我提供学术手册PDF吗？它包含有关课程、学术政策和毕业要求的详细信息。"
+    }, language_code)
+    
+    return answer, None, context
+
+
 def save_messages_async(conversation, user_message, answer, intent, confidence, entities):
     """Save messages asynchronously to avoid blocking response"""
     def _save():
@@ -1268,9 +1415,28 @@ def chat_api(request):
                     agent_context['matched_staff'] = matched_staff_list
                     logger.debug(f"Prioritized {len(matched_staff_list)} matched staff, added {len(remaining_staff[:10])} others")
 
+            # PRIORITY CHECK: For FAQ agent queries about dean, vision, mission, faculty info, etc., check knowledge base first
+            # This ensures we get direct answers for simple factual queries like "who is dean", "vision", "mission"
+            if (agent_id == 'faq' or intent in ['about_faix', 'staff_contact']) and answer is None:
+                # Check for factual queries (dean, vision, mission, established, etc.)
+                user_message_lower_check = user_message.lower()
+                factual_keywords = [
+                    'who is dean', 'who is the dean', 'dean', 'head of faculty',
+                    'vision', 'mission', 'what is the vision', 'what is the mission',
+                    'faix vision', 'faix mission', 'when was faix', 'established',
+                    'objective', 'objectives', 'what are the objectives', 'faix objectives',
+                    'top management', 'management', 'leadership', 'who are the leaders'
+                ]
+                if any(kw in user_message_lower_check for kw in factual_keywords):
+                    kb_factual_answer = knowledge_base.get_answer(intent, user_message)
+                    if kb_factual_answer and 'couldn\'t find' not in kb_factual_answer.lower():
+                        logger.info(f"Using knowledge base answer for factual query: {user_message[:50]}")
+                        answer = kb_factual_answer
+                        # Skip LLM call and use KB answer directly
+            
             # PRIORITY CHECK: For schedule queries, check knowledge base first
             # This ensures we use the simple explanation + link approach instead of LLM-generated responses
-            if agent_id == 'schedule' or intent == 'academic_schedule':
+            if (agent_id == 'schedule' or intent == 'academic_schedule') and answer is None:
                 kb_schedule_answer = knowledge_base.get_answer(intent, user_message)
                 if kb_schedule_answer and 'couldn\'t find' not in kb_schedule_answer.lower():
                     logger.info("Using knowledge base schedule answer (simple explanation + link)")
@@ -1280,6 +1446,17 @@ def chat_api(request):
                 else:
                     # No KB answer, proceed with LLM
                     answer = None
+            
+            # PRIORITY CHECK: For staff queries, check knowledge base first for direct staff member matches
+            # This ensures we retrieve staff data directly from JSON when a specific staff member is queried
+            if (agent_id == 'staff' or intent == 'staff_contact') and answer is None:
+                kb_staff_answer = knowledge_base.get_answer(intent, user_message)
+                # Check if we got a specific staff member answer (not general contact info or "couldn't find")
+                if kb_staff_answer and 'couldn\'t find' not in kb_staff_answer.lower() and 'FAIX Contact Information' not in kb_staff_answer:
+                    logger.info("Using knowledge base staff answer (direct staff member match)")
+                    answer = kb_staff_answer
+                    # Skip LLM call and use KB answer directly
+                # If it's general contact info or not found, let LLM handle it with context
             
             # Build LLM messages and call Llama via Ollama
             if answer is None:  # Only build messages if we don't have a KB answer
@@ -1292,7 +1469,8 @@ def chat_api(request):
                     language_code=language_code,
                 )
             
-            # Initialize answer variable before LLM call (must be outside try block)
+            # Initialize answer and llm_client variables before try block
+            llm_client = None
             if answer is None:
                 answer = None
 
@@ -1553,26 +1731,39 @@ def chat_api(request):
                     except Exception:
                         answer = get_multilang_response(MULTILANG_FALLBACK_HELP, language_code)
 
-            # For handbook queries, still attach PDF information if available
-            if intent == 'program_info' or is_handbook_query:
+            # Check if we should ask about handbook or if user confirmed
+            if should_ask_for_handbook(intent, user_message, context) or context.get('handbook_asked', False):
+                handbook_answer, handbook_pdf_url, context = handle_handbook_request(user_message, context, language_code)
+                if handbook_answer:
+                    # If user is confirming/declining handbook request, use handbook response
+                    if context.get('handbook_asked') is False or detect_yes_no_response(user_message) is not None:
+                        answer = handbook_answer
+                        pdf_url = handbook_pdf_url if handbook_pdf_url else pdf_url
+                    # If we're asking, append to existing answer or replace
+                    elif should_ask_for_handbook(intent, user_message, context):
+                        if answer:
+                            answer = answer + "\n\n" + handbook_answer
+                        else:
+                            answer = handbook_answer
+            elif is_handbook_query:
+                # User explicitly asked for handbook - provide it directly
                 import os
                 from django.conf import settings
                 pdf_path = os.path.join(settings.MEDIA_ROOT, 'Academic_Handbook.pdf')
                 if os.path.exists(pdf_path):
                     pdf_url = settings.MEDIA_URL + 'Academic_Handbook.pdf'
+                    if not answer:
+                        answer = get_multilang_response({
+                            'en': "📚 Here is the Academic Handbook PDF with detailed program information.",
+                            'ms': "📚 Berikut adalah PDF Buku Panduan Akademik dengan maklumat program terperinci.",
+                            'zh': "📚 以下是包含详细课程信息的学术手册PDF。"
+                        }, language_code)
                 else:
-                    if answer:
-                        answer += (
-                            "\n\n📚 The Academic Handbook contains detailed program information, "
-                            "but I couldn't find a copy on this system. Please contact the FAIX "
-                            "office for access to the handbook."
-                        )
-                    else:
-                        answer = (
-                            "📚 The Academic Handbook contains detailed program information, "
-                            "but I couldn't find a copy on this system. Please contact the FAIX "
-                            "office for access to the handbook."
-                        )
+                    answer = get_multilang_response({
+                        'en': "📚 I'm sorry, but the Academic Handbook PDF is not available on this system. Please contact the FAIX office at faix@utem.edu.my for access.",
+                        'ms': "📚 Maaf, PDF Buku Panduan Akademik tidak tersedia dalam sistem ini. Sila hubungi pejabat FAIX di faix@utem.edu.my.",
+                        'zh': "📚 抱歉，本系统不提供学术手册PDF。请联系FAIX办公室 faix@utem.edu.my。"
+                    }, language_code)
 
         else:
             # Existing non-agent behaviour (no LLM)
@@ -1598,34 +1789,74 @@ def chat_api(request):
                     logger.info(f"Inadequate KB response: {answer[:50]}...")
                     answer = get_multilang_response(MULTILANG_NO_INFO, language_code)
                 
-                # Check if user is asking about academic handbook
-                if intent == 'program_info' or is_handbook_query:
-                    # Check if Academic_Handbook.pdf exists
+                # Check if we should ask about handbook or if user confirmed
+                if should_ask_for_handbook(intent, user_message, context) or context.get('handbook_asked', False):
+                    handbook_answer, handbook_pdf_url, context = handle_handbook_request(user_message, context, language_code)
+                    if handbook_answer:
+                        # If user is confirming/declining handbook request, use handbook response
+                        if context.get('handbook_asked') is False or detect_yes_no_response(user_message) is not None:
+                            answer = handbook_answer
+                            pdf_url = handbook_pdf_url if handbook_pdf_url else pdf_url
+                        # If we're asking, append to existing answer
+                        elif should_ask_for_handbook(intent, user_message, context):
+                            if answer:
+                                answer = answer + "\n\n" + handbook_answer
+                            else:
+                                answer = handbook_answer
+                elif is_handbook_query:
+                    # User explicitly asked for handbook - provide it directly
                     import os
                     from django.conf import settings
                     pdf_path = os.path.join(settings.MEDIA_ROOT, 'Academic_Handbook.pdf')
                     if os.path.exists(pdf_path):
                         pdf_url = settings.MEDIA_URL + 'Academic_Handbook.pdf'
+                        if not answer:
+                            answer = get_multilang_response({
+                                'en': "📚 Here is the Academic Handbook PDF with detailed program information.",
+                                'ms': "📚 Berikut adalah PDF Buku Panduan Akademik dengan maklumat program terperinci.",
+                                'zh': "📚 以下是包含详细课程信息的学术手册PDF。"
+                            }, language_code)
+                    else:
+                        answer = get_multilang_response({
+                            'en': "📚 I'm sorry, but the Academic Handbook PDF is not available on this system. Please contact the FAIX office at faix@utem.edu.my for access.",
+                            'ms': "📚 Maaf, PDF Buku Panduan Akademik tidak tersedia dalam sistem ini. Sila hubungi pejabat FAIX di faix@utem.edu.my.",
+                            'zh': "📚 抱歉，本系统不提供学术手册PDF。请联系FAIX办公室 faix@utem.edu.my。"
+                        }, language_code)
             else:
                 # Use conversation manager for general queries
                 # BUT check for handbook first
                 if is_handbook_query:
+                    # User explicitly asked for handbook - provide it directly
                     import os
                     from django.conf import settings
-                    answer = (
-                        "📚 The Academic Handbook contains comprehensive information about "
-                        "programs, courses, academic policies, graduation requirements, and more. "
-                        "You can view the complete handbook PDF below."
-                    )
                     pdf_path = os.path.join(settings.MEDIA_ROOT, 'Academic_Handbook.pdf')
                     if os.path.exists(pdf_path):
                         pdf_url = settings.MEDIA_URL + 'Academic_Handbook.pdf'
+                        answer = get_multilang_response({
+                            'en': "📚 Here is the Academic Handbook PDF with comprehensive information about programs, courses, academic policies, and graduation requirements.",
+                            'ms': "📚 Berikut adalah PDF Buku Panduan Akademik dengan maklumat menyeluruh mengenai program, kursus, dasar akademik, dan keperluan graduasi.",
+                            'zh': "📚 以下是包含有关课程、学术政策和毕业要求的全面信息的学术手册PDF。"
+                        }, language_code)
                     else:
-                        answer = (
-                            "📚 The Academic Handbook contains comprehensive information about "
-                            "programs, courses, academic policies, and graduation requirements. "
-                            "Please contact the FAIX office for access to the handbook."
-                        )
+                        answer = get_multilang_response({
+                            'en': "📚 I'm sorry, but the Academic Handbook PDF is not available on this system. Please contact the FAIX office at faix@utem.edu.my for access.",
+                            'ms': "📚 Maaf, PDF Buku Panduan Akademik tidak tersedia dalam sistem ini. Sila hubungi pejabat FAIX di faix@utem.edu.my.",
+                            'zh': "📚 抱歉，本系统不提供学术手册PDF。请联系FAIX办公室 faix@utem.edu.my。"
+                        }, language_code)
+                elif should_ask_for_handbook(intent, user_message, context) or context.get('handbook_asked', False):
+                    # Ask user if they need handbook
+                    handbook_answer, handbook_pdf_url, context = handle_handbook_request(user_message, context, language_code)
+                    if handbook_answer:
+                        if context.get('handbook_asked') is False or detect_yes_no_response(user_message) is not None:
+                            answer = handbook_answer
+                            pdf_url = handbook_pdf_url if handbook_pdf_url else pdf_url
+                        else:
+                            # Get regular answer first, then append handbook question
+                            answer, context = process_conversation(user_message, context)
+                            if answer:
+                                answer = answer + "\n\n" + handbook_answer
+                            else:
+                                answer = handbook_answer
                 else:
                     answer, context = process_conversation(user_message, context)
                     # Validate answer from conversation manager
@@ -1635,6 +1866,33 @@ def chat_api(request):
                     elif is_inadequate_response(answer):
                         logger.info(f"Inadequate conversation manager response detected")
                         answer = get_multilang_response(MULTILANG_CANT_UNDERSTAND, language_code)
+        
+        # REINFORCEMENT LEARNING: Check for negative feedback patterns
+        # If this response is similar to a previously negatively-rated response, try to avoid it
+        # EXCEPTION: Don't block factual answers (like dean info) that are correct
+        if answer and isinstance(answer, str) and answer.strip():
+            # Skip negative feedback check for factual queries with specific keywords
+            # These are correct answers that shouldn't be blocked
+            factual_keywords = ['dean', 'associate professor', 'established', 'vision', 'mission']
+            is_factual_answer = any(kw in answer.lower() for kw in factual_keywords)
+            
+            if not is_factual_answer:  # Only check negative feedback for non-factual answers
+                negative_patterns = get_negative_feedback_patterns(intent, session.session_id)
+                if negative_patterns and should_avoid_response(answer, negative_patterns):
+                    logger.info(f"Response matches negative feedback pattern for intent '{intent}', trying alternative")
+                    # Try knowledge base as alternative
+                    kb_answer = knowledge_base.get_answer(intent, user_message)
+                    if kb_answer and not is_inadequate_response(kb_answer):
+                        # Check if KB answer is also similar to negative feedback
+                        if not should_avoid_response(kb_answer, negative_patterns):
+                            answer = kb_answer
+                            logger.info("Using knowledge base alternative due to negative feedback")
+                        else:
+                            # Both match negative patterns, try conversation manager
+                            conv_answer, _ = process_conversation(user_message, context)
+                            if conv_answer and not should_avoid_response(conv_answer, negative_patterns):
+                                answer = conv_answer
+                                logger.info("Using conversation manager alternative due to negative feedback")
         
         # Final safety check: ensure answer is never None or empty before saving
         if not answer or not isinstance(answer, str) or not answer.strip():
@@ -1648,14 +1906,51 @@ def chat_api(request):
         session.context = context
         session.save(update_fields=['context', 'updated_at'])
         
-        # PERFORMANCE OPTIMIZATION: Save messages asynchronously to avoid blocking response
-        save_messages_async(conversation, user_message, answer, intent, confidence, entities)
+        # Save user message asynchronously, but save bot message synchronously to get ID for feedback
+        def _save_user_message():
+            try:
+                with transaction.atomic():
+                    Message.objects.create(
+                        conversation=conversation,
+                        role='user',
+                        content=user_message,
+                        intent=intent,
+                        confidence=confidence,
+                        entities=entities,
+                    )
+                    conversation.updated_at = timezone.now()
+                    if not conversation.title or conversation.title == "New Conversation":
+                        conversation.title = user_message[:50] + ("..." if len(user_message) > 50 else "")
+                    conversation.save()
+            except Exception as e:
+                logger.error(f"Error saving user message async: {e}")
+        
+        thread = threading.Thread(target=_save_user_message)
+        thread.daemon = True
+        thread.start()
+        
+        # Save bot message synchronously to get ID for feedback
+        bot_message = None
+        try:
+            with transaction.atomic():
+                bot_message = Message.objects.create(
+                    conversation=conversation,
+                    role='bot',
+                    content=answer,
+                    intent=intent,
+                    confidence=confidence,
+                )
+                conversation.updated_at = timezone.now()
+                conversation.save()
+        except Exception as e:
+            logger.error(f"Error saving bot message: {e}")
         
         # Build response data
         response_data = {
             'response': answer,
             'session_id': session.session_id,
             'conversation_id': conversation.id,
+            'message_id': bot_message.id if bot_message else None,  # Include message ID for feedback
             'intent': intent,
             'confidence': confidence,
             'entities': entities,
@@ -1943,6 +2238,163 @@ def manage_knowledge_base(request):
             return JsonResponse({
                 'error': 'FAQ entry not found'
             }, status=404)
+
+
+@csrf_exempt
+@require_http_methods(["POST"])
+def submit_feedback(request):
+    """
+    Submit feedback on a bot response for reinforcement learning.
+    
+    Expected JSON payload:
+    {
+        "message_id": 123,
+        "conversation_id": 456,
+        "feedback_type": "good" or "bad",
+        "user_message": "original user message",
+        "bot_response": "bot response text",
+        "intent": "detected intent",
+        "user_comment": "optional comment",
+        "session_id": "session id"
+    }
+    
+    Returns:
+    {
+        "success": true,
+        "message": "Feedback submitted successfully"
+    }
+    """
+    try:
+        data = json.loads(request.body)
+        message_id = data.get('message_id')
+        conversation_id = data.get('conversation_id')
+        feedback_type = data.get('feedback_type')
+        user_message = data.get('user_message', '')
+        bot_response = data.get('bot_response', '')
+        intent = data.get('intent')
+        user_comment = data.get('user_comment', '')
+        session_id = data.get('session_id')
+        
+        if not message_id or not conversation_id or not feedback_type:
+            return JsonResponse({
+                'error': 'message_id, conversation_id, and feedback_type are required'
+            }, status=400)
+        
+        if feedback_type not in ['good', 'bad']:
+            return JsonResponse({
+                'error': 'feedback_type must be "good" or "bad"'
+            }, status=400)
+        
+        try:
+            message = Message.objects.get(id=message_id)
+            conversation = Conversation.objects.get(id=conversation_id)
+        except (Message.DoesNotExist, Conversation.DoesNotExist):
+            return JsonResponse({
+                'error': 'Message or conversation not found'
+            }, status=404)
+        
+        # Create feedback record
+        feedback = ResponseFeedback.objects.create(
+            message=message,
+            conversation=conversation,
+            feedback_type=feedback_type,
+            user_message=user_message,
+            bot_response=bot_response,
+            intent=intent,
+            user_comment=user_comment,
+            session_id=session_id
+        )
+        
+        logger.info(f"Feedback submitted: {feedback_type} for message {message_id}, intent: {intent}")
+        
+        return JsonResponse({
+            'success': True,
+            'message': 'Feedback submitted successfully',
+            'feedback_id': feedback.id
+        })
+        
+    except json.JSONDecodeError:
+        return JsonResponse({
+            'error': 'Invalid JSON payload'
+        }, status=400)
+    except Exception as e:
+        logger.exception(f"Error submitting feedback: {e}")
+        return JsonResponse({
+            'error': str(e)
+        }, status=500)
+
+
+def get_negative_feedback_patterns(intent: str, session_id: str = None) -> List[Dict]:
+    """
+    Retrieve patterns from negative feedback that should be avoided.
+    Returns a list of dictionaries with user_message patterns and bot_responses to avoid.
+    """
+    try:
+        # Get negative feedback for this intent (or general if no intent)
+        query = ResponseFeedback.objects.filter(feedback_type='bad')
+        
+        if intent:
+            query = query.filter(intent=intent)
+        
+        # Optionally filter by session to learn from current user's preferences
+        if session_id:
+            # Get feedback from same session or recent feedback
+            from datetime import timedelta
+            recent_threshold = timezone.now() - timedelta(days=30)
+            query = query.filter(
+                Q(session_id=session_id) | Q(created_at__gte=recent_threshold)
+            )
+        else:
+            # Get recent feedback (last 30 days)
+            from datetime import timedelta
+            recent_threshold = timezone.now() - timedelta(days=30)
+            query = query.filter(created_at__gte=recent_threshold)
+        
+        # Get the most recent negative feedback
+        negative_feedback = query.order_by('-created_at')[:10]
+        
+        patterns = []
+        for fb in negative_feedback:
+            patterns.append({
+                'user_message': fb.user_message.lower() if fb.user_message else '',
+                'bot_response': fb.bot_response.lower() if fb.bot_response else '',
+                'intent': fb.intent,
+                'comment': fb.user_comment
+            })
+        
+        return patterns
+    except Exception as e:
+        logger.warning(f"Error retrieving negative feedback patterns: {e}")
+        return []
+
+
+def should_avoid_response(response_text: str, negative_patterns: List[Dict]) -> bool:
+    """
+    Check if a response should be avoided based on negative feedback patterns.
+    Returns True if the response is similar to a previously negatively-rated response.
+    """
+    if not negative_patterns or not response_text:
+        return False
+    
+    response_lower = response_text.lower()
+    
+    # Check if response is too similar to a previously bad response
+    for pattern in negative_patterns:
+        bad_response = pattern.get('bot_response', '')
+        if bad_response and len(bad_response) > 10:
+            # Simple similarity check: if response contains significant portion of bad response
+            # or vice versa, avoid it
+            similarity_threshold = 0.7
+            if bad_response in response_lower or response_lower in bad_response:
+                # Check if it's substantial overlap (not just a small substring)
+                min_length = min(len(bad_response), len(response_lower))
+                if min_length > 20:  # Only check for substantial responses
+                    overlap_ratio = len(bad_response) / len(response_lower) if response_lower else 0
+                    if overlap_ratio > similarity_threshold or (bad_response in response_lower and len(bad_response) > len(response_lower) * 0.5):
+                        logger.info(f"Avoiding response similar to negative feedback: {bad_response[:50]}...")
+                        return True
+    
+    return False
 
 
 def index(request):

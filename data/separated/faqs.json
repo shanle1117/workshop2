@@ -1,0 +1,44 @@
+{
+  "faqs": [
+    {
+      "question": "What programmes does FAIX offer?",
+      "answer": "FAIX offers 2 undergraduate programmes (AI and Computer Security) and 3 postgraduate programmes (Security Science, Data Science and Analytics including ODL option).",
+      "category": "programmes"
+    },
+    {
+      "question": "When was FAIX established?",
+      "answer": "FAIX was officially founded on July 22, 2024.",
+      "category": "about"
+    },
+    {
+      "question": "How can I contact FAIX?",
+      "answer": "Email: faix@utem.edu.my, Phone: +606 270 4540, Website: https://faix.utem.edu.my/en/",
+      "category": "contact"
+    },
+    {
+      "question": "What are the career opportunities for AI graduates?",
+      "answer": "AI graduates can pursue careers as knowledge engineers, smart systems developers, systems analysts, software developers, computer scientists, and researchers.",
+      "category": "career"
+    },
+    {
+      "question": "Does FAIX accept international students?",
+      "answer": "Yes, FAIX welcomes international students and provides a diverse learning community with support for international applicants.",
+      "category": "admission"
+    },
+    {
+      "question": "What is the learning approach at FAIX?",
+      "answer": "FAIX emphasizes practical learning with 70% coursework and 30% hands-on, real-world projects to ensure industry readiness.",
+      "category": "academics"
+    },
+    {
+      "question": "What are the postgraduate entry requirements?",
+      "answer": "Requirements vary based on background: Computing graduates need minimum CGPA 2.50, non-computing graduates may need prerequisite courses. MUET Band 4 or CEFR Low B2 required.",
+      "category": "admission"
+    },
+    {
+      "question": "How many staff members are at FAIX?",
+      "answer": "FAIX has 25 academic staff and 5 administrative personnel.",
+      "category": "about"
+    }
+  ]
+}

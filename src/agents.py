@@ -37,8 +37,27 @@ class AgentRegistry:
                 display_name="FAQ Assistant",
                 description="Answers general questions using the FAQ knowledge base and comprehensive FAIX data.",
                 system_prompt=(
-                    "You are a knowledgeable and friendly FAIX assistant helping students, parents, and visitors "
-                    "with questions about programs, admission, facilities, and more.\n\n"
+                    "You are the AI assistant for the Faculty of Artificial Intelligence and Cyber Security (FAIX) "
+                    "at Universiti Teknikal Malaysia Melaka (UTeM), specializing in faculty, course, and research information.\n\n"
+                    
+                    "🎯 CORE TASKS:\n"
+                    "1. **Precise Targeting**: When users ask about faculty, always ask for specific information:\n"
+                    "   - Example: 'Tell me about Professor Li' → 'Are you interested in Professor Li's research, courses, or office hours?'\n"
+                    "2. **Information Layering**: Break complex queries into sub-questions automatically:\n"
+                    "   - Example: 'Graduate courses' → 'Are you looking for Fall 2024 courses, or do you need to know the prerequisites?'\n"
+                    "3. **Active Guidance**: Provide 2-3 concrete options when queries are vague\n\n"
+                    
+                    "❓ WHEN TO ASK FOLLOW-UP QUESTIONS (ALWAYS):\n"
+                    "- **Faculty queries**: Always ask for specific need (research/course/contact)\n"
+                    "- **Course queries**: Always ask for semester and level (undergraduate/graduate)\n"
+                    "- **Research inquiries**: Always ask for specific field (AI/systems/theory)\n"
+                    "- **Appointments**: Always ask for specific time and purpose\n\n"
+                    
+                    "📝 RESPONSE FORMAT (MANDATORY):\n"
+                    "【Main Answer】\n"
+                    "\n"
+                    "【Follow-up Question】\n"
+                    "The follow-up must be specific and actionable, avoid generic 'Anything else?'\n\n"
                     
                     "YOUR APPROACH:\n"
                     "- Be conversational and helpful - respond naturally, like a knowledgeable advisor\n"
@@ -61,15 +80,24 @@ class AgentRegistry:
                     "- For admission: Explain requirements clearly and helpfully\n"
                     "- If information is missing: Acknowledge it and suggest contacting FAIX office\n\n"
                     
+                    "EXAMPLE DIALOGUES:\n"
+                    "User: I want to know about Professor Li\n"
+                    "You: Professor Li specializes in computer vision. Would you like to know:\n"
+                    "1. His courses this semester\n"
+                    "2. Current research projects\n"
+                    "3. Office hours and appointment booking\n"
+                    "(Please select a number or specify other needs)\n\n"
+                    "User: Courses\n"
+                    "You: He teaches CS401 Computer Vision Basics, Wednesdays 2pm. Need to check prerequisites? (follow-up)\n\n"
+                    "User: Yes\n"
+                    "You: Requires CS301 Image Processing or CS302 ML Intro. Would you like to see the syllabus? (follow-up)\n\n"
+                    "User: No thanks\n"
+                    "You: Okay, no problem. (stop asking follow-ups)\n\n"
+                    
                     "WHEN YOU CAN'T ANSWER:\n"
                     "- Be honest: 'I don't have that specific information, but I can help with...'\n"
                     "- Suggest alternatives: 'You might want to contact the FAIX office at faix@utem.edu.my'\n"
-                    "- Offer related help: 'I can help you with programs, admission, staff contacts, or schedules'\n\n"
-                    
-                    "EXAMPLE GOOD RESPONSES:\n"
-                    "- 'FAIX offers two undergraduate programs: BAXI (AI) and BAXZ (Cybersecurity). Both are 4-year programs...'\n"
-                    "- 'The Dean of FAIX is Associate Professor Ts. Dr. Muhammad Hafidz Fazli Bin Md Fauadi.'\n"
-                    "- 'For fee information, you can check the complete schedule here: [link]'\n"
+                    "- Offer related help: 'I can help you with programs, admission, staff contacts, or schedules'\n"
                 ),
                 default_intent=None,
             )
@@ -118,7 +146,25 @@ class AgentRegistry:
                 display_name="Staff Contact Assistant",
                 description="Provides staff and faculty contact information.",
                 system_prompt=(
-                    "You are the FAIX Staff Contact Assistant. Your ONLY job is to help users find and contact staff members.\n\n"
+                    "You are the AI assistant for the Faculty of Artificial Intelligence and Cyber Security (FAIX) "
+                    "at Universiti Teknikal Malaysia Melaka (UTeM), specializing in faculty, course, and research information.\n"
+                    "Your focus is helping users find and contact staff members.\n\n"
+                    
+                    "🎯 CORE TASKS:\n"
+                    "1. **Precise Targeting**: When users ask about faculty/staff, always ask for specific information:\n"
+                    "   - Example: 'Tell me about Professor Li' → 'Are you interested in Professor Li's research, courses, or office hours?'\n"
+                    "2. **Information Layering**: Break complex queries into sub-questions automatically\n"
+                    "3. **Active Guidance**: Provide 2-3 concrete options when queries are vague\n\n"
+                    
+                    "❓ WHEN TO ASK FOLLOW-UP QUESTIONS (ALWAYS for faculty queries):\n"
+                    "- **Faculty/staff queries**: Always ask for specific need (research/course/contact/office hours)\n"
+                    "- Only skip follow-ups if user explicitly says 'No thanks', 'That's all', or similar\n\n"
+                    
+                    "📝 RESPONSE FORMAT (MANDATORY):\n"
+                    "【Main Answer】\n"
+                    "\n"
+                    "【Follow-up Question】\n"
+                    "The follow-up must be specific and actionable, avoid generic 'Anything else?'\n\n"
                     
                     "🎯 YOUR PRIMARY FOCUS:\n"
                     "- Answer questions about staff members, faculty, professors, and administrative staff\n"
@@ -132,15 +178,20 @@ class AgentRegistry:
                     "- For dean information: Use FAIX Information Context (Faculty Information section)\n\n"
                     
                     "✅ WHEN USER ASKS ABOUT A SPECIFIC STAFF MEMBER BY NAME:\n"
-                    "- Example queries: 'who is dr choo', 'contact info for Ahmad', 'email for Dr. Burhanuddin'\n"
-                    "- IMMEDIATELY provide COMPLETE contact information:\n"
+                    "- Example queries: 'who is dr choo', 'contact info for Ahmad', 'email for Dr. Burhanuddin', 'tell me about Professor Li'\n"
+                    "- For vague queries (e.g., 'tell me about Professor Li'): Provide basic info THEN ask follow-up:\n"
+                    "  'Professor Li specializes in [field]. Would you like to know:\n"
+                    "  1. His courses this semester\n"
+                    "  2. Current research projects\n"
+                    "  3. Office hours and appointment booking\n"
+                    "  (Please select a number or specify other needs)'\n"
+                    "- For specific contact queries: IMMEDIATELY provide COMPLETE contact information:\n"
                     "  **Name**\n"
                     "  - Position: [position]\n"
                     "  - Department: [department]\n"
                     "  - Email: [email]\n"
                     "  - Phone: [phone] (if available)\n"
                     "  - Office: [office] (if available)\n"
-                    "- Do NOT ask follow-up questions - provide all details at once\n"
                     "- If multiple matches found, list ALL matches with full details\n"
                     "- If matched staff are highlighted in context, USE THEM - they match the query!\n\n"
                     
@@ -169,9 +220,14 @@ class AgentRegistry:
                     "- Do NOT create generic roles without names\n"
                     "- Do NOT say 'I'm not sure' when the data is clearly in the context\n"
                     "- Do NOT add meta-commentary like 'According to the database'\n"
-                    "- Do NOT ask unnecessary follow-up questions when you have the answer\n\n"
+                    "- Do NOT skip follow-up questions for faculty queries unless user explicitly declines\n\n"
                     
                     "💡 EXAMPLE RESPONSES (USE EXACT DATA FROM CONTEXT - DO NOT INVENT):\n"
+                    "- Vague query: 'Tell me about Professor Li'\n"
+                    "  You: 'Professor Li specializes in computer vision. Would you like to know:\n"
+                    "  1. His courses this semester\n"
+                    "  2. Current research projects\n"
+                    "  3. Office hours and appointment booking'\n\n"
                     "- General query: 'For questions about AI programs, you might want to contact:\n\n- **Dr. Ahmad** - Senior Lecturer (AI Department)\n- **Prof. Sarah** - Professor (Machine Learning)\n\nWould you like contact details for any of these staff members?'\n\n"
                     "- No match: 'I couldn't find a staff member named \"Dr. Smith\" in the database. Could you try a different spelling or ask about their department?'\n\n"
                     "⚠️ CRITICAL ANTI-HALLUCINATION RULES:\n"
@@ -230,18 +286,41 @@ def _get_project_data_dir() -> Path:
     return Path(__file__).resolve().parent.parent / "data"
 
 
-def _get_schedule_documents() -> List[Dict[str, str]]:
-    """Load schedule entries from data/faix_json_data.json (schedule section)."""
-    data_dir = _get_project_data_dir()
-    # Try to load from merged faix_json_data.json first
-    faix_data = _load_json_file(data_dir / "faix_json_data.json")
-    data = None
+def _get_separated_data_dir() -> Path:
+    """Get path to separated data directory."""
+    return _get_project_data_dir() / "separated"
+
+
+def _load_separated_json_file(key: str) -> Any:
+    """Load a specific data section from separated JSON files."""
+    separated_dir = _get_separated_data_dir()
+    file_path = separated_dir / f"{key}.json"
     
-    if faix_data and isinstance(faix_data, dict) and "schedule" in faix_data:
-        data = faix_data["schedule"]
-    else:
-        # Fallback: try separate schedule.json file
-        data = _load_json_file(data_dir / "schedule.json")
+    if not file_path.exists():
+        return None
+    
+    data = _load_json_file(file_path)
+    if data and isinstance(data, dict) and key in data:
+        return data[key]
+    elif data:
+        # If the file doesn't have the key wrapper, return the data directly
+        return data
+    return None
+
+
+def _get_schedule_documents() -> List[Dict[str, str]]:
+    """Load schedule entries from data/separated/schedule.json."""
+    # Try to load from separated files first
+    data = _load_separated_json_file("schedule")
+    
+    # Fallback: try merged file or old location
+    if data is None:
+        data_dir = _get_project_data_dir()
+        faix_data = _load_json_file(data_dir / "faix_json_data.json")
+        if faix_data and isinstance(faix_data, dict) and "schedule" in faix_data:
+            data = faix_data["schedule"]
+        else:
+            data = _load_json_file(data_dir / "schedule.json")
     
     docs: List[Dict[str, str]] = []
     if isinstance(data, list):
@@ -260,17 +339,18 @@ def _get_schedule_documents() -> List[Dict[str, str]]:
 
 
 def _get_staff_documents() -> List[Dict[str, str]]:
-    """Load staff contact entries from data/faix_json_data.json (staff_contacts section)."""
-    data_dir = _get_project_data_dir()
-    # Try to load from merged faix_json_data.json first
-    faix_data = _load_json_file(data_dir / "faix_json_data.json")
-    data = None
+    """Load staff contact entries from data/separated/staff_contacts.json."""
+    # Try to load from separated files first
+    data = _load_separated_json_file("staff_contacts")
     
-    if faix_data and isinstance(faix_data, dict) and "staff_contacts" in faix_data:
-        data = faix_data["staff_contacts"]
-    else:
-        # Fallback: try separate staff_contacts.json file
-        data = _load_json_file(data_dir / "staff_contacts.json")
+    # Fallback: try merged file or old location
+    if data is None:
+        data_dir = _get_project_data_dir()
+        faix_data = _load_json_file(data_dir / "faix_json_data.json")
+        if faix_data and isinstance(faix_data, dict) and "staff_contacts" in faix_data:
+            data = faix_data["staff_contacts"]
+        else:
+            data = _load_json_file(data_dir / "staff_contacts.json")
     
     docs: List[Dict[str, str]] = []
     
@@ -343,71 +423,159 @@ def check_schedule_data_available() -> bool:
     return len(docs) > 0
 
 
-def _get_faix_data_documents() -> Dict[str, Any]:
-    """Load FAIX comprehensive data from data/faix_json_data.json (merged single source)."""
-    data_dir = _get_project_data_dir()
-    data = _load_json_file(data_dir / "faix_json_data.json")
+def _load_faix_json_data() -> Dict[str, Any]:
+    """Load raw FAIX data from separated JSON files in data/separated/."""
+    separated_dir = _get_separated_data_dir()
+    data = {}
     
-    if not data or not isinstance(data, dict):
-        return {}
+    # List of all known data sections
+    sections = [
+        "faculty_info", "vision_mission", "top_management", "programmes",
+        "admission", "departments", "facilities", "academic_resources",
+        "key_highlights", "faqs", "research_focus", "staff_contacts",
+        "schedule", "course_info", "metadata"
+    ]
     
-    # Return structured data organized by sections
-    # Note: staff_contacts and schedule are now in the same file
+    # Load each section from separated files
+    for section in sections:
+        section_data = _load_separated_json_file(section)
+        if section_data is not None:
+            data[section] = section_data
+    
+    # Fallback: if no separated files found, try the merged file
+    if not data:
+        data_dir = _get_project_data_dir()
+        merged_data = _load_json_file(data_dir / "faix_json_data.json")
+        if merged_data and isinstance(merged_data, dict):
+            data = merged_data
+    
+    return data
+
+
+def _get_faix_data_for_faq() -> Dict[str, Any]:
+    """Load FAIX data relevant for FAQ agent: programs, admission, facilities, etc. (NOT staff or schedule).
+    
+    Loads directly from separated JSON files in data/separated/.
+    """
     structured_data = {}
     
-    # Faculty information
-    if "faculty_info" in data:
-        structured_data["faculty_info"] = data["faculty_info"]
+    # Load only the sections needed for FAQ agent
+    sections = [
+        "faculty_info", "vision_mission", "top_management", "programmes",
+        "admission", "departments", "facilities", "academic_resources",
+        "key_highlights", "faqs", "research_focus", "course_info"
+    ]
     
-    # Vision & Mission
-    if "vision_mission" in data:
-        structured_data["vision_mission"] = data["vision_mission"]
+    for section in sections:
+        section_data = _load_separated_json_file(section)
+        if section_data is not None:
+            structured_data[section] = section_data
     
-    # Programmes
-    if "programmes" in data:
-        structured_data["programmes"] = data["programmes"]
+    # Fallback: if no separated files found, use merged file
+    if not structured_data:
+        data = _load_faix_json_data()
+        for section in sections:
+            if section in data:
+                structured_data[section] = data[section]
     
-    # Admission information
-    if "admission" in data:
-        structured_data["admission"] = data["admission"]
-    
-    # Departments
-    if "departments" in data:
-        structured_data["departments"] = data["departments"]
-    
-    # Facilities
-    if "facilities" in data:
-        structured_data["facilities"] = data["facilities"]
-    
-    # Academic resources
-    if "academic_resources" in data:
-        structured_data["academic_resources"] = data["academic_resources"]
-    
-    # Key highlights
-    if "key_highlights" in data:
-        structured_data["key_highlights"] = data["key_highlights"]
-    
-    # FAQs (already in knowledge base, but keep for reference)
-    if "faqs" in data:
-        structured_data["faqs"] = data["faqs"]
-    
-    # Research focus
-    if "research_focus" in data:
-        structured_data["research_focus"] = data["research_focus"]
-    
-    # Staff contacts (now merged)
-    if "staff_contacts" in data:
-        structured_data["staff_contacts"] = data["staff_contacts"]
-    
-    # Schedule (now merged)
-    if "schedule" in data:
-        structured_data["schedule"] = data["schedule"]
-    
-    # Course info (now merged)
-    if "course_info" in data:
-        structured_data["course_info"] = data["course_info"]
+    # NOTE: Excluding staff_contacts and schedule - FAQ agent doesn't need them
     
     return structured_data
+
+
+def _get_faix_data_for_schedule() -> Dict[str, Any]:
+    """Load FAIX data relevant for Schedule agent: schedule, timetable links, basic faculty info.
+    
+    Loads directly from separated JSON files in data/separated/.
+    """
+    structured_data = {}
+    
+    # Schedule data (primary)
+    schedule_data = _load_separated_json_file("schedule")
+    if schedule_data is not None:
+        structured_data["schedule"] = schedule_data
+    
+    # Academic resources (for timetable links)
+    academic_resources = _load_separated_json_file("academic_resources")
+    if academic_resources is not None:
+        structured_data["academic_resources"] = academic_resources
+    
+    # Basic faculty info (name, university) for context
+    faculty_info = _load_separated_json_file("faculty_info")
+    if faculty_info is not None and isinstance(faculty_info, dict):
+        structured_data["faculty_info"] = {
+            "name": faculty_info.get("name"),
+            "university": faculty_info.get("university"),
+        }
+    
+    # Fallback: if no separated files found, use merged file
+    if not structured_data:
+        data = _load_faix_json_data()
+        if "schedule" in data:
+            structured_data["schedule"] = data["schedule"]
+        if "academic_resources" in data:
+            structured_data["academic_resources"] = data["academic_resources"]
+        if "faculty_info" in data and isinstance(data["faculty_info"], dict):
+            structured_data["faculty_info"] = {
+                "name": data["faculty_info"].get("name"),
+                "university": data["faculty_info"].get("university"),
+            }
+    
+    # NOTE: Excluding everything else - Schedule agent only needs schedule and timetable links
+    
+    return structured_data
+
+
+def _get_faix_data_for_staff() -> Dict[str, Any]:
+    """Load FAIX data relevant for Staff agent: staff contacts, departments, basic faculty info (for dean).
+    
+    Loads directly from separated JSON files in data/separated/.
+    """
+    structured_data = {}
+    
+    # Staff contacts (primary)
+    staff_contacts = _load_separated_json_file("staff_contacts")
+    if staff_contacts is not None:
+        structured_data["staff_contacts"] = staff_contacts
+    
+    # Departments (for context)
+    departments = _load_separated_json_file("departments")
+    if departments is not None:
+        structured_data["departments"] = departments
+    
+    # Faculty information (for dean queries only)
+    faculty_info = _load_separated_json_file("faculty_info")
+    if faculty_info is not None and isinstance(faculty_info, dict):
+        structured_data["faculty_info"] = {
+            "dean": faculty_info.get("dean"),
+            "name": faculty_info.get("name"),
+            "university": faculty_info.get("university"),
+        }
+    
+    # Fallback: if no separated files found, use merged file
+    if not structured_data:
+        data = _load_faix_json_data()
+        if "staff_contacts" in data:
+            structured_data["staff_contacts"] = data["staff_contacts"]
+        if "departments" in data:
+            structured_data["departments"] = data["departments"]
+        if "faculty_info" in data and isinstance(data["faculty_info"], dict):
+            structured_data["faculty_info"] = {
+                "dean": data["faculty_info"].get("dean"),
+                "name": data["faculty_info"].get("name"),
+                "university": data["faculty_info"].get("university"),
+            }
+    
+    # NOTE: Excluding everything else - Staff agent only needs staff contacts and related info
+    
+    return structured_data
+
+
+def _get_faix_data_documents() -> Dict[str, Any]:
+    """Load FAIX comprehensive data (legacy function - use agent-specific functions instead)."""
+    # This is kept for backward compatibility but should not be used
+    # Use _get_faix_data_for_faq(), _get_faix_data_for_schedule(), or _get_faix_data_for_staff() instead
+    return _get_faix_data_for_faq()
 
 
 def check_faix_data_available() -> bool:
@@ -467,23 +635,32 @@ def retrieve_for_agent(
     if faq_docs:
         context["faq"] = faq_docs
 
-    # Schedule-specific context
-    if agent.id == "schedule":
+    # Agent-specific data retrieval - each agent gets ONLY its relevant data
+    if agent.id == "faq":
+        # FAQ agent: FAQ docs + FAIX data for programs, admission, facilities, etc. (NOT staff or schedule)
+        faix_data = _get_faix_data_for_faq()
+        if faix_data:
+            context["faix_data"] = faix_data
+    
+    elif agent.id == "schedule":
+        # Schedule agent: Schedule docs + schedule-related FAIX data only
         schedule_docs = _get_schedule_documents()
         if schedule_docs:
             context["schedule"] = schedule_docs
-
-    # Staff-specific context
-    if agent.id == "staff":
+        
+        faix_data = _get_faix_data_for_schedule()
+        if faix_data:
+            context["faix_data"] = faix_data
+    
+    elif agent.id == "staff":
+        # Staff agent: Staff docs + staff-related FAIX data only
         staff_docs = _get_staff_documents()
         if staff_docs:
             context["staff"] = staff_docs
-
-    # FAIX comprehensive data context (available for all agents, especially FAQ)
-    # This provides rich context about programs, admission, facilities, etc.
-    faix_data = _get_faix_data_documents()
-    if faix_data:
-        context["faix_data"] = faix_data
+        
+        faix_data = _get_faix_data_for_staff()
+        if faix_data:
+            context["faix_data"] = faix_data
 
     return context
 

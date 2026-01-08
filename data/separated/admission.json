@@ -1,0 +1,56 @@
+{
+  "admission": {
+    "undergraduate_local": {
+      "requirements": {
+        "spm_stpm": "SPM/STPM or equivalent qualification",
+        "minimum_requirements": "As specified by UTeM Senate"
+      },
+      "application_links": {
+        "entry_requirements": "https://www.utem.edu.my/en/undergraduate.html",
+        "fees": "https://bendahari.utem.edu.my/ms/jadual-yuran-pelajar.html",
+        "scholarships": "https://www.utem.edu.my/en/undergraduate.html"
+      }
+    },
+    "undergraduate_international": {
+      "requirements": {
+        "academic": "Equivalent to Malaysian secondary education",
+        "description": "International qualifications accepted subject to evaluation"
+      },
+      "application_links": {
+        "entry_requirements": "https://www.utem.edu.my/en/undergraduate-int.html",
+        "fees": "https://www.utem.edu.my/en/undergraduate-int.html",
+        "scholarships": "https://www.utem.edu.my/en/undergraduate-int.html"
+      },
+      "learning_approach": "70% coursework and practical projects, emphasis on real-world applications"
+    },
+    "postgraduate": {
+      "entry_requirements": [
+        {
+          "category": "Computing background - Strong",
+          "requirement": "Bachelor's degree (Level 6, MQF) in Computing or related fields with minimum CGPA of 2.50"
+        },
+        {
+          "category": "Computing background - Moderate",
+          "requirement": "Bachelor's degree (Level 6, MQF) in Computing or related fields with minimum CGPA of 2.00, subject to rigorous assessment"
+        },
+        {
+          "category": "Non-Computing background - With experience",
+          "requirement": "Bachelor's degree (Level 6, MQF) in Non-Computing field with minimum CGPA of 2.00, subject to assessment of working experience in Computing"
+        },
+        {
+          "category": "Non-Computing background - Prerequisite needed",
+          "requirement": "Bachelor's degree (Level 6, MQF) in Non-Computing field with minimum CGPA of 2.00, with prerequisite courses required"
+        }
+      ],
+      "language_requirements": {
+        "muet": "Minimum Band 4",
+        "cefr": "Low B2 equivalent",
+        "alternative": "Enroll in English proficiency courses if requirements not met"
+      },
+      "contact": {
+        "coordinator": "Mdm. Nur Azriah Binti Amir",
+        "email": "Contact through FAIX website"
+      }
+    }
+  }
+}
