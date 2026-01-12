@@ -1,0 +1,69 @@
+# FAIX Chatbot Demo Questions - Quick Reference
+# Copy and paste these questions during your demo video recording
+
+========================================
+PART 1: INTRODUCTION & BASICS (1-2 min)
+========================================
+
+Hello
+What can you do?
+What programs does FAIX offer?
+Tell me about BAXI
+What is BAXZ?
+What are the admission requirements?
+How much are the tuition fees?
+
+========================================
+PART 2: STAFF CONTACT FEATURE (2 min) ⭐
+========================================
+
+Who can I contact?
+Who works in the AI department?
+How do I contact the dean?
+What is the email for Dr. Muhammad Hafidz Fazli?
+Who is the program coordinator for BAXI?
+Who is the head of department for Intelligent Computing?
+Who is the vice chancellor?
+
+========================================
+PART 3: TIMETABLE FEATURE (1 min) ⭐
+========================================
+
+What is the academic schedule?
+BAXI timetable
+Where can I find my timetable?
+What is my schedule for BAXIS1G1?
+
+========================================
+PART 4: CAREER & FAIX INFO (1 min)
+========================================
+
+What are the career opportunities?
+What jobs can I get with BAXI?
+Tell me about FAIX
+What is FAIX's vision?
+
+========================================
+PART 5: MULTI-LANGUAGE (1 min) ⭐
+========================================
+
+Apakah program yang ditawarkan oleh FAIX?
+Beritahu saya tentang BAXI
+FAIX提供什么课程？
+مرحبا
+
+========================================
+PART 6: CONTEXT & FOLLOW-UP (30 sec) ⭐
+========================================
+
+Tell me about BAXI
+What are the admission requirements?
+Who is the coordinator?
+What are the fees?
+
+========================================
+CLOSING
+========================================
+
+Thanks for your help
+Goodbye

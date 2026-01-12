@@ -243,6 +243,10 @@ class ShortFormProcessor:
                 'cw': 'coursework',
                 'exam': 'examination',
                 'uni': 'university',
+                
+                # University leadership abbreviations
+                'vc': 'vice chancellor',
+                'nc': 'naib canselor',
                 'dept': 'department',
                 'fac': 'faculty',
                 'cs': 'computer science',
@@ -340,6 +344,10 @@ class ShortFormProcessor:
                 'lab': 'makmal',
                 'admin': 'pentadbiran',
                 'dekan': 'dekan',
+                
+                # University leadership abbreviations (Malay)
+                'nc': 'naib canselor',
+                'vc': 'naib canselor',  # Also recognize vc as naib canselor in Malay context
                 
                 # Question short forms
                 'ape': 'apa',
@@ -459,13 +467,13 @@ class ShortFormProcessor:
         self.patterns = {
             'en': [
                 r'\b(u|ur|r|pls|plz|thx|ty|np|idk|afaik|tbh|brb|btw|fyi|imo|asap|atm|b4|bc|cuz|coz|w\/|w\/o|c|n|k|ok)\b',
-                r'\b(prof|lect|admin|reg|enrl|enrol|sem|lab|tut|lec|asgmt|hw|cw|exam|uni|dept|fac|cs|ai|ds|cyber|it)\b',
+                r'\b(prof|lect|admin|reg|enrl|enrol|sem|lab|tut|lec|asgmt|hw|cw|exam|uni|dept|fac|cs|ai|ds|cyber|it|vc|nc)\b',
                 r'\b(wut|wat|wanna|gonna|gotta|hafta|needa|howz|whatz|wherez|whenz|whoz|whysz)\b',
                 r'\b(2day|2moro|2nite|4ever|gr8|l8r|m8|h8|w8)\b',
             ],
             'ms': [
                 r'\b(n|sbb|sbg|spt|tp|tgk|nmpk|skrg|skrng|esok|tdk|tak|x|lg|lgi|dlm|dgn|utk|stp|otw|ptg|pg|mlm|tggl|kwn|kk|adk|bkn|byk|sdkt|yg|drpd|pd|skit|g|bg|bgmn|kpd)\b',
-                r'\b(univ|uni|krs|prog|fak|pns|pro|pela|daftar|sem|kul|tuto|tugas|pep|exam|lab|admin|dekan)\b',
+                r'\b(univ|uni|krs|prog|fak|pns|pro|pela|daftar|sem|kul|tuto|tugas|pep|exam|lab|admin|dekan|vc|nc)\b',
                 r'\b(ape|mne|siape|knpe|camne|bile|dkat|kate|bape)\b',
             ],
             'zh': [
@@ -1717,9 +1725,10 @@ class QueryProcessor:
         # Use normalized text for processing if slang was detected
         if slang_analysis['slang_detected']:
             processing_text = slang_analysis['normalized_query']
-            self.logger.info(f"Detected slang/short forms. Normalized to: '{processing_text}'")
+            self.logger.info(f"Detected slang/short forms. Normalized: '{user_input}' -> '{processing_text}'")
         else:
             processing_text = user_input
+            self.logger.debug(f"No slang detected in: '{user_input}'")
         
         # Preprocess text with language-specific handling
         cleaned_text = self.preprocess_text(processing_text, language_code)

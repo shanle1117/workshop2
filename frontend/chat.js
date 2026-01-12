@@ -30,6 +30,7 @@ class Chatbot {
         this.isRecording = false;
         this.recognition = null;
         this.speechSupported = false;
+        this.scrollPosition = 0; // Store scroll position for mobile
         
         this.initializeElements();
         this.initializeSpeechRecognition();
@@ -38,6 +39,18 @@ class Chatbot {
         
         // Set welcome message time
         this.setWelcomeTime();
+        
+        // Handle window resize for mobile body scroll lock
+        this.handleResize();
+        window.addEventListener('resize', () => this.handleResize());
+    }
+    
+    handleResize() {
+        // Remove body scroll lock if window is resized to desktop size
+        if (window.innerWidth > 480 && document.body.classList.contains('chatbot-open')) {
+            document.body.classList.remove('chatbot-open');
+            document.body.style.top = '';
+        }
     }
     
     initializeElements() {
@@ -193,13 +206,31 @@ class Chatbot {
             if (this.container) {
                 this.container.style.display = 'flex';
             }
+            // Prevent body scroll on mobile when chatbot is open
+            if (window.innerWidth <= 480) {
+                document.body.classList.add('chatbot-open');
+                // Store current scroll position
+                this.scrollPosition = window.pageYOffset;
+                document.body.style.top = `-${this.scrollPosition}px`;
+            }
             if (this.input) {
-                this.input.focus();
+                // Small delay to ensure container is visible before focusing
+                setTimeout(() => {
+                    this.input.focus();
+                }, 100);
             }
             this.hideBadge();
         } else {
             if (this.container) {
                 this.container.style.display = 'none';
+            }
+            // Restore body scroll on mobile when chatbot is closed
+            if (window.innerWidth <= 480) {
+                document.body.classList.remove('chatbot-open');
+                if (this.scrollPosition !== undefined) {
+                    document.body.style.top = '';
+                    window.scrollTo(0, this.scrollPosition);
+                }
             }
         }
     }
@@ -547,7 +578,10 @@ class Chatbot {
     
     scrollToBottom() {
         if (this.messagesContainer) {
-            this.messagesContainer.scrollTop = this.messagesContainer.scrollHeight;
+            // Use requestAnimationFrame for smoother scrolling on mobile
+            requestAnimationFrame(() => {
+                this.messagesContainer.scrollTop = this.messagesContainer.scrollHeight;
+            });
         }
     }
     

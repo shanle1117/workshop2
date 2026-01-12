@@ -1,6 +1,7 @@
 import os
 import sys
 import json
+import re
 import uuid
 import hashlib
 import threading
@@ -30,6 +31,7 @@ if not logger.handlers:
 # Separate logger for chat operations (INFO level)
 chat_logger = logging.getLogger('faix_chatbot.chat')
 chat_logger.setLevel(logging.INFO)
+chat_logger.propagate = False  # Prevent duplicate logs from parent logger
 if not chat_logger.handlers:
     chat_handler = logging.StreamHandler()
     chat_handler.setLevel(logging.INFO)
@@ -321,7 +323,7 @@ def is_off_topic_query(text: str) -> bool:
         # Programs/courses
         'program', 'programme', 'course', 'kursus', 'degree', 'ijazah',
         'diploma', 'master', 'phd', 'bachelor', 'sarjana',
-        'bcsai', 'bcscs', 'mtdsa', 'mcsss', 'ai', 'artificial intelligence',
+        'bcsai', 'bcscs', 'baxi', 'baxz', 'mtdsa', 'mcsss', 'ai', 'artificial intelligence',
         'cybersecurity', 'cyber security', 'data science', 'computer',
         # Registration/admission
         'register', 'registration', 'pendaftaran', 'daftar', 'admission',
@@ -330,6 +332,10 @@ def is_off_topic_query(text: str) -> bool:
         # Staff/contact
         'staff', 'lecturer', 'pensyarah', 'professor', 'dean', 'dekan',
         'contact', 'hubungi', 'email', 'phone', 'office', 'pejabat',
+        # Top management / leadership (VC, NC, etc.)
+        'vc', 'nc', 'vice chancellor', 'naib canselor', 'chancellor', 'canselor',
+        'dvc', 'avc', 'coo', 'cdo', 'management', 'leadership', 'leader',
+        'treasurer', 'bendahari', 'librarian', 'pustakawan', 'registrar',
         # Schedule/academic
         'schedule', 'jadual', 'timetable', 'semester', 'academic',
         'calendar', 'deadline', 'date', 'tarikh', 'exam', 'peperiksaan',
@@ -396,6 +402,7 @@ def is_gibberish(text: str) -> bool:
     """
     Detect if the input text is gibberish/nonsensical.
     Returns True if the text appears to be random characters without meaning.
+    Handles multiple languages including Chinese, Arabic, and Malay.
     """
     import re
     
@@ -403,6 +410,24 @@ def is_gibberish(text: str) -> bool:
         return True
     
     text = text.strip().lower()
+    
+    # Check for Chinese characters - if present, text is likely valid Chinese (not gibberish)
+    # Chinese characters range: \u4e00-\u9fff
+    has_chinese = any('\u4e00' <= char <= '\u9fff' for char in text)
+    if has_chinese:
+        # For Chinese text, only check if it has meaningful content
+        # Remove punctuation and check if there's actual text
+        chinese_chars = [c for c in text if '\u4e00' <= c <= '\u9fff']
+        if len(chinese_chars) >= 2:  # At least 2 Chinese characters = likely valid
+            return False
+    
+    # Check for Arabic characters - if present, text is likely valid Arabic
+    # Arabic characters range: \u0600-\u06ff
+    has_arabic = any('\u0600' <= char <= '\u06ff' for char in text)
+    if has_arabic:
+        arabic_chars = [c for c in text if '\u0600' <= c <= '\u06ff']
+        if len(arabic_chars) >= 2:  # At least 2 Arabic characters = likely valid
+            return False
     
     # Check if text is only punctuation or special characters
     cleaned = re.sub(r'[^\w\s]', '', text)
@@ -415,10 +440,15 @@ def is_gibberish(text: str) -> bool:
     
     # Check for keyboard mashing patterns (consecutive consonants without vowels)
     # This detects things like "asdfjkl", "qwerty" nonsense, "asdfgh"
+    # Only apply to Latin characters
     vowels = set('aeiouàáâãäåèéêëìíîïòóôõöùúûü')
     words = cleaned.split()
     
     for word in words:
+        # Skip words with non-Latin characters
+        if any(ord(c) > 127 for c in word):
+            continue
+            
         if len(word) > 4:
             # Count consecutive consonants
             max_consonants = 0
@@ -436,6 +466,10 @@ def is_gibberish(text: str) -> bool:
     
     # Check for very long words with no apparent structure (likely random typing)
     for word in words:
+        # Skip words with non-Latin characters
+        if any(ord(c) > 127 for c in word):
+            continue
+            
         if len(word) > 15 and not any(kw in word for kw in ['university', 'registration', 'information', 'undergraduate', 'postgraduate']):
             # Check if it looks like a real word (has reasonable vowel distribution)
             vowel_count = sum(1 for c in word if c in vowels)
@@ -706,39 +740,56 @@ def update_conversation_memory(context: dict, entities: dict, intent: str) -> di
     return context
 
 
+# Cache version - increment this when making significant logic changes to invalidate old cached responses
+CACHE_VERSION = 4  # Incremented: fixed gibberish detection for Chinese/Arabic text
+
 def get_query_cache_key(user_message: str, agent_id: str, intent: str) -> str:
-    """Generate cache key for query"""
+    """Generate cache key for query (includes version to invalidate on code changes)"""
     query_hash = hashlib.md5(f"{user_message}_{agent_id}_{intent}".encode()).hexdigest()
-    return f"chat_response:{query_hash}"
+    return f"chat_response:v{CACHE_VERSION}:{query_hash}"
 
 
 def detect_yes_no_response(user_message: str) -> Optional[bool]:
     """
     Detect if user message is a yes/no response.
     Returns True for yes, False for no, None if not clear.
+    Uses word boundaries to avoid false positives (e.g., "know" containing "no").
     """
     message_lower = user_message.lower().strip()
     
-    # Yes patterns
-    yes_patterns = ['yes', 'yeah', 'yep', 'yup', 'sure', 'ok', 'okay', 'okey', 
-                    'correct', 'right', 'that\'s right', 'please', 'yes please',
-                    'i need', 'i want', 'i would like', 'give me', 'show me',
-                    'send me', 'provide', 'yes i need', 'yes i want', 'ya', 'yea']
+    # Helper to check for whole word match
+    def has_word(text: str, word: str) -> bool:
+        # Use word boundaries to match whole words only
+        return bool(re.search(r'\b' + re.escape(word) + r'\b', text))
     
-    # No patterns
-    no_patterns = ['no', 'nope', 'nah', 'not', "don't", "dont", 'no thanks', 
-                   'no thank you', 'skip', 'maybe later', 'later', 'not now',
-                   'i don\'t need', "i don't need", 'i dont need', 'no i dont',
-                   'no i don\'t', 'cancel', 'never mind', 'not needed']
+    # Yes patterns (phrases should use 'in' for substring, single words use word boundary)
+    yes_phrases = ['that\'s right', 'yes please', 'i need', 'i want', 'i would like', 
+                   'give me', 'show me', 'send me', 'yes i need', 'yes i want']
+    yes_words = ['yes', 'yeah', 'yep', 'yup', 'sure', 'ok', 'okay', 'okey', 
+                 'correct', 'right', 'please', 'provide', 'ya', 'yea']
     
-    # Check for yes
-    if any(pattern in message_lower for pattern in yes_patterns):
-        # Make sure it's not a double negative
-        if not any(no_pattern in message_lower for no_pattern in ['no', 'not', 'don\'t', 'dont']):
+    # No patterns (phrases should use 'in' for substring, single words use word boundary)
+    no_phrases = ["don't", "dont", 'no thanks', 'no thank you', 'maybe later', 
+                  'not now', 'i don\'t need', "i don't need", 'i dont need', 
+                  'no i dont', 'no i don\'t', 'never mind', 'not needed']
+    no_words = ['no', 'nope', 'nah', 'not', 'skip', 'later', 'cancel']
+    
+    # Check for yes (phrases first, then words)
+    has_yes_phrase = any(phrase in message_lower for phrase in yes_phrases)
+    has_yes_word = any(has_word(message_lower, word) for word in yes_words)
+    
+    if has_yes_phrase or has_yes_word:
+        # Make sure it's not a double negative - use word boundaries for 'no' and 'not'
+        has_no_word = has_word(message_lower, 'no') or has_word(message_lower, 'not')
+        has_dont = "don't" in message_lower or "dont" in message_lower
+        if not (has_no_word or has_dont):
             return True
     
-    # Check for no
-    if any(pattern in message_lower for pattern in no_patterns):
+    # Check for no (phrases first, then words)
+    has_no_phrase = any(phrase in message_lower for phrase in no_phrases)
+    has_no_single_word = any(has_word(message_lower, word) for word in no_words)
+    
+    if has_no_phrase or has_no_single_word:
         return False
     
     return None
@@ -811,7 +862,11 @@ def handle_handbook_request(user_message: str, context: dict, language_code: str
                 'zh': "没问题！如果您以后需要学术手册，告诉我即可。"
             }, language_code)
             return answer, None, context
-        # If unclear, continue conversation normally
+        # If unclear (yes_no is None), the user is asking an unrelated question
+        # Reset the flag and return None to allow normal processing to continue
+        print(f"[DEBUG] Handbook was asked but message is not yes/no response - resetting flag and skipping handbook logic")
+        context['handbook_asked'] = False  # Reset flag since user moved on
+        return None, None, context
     
     # If not asked yet, ask user if they need handbook
     context['handbook_asked'] = True
@@ -926,6 +981,12 @@ def chat_api(request):
         user_id = data.get('user_id')
         agent_id = data.get('agent_id')
         history = data.get('history') or []
+        
+        # Debug log: Check if query was received
+        print(f"[DEBUG] Query received: '{user_message}'")
+        print(f"[DEBUG] Query length: {len(user_message)} characters")
+        print(f"[DEBUG] Session ID: {session_id}, User ID: {user_id}, Agent ID: {agent_id}")
+        chat_logger.info(f"User query received: '{user_message}' (length: {len(user_message)}, session: {session_id})")
         
         if not user_message:
             return JsonResponse({
@@ -1228,12 +1289,28 @@ def chat_api(request):
                     logger.info("Schedule agent routing activated")
         
         # STEP 2: Process query with NLP (as secondary check/confirmation)
+        print(f"[DEBUG] Starting query processing for: '{user_message}'")
         processed_query = query_processor.process_query(user_message)
+        print(f"[DEBUG] Query processing completed. Result keys: {list(processed_query.keys())}")
+        
         intent = processed_query.get('detected_intent', 'about_faix')
         confidence = processed_query.get('confidence_score', 0.0)
         entities = processed_query.get('extracted_entities', {})
         language_info = processed_query.get('language', {'code': 'en', 'name': 'English'})
         detected_lang = language_info.get('code', 'en')
+        
+        print(f"[DEBUG] Intent detected: '{intent}', confidence: {confidence:.2f}, language: {detected_lang}")
+        
+        # CRITICAL: Get normalized query (with short forms expanded) for knowledge base lookups
+        # This ensures "vc" -> "vice chancellor" and "nc" -> "naib canselor" are expanded before matching
+        normalized_query = processed_query.get('normalized_query', user_message)
+        
+        # Log normalized query for debugging
+        print(f"[DEBUG] Normalized query: '{normalized_query}' (original: '{user_message}')")
+        if normalized_query != user_message:
+            logger.info(f"Query normalized: '{user_message}' -> '{normalized_query}'")
+        else:
+            logger.debug(f"Query unchanged (no normalization): '{user_message}'")
         
         # CRITICAL: Override intent if we've already routed to staff agent
         # This prevents NLP from classifying staff queries as "contact" or "about_faix"
@@ -1249,6 +1326,7 @@ def chat_api(request):
         context = update_conversation_memory(context, entities, intent)
         
         logger.info(f"Query processed: intent={intent}, confidence={confidence:.2f}, lang={language_code}, agent={agent_id or 'none'}")
+        print(f"[DEBUG] Final agent_id: {agent_id or 'none'}, intent: {intent}, confidence: {confidence:.2f}")
         
         # PERFORMANCE OPTIMIZATION: Check cache before expensive processing
         # Build cache key after we have intent (more accurate caching)
@@ -1388,7 +1466,7 @@ def chat_api(request):
             # Retrieve context for the agent (FAQ, schedule, staff, etc.)
             agent_context = retrieve_for_agent(
                 agent_id=agent_id,
-                user_text=user_message,
+                user_text=normalized_query,  # Use normalized query (with expanded short forms)
                 knowledge_base=knowledge_base,
                 intent=intent,
                 top_k=3,
@@ -1400,7 +1478,7 @@ def chat_api(request):
                 logger.debug(f"Staff agent loaded {len(staff_docs)} members")
                 
                 # Log staff matches for context (but let LLM generate the response)
-                matched_staff = match_staff_by_name(user_message, staff_docs)
+                matched_staff = match_staff_by_name(normalized_query, staff_docs)  # Use normalized query
                 if matched_staff:
                     logger.info(f"Staff name match detected: {len(matched_staff)} matches - prioritizing matched staff in context")
                     # PRIORITY FIX: Put matched staff FIRST in the staff context so LLM sees them prominently
@@ -1417,27 +1495,49 @@ def chat_api(request):
 
             # PRIORITY CHECK: For FAQ agent queries about dean, vision, mission, faculty info, etc., check knowledge base first
             # This ensures we get direct answers for simple factual queries like "who is dean", "vision", "mission"
+            print(f"[DEBUG] Checking factual query conditions: agent_id={agent_id}, intent={intent}, answer={answer}")
             if (agent_id == 'faq' or intent in ['about_faix', 'staff_contact']) and answer is None:
+                print(f"[DEBUG] Entering factual query check block")
                 # Check for factual queries (dean, vision, mission, established, etc.)
+                # Check both original and normalized query (normalized has expanded short forms)
                 user_message_lower_check = user_message.lower()
+                normalized_query_lower_check = normalized_query.lower()
                 factual_keywords = [
                     'who is dean', 'who is the dean', 'dean', 'head of faculty',
                     'vision', 'mission', 'what is the vision', 'what is the mission',
                     'faix vision', 'faix mission', 'when was faix', 'established',
                     'objective', 'objectives', 'what are the objectives', 'faix objectives',
-                    'top management', 'management', 'leadership', 'who are the leaders'
+                    'top management', 'management', 'leadership', 'who are the leaders',
+                    'vc', 'nc', 'who is vc', 'who is nc', 'vice chancellor', 'naib canselor',
+                    'chancellor', 'canselor'
                 ]
-                if any(kw in user_message_lower_check for kw in factual_keywords):
-                    kb_factual_answer = knowledge_base.get_answer(intent, user_message)
+                # Check both original and normalized query for factual keywords
+                matched_kw_original = [kw for kw in factual_keywords if kw in user_message_lower_check]
+                matched_kw_normalized = [kw for kw in factual_keywords if kw in normalized_query_lower_check]
+                print(f"[DEBUG] Factual keyword check - Original matched: {matched_kw_original}, Normalized matched: {matched_kw_normalized}")
+                
+                if any(kw in user_message_lower_check for kw in factual_keywords) or any(kw in normalized_query_lower_check for kw in factual_keywords):
+                    logger.info(f"Factual query detected. Original: '{user_message}', Normalized: '{normalized_query}'")
+                    print(f"[DEBUG] Factual query confirmed. Calling knowledge_base.get_answer(intent='{intent}', query='{normalized_query}')")
+                    kb_factual_answer = knowledge_base.get_answer(intent, normalized_query)
+                    print(f"[DEBUG] KB answer received: {kb_factual_answer[:200] if kb_factual_answer else 'None'}")
+                    logger.info(f"KB answer retrieved: {kb_factual_answer[:100] if kb_factual_answer else 'None'}...")
                     if kb_factual_answer and 'couldn\'t find' not in kb_factual_answer.lower():
                         logger.info(f"Using knowledge base answer for factual query: {user_message[:50]}")
+                        print(f"[DEBUG] Setting answer from KB: {kb_factual_answer[:100]}")
                         answer = kb_factual_answer
                         # Skip LLM call and use KB answer directly
+                    else:
+                        print(f"[DEBUG] KB answer invalid or not found - answer: {kb_factual_answer}")
+                else:
+                    print(f"[DEBUG] No factual keywords matched")
+            else:
+                print(f"[DEBUG] Skipping factual query check - conditions not met: agent_id={agent_id}, intent={intent}, answer={answer}")
             
             # PRIORITY CHECK: For schedule queries, check knowledge base first
             # This ensures we use the simple explanation + link approach instead of LLM-generated responses
             if (agent_id == 'schedule' or intent == 'academic_schedule') and answer is None:
-                kb_schedule_answer = knowledge_base.get_answer(intent, user_message)
+                kb_schedule_answer = knowledge_base.get_answer(intent, normalized_query)
                 if kb_schedule_answer and 'couldn\'t find' not in kb_schedule_answer.lower():
                     logger.info("Using knowledge base schedule answer (simple explanation + link)")
                     answer = kb_schedule_answer
@@ -1450,7 +1550,7 @@ def chat_api(request):
             # PRIORITY CHECK: For staff queries, check knowledge base first for direct staff member matches
             # This ensures we retrieve staff data directly from JSON when a specific staff member is queried
             if (agent_id == 'staff' or intent == 'staff_contact') and answer is None:
-                kb_staff_answer = knowledge_base.get_answer(intent, user_message)
+                kb_staff_answer = knowledge_base.get_answer(intent, normalized_query)
                 # Check if we got a specific staff member answer (not general contact info or "couldn't find")
                 if kb_staff_answer and 'couldn\'t find' not in kb_staff_answer.lower() and 'FAIX Contact Information' not in kb_staff_answer:
                     logger.info("Using knowledge base staff answer (direct staff member match)")
@@ -1462,7 +1562,7 @@ def chat_api(request):
             if answer is None:  # Only build messages if we don't have a KB answer
                 messages = build_messages(
                     agent=agent,
-                    user_message=user_message,
+                    user_message=normalized_query,  # Use normalized query (with expanded short forms)
                     history=history_messages,
                     context=agent_context,
                     intent=intent,
@@ -1481,123 +1581,137 @@ def chat_api(request):
                 else:
                     # AI-DRIVEN APPROACH: Always use LLM to generate natural, conversational responses
                     # The LLM uses RAG context to provide accurate information while maintaining natural flow
-                    llm_client = get_llm_client()
-                    logger.info(f"LLM call: agent={agent_id}, lang={language_code}, intent={intent}")
-                
-                # Adjust max_tokens based on query complexity
-                # Staff queries may need more detail, general queries can be concise
-                if agent_id == 'staff':
-                    max_tokens = 250  # Allow more detail for staff information
-                elif intent in ['program_info', 'admission']:
-                    max_tokens = 300  # Programs and admission need detailed explanations
-                else:
-                    max_tokens = 200  # Standard length for other queries
-                
-                # TIMEOUT HANDLING: Use shorter timeout for staff queries (they tend to be slower)
-                import signal
-                from contextlib import contextmanager
-                
-                @contextmanager
-                def timeout_handler(timeout_seconds):
-                    """Context manager for timeout handling"""
-                    def timeout_signal(signum, frame):
-                        raise TimeoutError(f"Operation timed out after {timeout_seconds} seconds")
-                    
-                    # Set up signal handler (Unix only)
-                    if hasattr(signal, 'SIGALRM'):
-                        old_handler = signal.signal(signal.SIGALRM, timeout_signal)
-                        signal.alarm(timeout_seconds)
-                        try:
-                            yield
-                        finally:
-                            signal.alarm(0)
-                            signal.signal(signal.SIGALRM, old_handler)
-                    else:
-                        # Windows doesn't support SIGALRM, rely on LLM client timeout
-                        yield
-                
-                # Set timeout based on agent type
-                llm_timeout = 15 if agent_id == 'staff' else 20  # Reduced for shorter conversations
-                
-                try:
-                    # AI-DRIVEN: Use moderate temperature for natural, conversational responses
-                    # Temperature 0.5-0.7 balances accuracy with natural language flow
-                    # Lower (0.2) was too robotic, higher (0.9) risks hallucinations
-                    temperature = 0.6 if agent_id == 'staff' else 0.5  # Slightly higher for staff (more conversational)
-                    llm_response = llm_client.chat(messages, max_tokens=max_tokens, temperature=temperature)
-                    answer = llm_response.content
-                    
-                    # RESPONSE VALIDATION: Check if response matches intent
-                    answer_lower = answer.lower()
-                    invalid_responses = [
-                        'no matching staff found',
-                        'no matching',
-                        'not found in database',
-                        'could not find',
-                        'unable to find'
-                    ]
-                    
-                    # If response indicates "not found" but intent doesn't match, try knowledge base fallback
-                    if any(invalid in answer_lower for invalid in invalid_responses):
-                        # Check if this is actually a staff query
-                        if intent != 'staff_contact' and agent_id == 'staff':
-                            logger.warning(f"Staff agent returned 'not found' for non-staff intent: {intent}")
-                            # Try knowledge base instead
-                            kb_answer = knowledge_base.get_answer(intent, user_message)
-                            if kb_answer and 'couldn\'t find' not in kb_answer.lower():
-                                answer = kb_answer
-                                logger.info("Using knowledge base fallback after invalid staff response")
-                        
-                        # For non-staff intents getting "not found", try knowledge base
-                        elif intent not in ['staff_contact'] and any(invalid in answer_lower for invalid in invalid_responses):
-                            logger.warning(f"Invalid response for intent {intent}: {answer[:100]}")
-                            kb_answer = knowledge_base.get_answer(intent, user_message)
-                            if kb_answer and 'couldn\'t find' not in kb_answer.lower():
-                                answer = kb_answer
-                                logger.info("Using knowledge base fallback after invalid response")
-                    
-                    # Validate response completeness
-                    if len(answer.strip()) < 10:
-                        logger.warning(f"Response too short: {answer}")
-                        kb_answer = knowledge_base.get_answer(intent, user_message)
-                        if kb_answer:
-                            answer = kb_answer
-                    
-                    # CHECK FOR INADEQUATE RESPONSES: When agent can't understand or answer
-                    if is_inadequate_response(answer):
-                        logger.info(f"Inadequate response detected: {answer[:100]}...")
-                        # Try knowledge base first
-                        kb_answer = knowledge_base.get_answer(intent, user_message)
-                        if kb_answer and not is_inadequate_response(kb_answer):
-                            answer = kb_answer
-                            logger.info("Using knowledge base fallback for inadequate response")
-                        else:
-                            # Use the "can't understand" fallback message
-                            answer = get_multilang_response(MULTILANG_CANT_UNDERSTAND, language_code)
-                            logger.info("Using 'can't understand' fallback response")
-                
-                except Exception as e:
-                    error_msg = str(e)
-                    logger.error(f"LLM call failed: {error_msg}")
-                    
-                    # TIMEOUT FALLBACK: If timeout or error, use knowledge base
-                    if 'timeout' in error_msg.lower() or 'timed out' in error_msg.lower():
-                        logger.info("LLM timeout - falling back to knowledge base")
-                        kb_answer = knowledge_base.get_answer(intent, user_message)
+                    try:
+                        llm_client = get_llm_client()
+                        if llm_client is None:
+                            raise LLMError("LLM client is None - LLM may be disabled or misconfigured")
+                        logger.info(f"LLM call: agent={agent_id}, lang={language_code}, intent={intent}")
+                    except Exception as e:
+                        logger.error(f"Failed to get LLM client: {e}")
+                        # Fallback to knowledge base
+                        kb_answer = knowledge_base.get_answer(intent, normalized_query)
                         if kb_answer:
                             answer = kb_answer
                         else:
                             answer = get_multilang_response(MULTILANG_FALLBACK_HELP, language_code)
+                        llm_client = None  # Prevent calling .chat() later
+                
+                # Only proceed with LLM call if client is available
+                if llm_client is not None:
+                    # Adjust max_tokens based on query complexity
+                    # Staff queries may need more detail, general queries can be concise
+                    if agent_id == 'staff':
+                        max_tokens = 250  # Allow more detail for staff information
+                    elif intent in ['program_info', 'admission']:
+                        max_tokens = 300  # Programs and admission need detailed explanations
                     else:
-                        # Other errors - try knowledge base first
-                        kb_answer = knowledge_base.get_answer(intent, user_message)
-                        if kb_answer:
-                            answer = kb_answer
+                        max_tokens = 200  # Standard length for other queries
+                    
+                    # TIMEOUT HANDLING: Use shorter timeout for staff queries (they tend to be slower)
+                    import signal
+                    from contextlib import contextmanager
+                    
+                    @contextmanager
+                    def timeout_handler(timeout_seconds):
+                        """Context manager for timeout handling"""
+                        def timeout_signal(signum, frame):
+                            raise TimeoutError(f"Operation timed out after {timeout_seconds} seconds")
+                        
+                        # Set up signal handler (Unix only)
+                        if hasattr(signal, 'SIGALRM'):
+                            old_handler = signal.signal(signal.SIGALRM, timeout_signal)
+                            signal.alarm(timeout_seconds)
+                            try:
+                                yield
+                            finally:
+                                signal.alarm(0)
+                                signal.signal(signal.SIGALRM, old_handler)
                         else:
-                            answer = get_multilang_response(
-                                MULTILANG_FALLBACK_ERROR if 'MULTILANG_FALLBACK_ERROR' in globals() else MULTILANG_FALLBACK_HELP,
-                                language_code
-                            )
+                            # Windows doesn't support SIGALRM, rely on LLM client timeout
+                            yield
+                    
+                    # Set timeout based on agent type
+                    llm_timeout = 15 if agent_id == 'staff' else 20  # Reduced for shorter conversations
+                    
+                    try:
+                        # AI-DRIVEN: Use moderate temperature for natural, conversational responses
+                        # Temperature 0.5-0.7 balances accuracy with natural language flow
+                        # Lower (0.2) was too robotic, higher (0.9) risks hallucinations
+                        temperature = 0.6 if agent_id == 'staff' else 0.5  # Slightly higher for staff (more conversational)
+                        llm_response = llm_client.chat(messages, max_tokens=max_tokens, temperature=temperature)
+                        answer = llm_response.content
+                        
+                        # RESPONSE VALIDATION: Check if response matches intent
+                        answer_lower = answer.lower()
+                        invalid_responses = [
+                            'no matching staff found',
+                            'no matching',
+                            'not found in database',
+                            'could not find',
+                            'unable to find'
+                        ]
+                        
+                        # If response indicates "not found" but intent doesn't match, try knowledge base fallback
+                        if any(invalid in answer_lower for invalid in invalid_responses):
+                            # Check if this is actually a staff query
+                            if intent != 'staff_contact' and agent_id == 'staff':
+                                logger.warning(f"Staff agent returned 'not found' for non-staff intent: {intent}")
+                                # Try knowledge base instead
+                                kb_answer = knowledge_base.get_answer(intent, normalized_query)
+                                if kb_answer and 'couldn\'t find' not in kb_answer.lower():
+                                    answer = kb_answer
+                                    logger.info("Using knowledge base fallback after invalid staff response")
+                            
+                            # For non-staff intents getting "not found", try knowledge base
+                            elif intent not in ['staff_contact'] and any(invalid in answer_lower for invalid in invalid_responses):
+                                logger.warning(f"Invalid response for intent {intent}: {answer[:100]}")
+                                kb_answer = knowledge_base.get_answer(intent, normalized_query)
+                                if kb_answer and 'couldn\'t find' not in kb_answer.lower():
+                                    answer = kb_answer
+                                    logger.info("Using knowledge base fallback after invalid response")
+                        
+                        # Validate response completeness
+                        if len(answer.strip()) < 10:
+                            logger.warning(f"Response too short: {answer}")
+                            kb_answer = knowledge_base.get_answer(intent, normalized_query)
+                            if kb_answer:
+                                answer = kb_answer
+                        
+                        # CHECK FOR INADEQUATE RESPONSES: When agent can't understand or answer
+                        if is_inadequate_response(answer):
+                            logger.info(f"Inadequate response detected: {answer[:100]}...")
+                            # Try knowledge base first
+                            kb_answer = knowledge_base.get_answer(intent, normalized_query)
+                            if kb_answer and not is_inadequate_response(kb_answer):
+                                answer = kb_answer
+                                logger.info("Using knowledge base fallback for inadequate response")
+                            else:
+                                # Use the "can't understand" fallback message
+                                answer = get_multilang_response(MULTILANG_CANT_UNDERSTAND, language_code)
+                                logger.info("Using 'can't understand' fallback response")
+                    
+                    except Exception as e:
+                        error_msg = str(e)
+                        logger.error(f"LLM call failed: {error_msg}")
+                        
+                        # TIMEOUT FALLBACK: If timeout or error, use knowledge base
+                        if 'timeout' in error_msg.lower() or 'timed out' in error_msg.lower():
+                            logger.info("LLM timeout - falling back to knowledge base")
+                            kb_answer = knowledge_base.get_answer(intent, normalized_query)
+                            if kb_answer:
+                                answer = kb_answer
+                            else:
+                                answer = get_multilang_response(MULTILANG_FALLBACK_HELP, language_code)
+                        else:
+                            # Other errors - try knowledge base first
+                            kb_answer = knowledge_base.get_answer(intent, normalized_query)
+                            if kb_answer:
+                                answer = kb_answer
+                            else:
+                                answer = get_multilang_response(
+                                    MULTILANG_FALLBACK_ERROR if 'MULTILANG_FALLBACK_ERROR' in globals() else MULTILANG_FALLBACK_HELP,
+                                    language_code
+                                )
                 
                 # Clean up unwanted disclaimers and meta-commentary from LLM responses
                 if answer:
@@ -1626,8 +1740,9 @@ def chat_api(request):
                     staff_docs = agent_context.get('staff', [])
                     if staff_docs:
                         logger.debug("LLM response too short, using staff fallback")
-                        # Filter staff by query keywords if possible
-                        query_words = set(user_message_lower.split())
+                        # Filter staff by query keywords if possible (use normalized query)
+                        normalized_query_lower = normalized_query.lower()
+                        query_words = set(normalized_query_lower.split())
                         relevant_staff = []
                         for staff in staff_docs:
                             staff_text = ' '.join([
@@ -1673,7 +1788,7 @@ def chat_api(request):
                         answer += "\nWould you like contact information (email, phone, office) for any of these staff members?"
                     else:
                         # Fallback to knowledge base for staff queries
-                        kb_answer = knowledge_base.get_answer(intent, user_message) if hasattr(knowledge_base, 'get_answer') else None
+                        kb_answer = knowledge_base.get_answer(intent, normalized_query) if hasattr(knowledge_base, 'get_answer') else None
                         if kb_answer:
                             answer = kb_answer
                         else:
@@ -1681,14 +1796,14 @@ def chat_api(request):
                 elif agent_id == 'faq':
                     # For FAQ queries, fallback to knowledge base
                     logger.debug("LLM failed, using knowledge base fallback")
-                    kb_answer = knowledge_base.get_answer(intent, user_message) if hasattr(knowledge_base, 'get_answer') else None
+                    kb_answer = knowledge_base.get_answer(intent, normalized_query) if hasattr(knowledge_base, 'get_answer') else None
                     if kb_answer:
                         answer = kb_answer
                     else:
                         answer = get_multilang_response(MULTILANG_FAQ_FALLBACK, language_code)
                 else:
                     # Generic fallback
-                    kb_answer = knowledge_base.get_answer(intent, user_message) if hasattr(knowledge_base, 'get_answer') else None
+                    kb_answer = knowledge_base.get_answer(intent, normalized_query) if hasattr(knowledge_base, 'get_answer') else None
                     if kb_answer:
                         answer = kb_answer
                     else:
@@ -1712,31 +1827,39 @@ def chat_api(request):
                     else:
                         # Try knowledge base fallback
                         try:
-                            kb_answer = knowledge_base.get_answer(intent, user_message)
+                            kb_answer = knowledge_base.get_answer(intent, normalized_query)
                             answer = kb_answer if kb_answer else get_multilang_response(MULTILANG_STAFF_FALLBACK, language_code)
                         except Exception:
                             answer = get_multilang_response(MULTILANG_STAFF_FALLBACK, language_code)
                 elif agent_id == 'faq':
                     # For FAQ queries, always try knowledge base
                     try:
-                        kb_answer = knowledge_base.get_answer(intent, user_message)
+                        kb_answer = knowledge_base.get_answer(intent, normalized_query)
                         answer = kb_answer if kb_answer else get_multilang_response(MULTILANG_FAQ_FALLBACK, language_code)
                     except Exception:
                         answer = get_multilang_response(MULTILANG_FAQ_FALLBACK, language_code)
                 else:
                     # Try knowledge base first, then generic message
                     try:
-                        kb_answer = knowledge_base.get_answer(intent, user_message)
+                        kb_answer = knowledge_base.get_answer(intent, normalized_query)
                         answer = kb_answer if kb_answer else get_multilang_response(MULTILANG_REPHRASE, language_code)
                     except Exception:
                         answer = get_multilang_response(MULTILANG_FALLBACK_HELP, language_code)
 
             # Check if we should ask about handbook or if user confirmed
-            if should_ask_for_handbook(intent, user_message, context) or context.get('handbook_asked', False):
+            # CRITICAL: Only process handbook logic if:
+            # 1. We should ask for handbook (new question), OR
+            # 2. We previously asked AND user is responding with yes/no (not an unrelated question)
+            handbook_was_asked = context.get('handbook_asked', False)
+            is_yes_no_response = detect_yes_no_response(user_message) is not None if handbook_was_asked else False
+            
+            if should_ask_for_handbook(intent, user_message, context) or (handbook_was_asked and is_yes_no_response):
+                print(f"[DEBUG] Handbook logic triggered: should_ask={should_ask_for_handbook(intent, user_message, context)}, was_asked={handbook_was_asked}, is_yes_no={is_yes_no_response}")
                 handbook_answer, handbook_pdf_url, context = handle_handbook_request(user_message, context, language_code)
                 if handbook_answer:
                     # If user is confirming/declining handbook request, use handbook response
-                    if context.get('handbook_asked') is False or detect_yes_no_response(user_message) is not None:
+                    if context.get('handbook_asked') is False or is_yes_no_response:
+                        print(f"[DEBUG] Overwriting answer with handbook response: {handbook_answer[:100]}")
                         answer = handbook_answer
                         pdf_url = handbook_pdf_url if handbook_pdf_url else pdf_url
                     # If we're asking, append to existing answer or replace
@@ -1776,7 +1899,7 @@ def chat_api(request):
                 answer = "https://bendahari.utem.edu.my/ms/jadual-yuran-pelajar.html"
             elif intent and intent not in ['greeting', 'farewell']:
                 try:
-                    answer = knowledge_base.get_answer(intent, user_message)
+                    answer = knowledge_base.get_answer(intent, normalized_query)
                 except Exception as e:
                     logger.warning(f"Knowledge base retrieval error: {e}")
                     answer = None
@@ -1790,11 +1913,19 @@ def chat_api(request):
                     answer = get_multilang_response(MULTILANG_NO_INFO, language_code)
                 
                 # Check if we should ask about handbook or if user confirmed
-                if should_ask_for_handbook(intent, user_message, context) or context.get('handbook_asked', False):
+                # CRITICAL: Only process handbook logic if:
+                # 1. We should ask for handbook (new question), OR
+                # 2. We previously asked AND user is responding with yes/no (not an unrelated question)
+                handbook_was_asked = context.get('handbook_asked', False)
+                is_yes_no_response = detect_yes_no_response(user_message) is not None if handbook_was_asked else False
+                
+                if should_ask_for_handbook(intent, user_message, context) or (handbook_was_asked and is_yes_no_response):
+                    print(f"[DEBUG] Handbook logic triggered (non-agent path): should_ask={should_ask_for_handbook(intent, user_message, context)}, was_asked={handbook_was_asked}, is_yes_no={is_yes_no_response}")
                     handbook_answer, handbook_pdf_url, context = handle_handbook_request(user_message, context, language_code)
                     if handbook_answer:
                         # If user is confirming/declining handbook request, use handbook response
-                        if context.get('handbook_asked') is False or detect_yes_no_response(user_message) is not None:
+                        if context.get('handbook_asked') is False or is_yes_no_response:
+                            print(f"[DEBUG] Overwriting answer with handbook response (non-agent): {handbook_answer[:100]}")
                             answer = handbook_answer
                             pdf_url = handbook_pdf_url if handbook_pdf_url else pdf_url
                         # If we're asking, append to existing answer
@@ -1843,29 +1974,40 @@ def chat_api(request):
                             'ms': "📚 Maaf, PDF Buku Panduan Akademik tidak tersedia dalam sistem ini. Sila hubungi pejabat FAIX di faix@utem.edu.my.",
                             'zh': "📚 抱歉，本系统不提供学术手册PDF。请联系FAIX办公室 faix@utem.edu.my。"
                         }, language_code)
-                elif should_ask_for_handbook(intent, user_message, context) or context.get('handbook_asked', False):
-                    # Ask user if they need handbook
-                    handbook_answer, handbook_pdf_url, context = handle_handbook_request(user_message, context, language_code)
-                    if handbook_answer:
-                        if context.get('handbook_asked') is False or detect_yes_no_response(user_message) is not None:
-                            answer = handbook_answer
-                            pdf_url = handbook_pdf_url if handbook_pdf_url else pdf_url
-                        else:
-                            # Get regular answer first, then append handbook question
-                            answer, context = process_conversation(user_message, context)
-                            if answer:
-                                answer = answer + "\n\n" + handbook_answer
-                            else:
-                                answer = handbook_answer
                 else:
-                    answer, context = process_conversation(user_message, context)
-                    # Validate answer from conversation manager
-                    if not answer or not isinstance(answer, str) or not answer.strip():
-                        answer = get_multilang_response(MULTILANG_CANT_UNDERSTAND, language_code)
-                    # Also check for inadequate responses
-                    elif is_inadequate_response(answer):
-                        logger.info(f"Inadequate conversation manager response detected")
-                        answer = get_multilang_response(MULTILANG_CANT_UNDERSTAND, language_code)
+                    # Check if we should ask about handbook or if user confirmed
+                    # CRITICAL: Only process handbook logic if:
+                    # 1. We should ask for handbook (new question), OR
+                    # 2. We previously asked AND user is responding with yes/no (not an unrelated question)
+                    handbook_was_asked = context.get('handbook_asked', False)
+                    is_yes_no_response = detect_yes_no_response(user_message) is not None if handbook_was_asked else False
+                    
+                    if should_ask_for_handbook(intent, user_message, context) or (handbook_was_asked and is_yes_no_response):
+                        print(f"[DEBUG] Handbook logic triggered (conversation manager path): should_ask={should_ask_for_handbook(intent, user_message, context)}, was_asked={handbook_was_asked}, is_yes_no={is_yes_no_response}")
+                        # Ask user if they need handbook
+                        handbook_answer, handbook_pdf_url, context = handle_handbook_request(user_message, context, language_code)
+                        if handbook_answer:
+                            if context.get('handbook_asked') is False or is_yes_no_response:
+                                print(f"[DEBUG] Overwriting answer with handbook response (conversation manager): {handbook_answer[:100]}")
+                                answer = handbook_answer
+                                pdf_url = handbook_pdf_url if handbook_pdf_url else pdf_url
+                            else:
+                                # Get regular answer first, then append handbook question
+                                answer, context = process_conversation(user_message, context)
+                                if answer:
+                                    answer = answer + "\n\n" + handbook_answer
+                                else:
+                                    answer = handbook_answer
+                    else:
+                        # No handbook logic needed, process normally
+                        answer, context = process_conversation(user_message, context)
+                        # Validate answer from conversation manager
+                        if not answer or not isinstance(answer, str) or not answer.strip():
+                            answer = get_multilang_response(MULTILANG_CANT_UNDERSTAND, language_code)
+                        # Also check for inadequate responses
+                        elif is_inadequate_response(answer):
+                            logger.info(f"Inadequate conversation manager response detected")
+                            answer = get_multilang_response(MULTILANG_CANT_UNDERSTAND, language_code)
         
         # REINFORCEMENT LEARNING: Check for negative feedback patterns
         # If this response is similar to a previously negatively-rated response, try to avoid it
@@ -1881,7 +2023,7 @@ def chat_api(request):
                 if negative_patterns and should_avoid_response(answer, negative_patterns):
                     logger.info(f"Response matches negative feedback pattern for intent '{intent}', trying alternative")
                     # Try knowledge base as alternative
-                    kb_answer = knowledge_base.get_answer(intent, user_message)
+                    kb_answer = knowledge_base.get_answer(intent, normalized_query)
                     if kb_answer and not is_inadequate_response(kb_answer):
                         # Check if KB answer is also similar to negative feedback
                         if not should_avoid_response(kb_answer, negative_patterns):
@@ -1895,12 +2037,18 @@ def chat_api(request):
                                 logger.info("Using conversation manager alternative due to negative feedback")
         
         # Final safety check: ensure answer is never None or empty before saving
+        print(f"[DEBUG] Final answer check - answer before validation: {answer[:200] if answer else 'None'}")
         if not answer or not isinstance(answer, str) or not answer.strip():
+            print(f"[DEBUG] Answer is None/empty, setting fallback response")
             answer = get_multilang_response(MULTILANG_CANT_UNDERSTAND, language_code)
         # Final check for inadequate responses
         elif is_inadequate_response(answer):
             logger.info("Final check caught inadequate response")
+            print(f"[DEBUG] Answer is inadequate, setting fallback response")
             answer = get_multilang_response(MULTILANG_CANT_UNDERSTAND, language_code)
+        
+        print(f"[DEBUG] Final answer to return: {answer[:200] if answer else 'None'}")
+        print(f"[DEBUG] Intent: {intent}, Confidence: {confidence:.2f}")
         
         # Update session context
         session.context = context

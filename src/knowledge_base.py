@@ -152,6 +152,65 @@ class KnowledgeBase:
         # Priority 1: Check for specific keywords in user text regardless of intent
         # This handles cases where intent detection is wrong
         
+        # Top management queries - check FIRST before other queries
+        # This handles "who is nc", "vice chancellor", "naib canselor", etc.
+        top_management = self.faix_data.get('top_management', [])
+        if top_management and isinstance(top_management, list):
+            # Check for queries that might be about top management
+            # Look for common abbreviations and position terms
+            top_mgmt_keywords = ['nc', 'vc', 'dvc', 'avc', 'coo', 'cdo', 'chancellor', 'canselor', 
+                                'vice chancellor', 'deputy vice chancellor', 'assistant vice chancellor',
+                                'treasurer', 'bendahari', 'librarian', 'pustakawan', 'ketua pegawai',
+                                'top management', 'pengurusan tertinggi']
+            
+            # Check if query contains top management keywords or "who is" + abbreviation
+            is_top_mgmt_query = any(kw in user_lower for kw in top_mgmt_keywords)
+            is_who_is_query = 'who is' in user_lower
+            
+            if is_top_mgmt_query or (is_who_is_query and len(user_lower.split()) <= 4):
+                # Search for matching person in top management
+                matched_person = None
+                user_words = user_lower.split()
+                for person in top_management:
+                    keywords = person.get('keywords', [])
+                    if keywords:
+                        for keyword in keywords:
+                            keyword_lower = keyword.lower().strip()
+                            # Check if keyword matches in user text (substring match)
+                            if keyword_lower in user_lower:
+                                # For short keywords like "nc", "vc", also check word boundaries
+                                if len(keyword_lower) <= 3:
+                                    # Check if keyword appears as a whole word
+                                    if keyword_lower in user_words:
+                                        matched_person = person
+                                        break
+                                else:
+                                    # For longer keywords, substring match is fine
+                                    matched_person = person
+                                    break
+                        if matched_person:
+                            break
+                    
+                    # Also check position
+                    position = person.get('position', '').lower()
+                    if position and position in user_lower:
+                        matched_person = person
+                        break
+                
+                if matched_person:
+                    name = matched_person.get('name', '')
+                    position = matched_person.get('position', '')
+                    email = matched_person.get('email', '')
+                    title = matched_person.get('title', '')
+                    
+                    answer = f"**{name}**\n\n"
+                    answer += f"- **Position:** {position}\n"
+                    if title:
+                        answer += f"- **Title:** {title}\n"
+                    if email:
+                        answer += f"- **Email:** {email}\n"
+                    return answer
+        
         # Staff member queries - check for specific staff names/keywords
         # Look for queries that might be asking about a staff member by name
         staff_keywords = ['dr.', 'doctor', 'professor', 'associate professor', 'lecturer', 'senior lecturer', 'ts. dr.', 'ts dr']
@@ -171,7 +230,7 @@ class KnowledgeBase:
                 return staff_answer
         
         # Dean queries (can come from staff_contact or about_faix intent)
-        if any(kw in user_lower for kw in ['who is dean', 'who is the dean', 'dean', 'head of faculty']):
+        if any(kw in user_lower for kw in ['who is dean', 'who is the dean', 'dean', 'head of faculty']) and 'chancellor' not in user_lower:
             faculty_info = self.faix_data.get('faculty_info', {})
             dean = faculty_info.get('dean', '')
             if dean:
@@ -218,9 +277,114 @@ class KnowledgeBase:
         vision_mission = self.faix_data.get('vision_mission', {})
         departments = self.faix_data.get('departments', [])
         highlights = self.faix_data.get('key_highlights', [])
+        user_text_lower = user_text.lower()
         
-        # Check for specific questions
-        if any(kw in user_text for kw in ['dean', 'head', 'leader']):
+        # Normalize abbreviations: vc -> vice chancellor, nc -> naib canselor
+        # This helps matching queries like "who is vc" or "who is nc"
+        abbreviation_expansions = {
+            'vc': 'vice chancellor',
+            'nc': 'naib canselor'
+        }
+        normalized_text = user_text_lower
+        for abbrev, expansion in abbreviation_expansions.items():
+            # Replace standalone abbreviations (word boundaries)
+            pattern = r'\b' + re.escape(abbrev) + r'\b'
+            normalized_text = re.sub(pattern, expansion, normalized_text, flags=re.IGNORECASE)
+        
+        # PRIORITY 1: Top management queries - check FIRST before other checks
+        # This handles queries like "vice chancellor", "naib canselor", etc.
+        top_management = self.faix_data.get('top_management', [])
+        if top_management and isinstance(top_management, list):
+            # Check for specific position/keyword queries first
+            matched_person = None
+            for person in top_management:
+                # Check position field (exact or partial match)
+                position = person.get('position', '').lower()
+                if position:
+                    # Check if position string is in user query
+                    if position in user_text_lower:
+                        matched_person = person
+                        break
+                    # Also check if any significant word from position matches
+                    position_words = [w for w in position.split() if len(w) > 2]
+                    if any(word in user_text_lower for word in position_words if word not in ['dan', 'the', 'of', 'and']):
+                        # Additional check: make sure it's a relevant match
+                        if any(word in user_text_lower for word in ['chancellor', 'canselor', 'timbalan', 'deputy', 'assistant', 'ketua', 'head', 'director', 'officer', 'treasurer', 'bendahari', 'librarian', 'pustakawan', 'legal', 'undang', 'digital', 'strategic']):
+                            matched_person = person
+                            break
+                
+                # Check keywords array - most reliable matching
+                keywords = person.get('keywords', [])
+                if keywords:
+                    user_words = set(user_text_lower.split())
+                    # Also check normalized text for expanded abbreviations
+                    normalized_words = set(normalized_text.split())
+                    combined_words = user_words | normalized_words
+                    
+                    for keyword in keywords:
+                        keyword_lower = keyword.lower().strip()
+                        # For short keywords (3 chars or less), check word boundaries
+                        if len(keyword_lower) <= 3:
+                            # Check if keyword appears as a whole word in original or normalized text
+                            if keyword_lower in combined_words:
+                                matched_person = person
+                                break
+                            # Also check if abbreviation was expanded and matches position
+                            if keyword_lower == 'vc' and 'vice chancellor' in normalized_text:
+                                matched_person = person
+                                break
+                            if keyword_lower == 'nc' and 'naib canselor' in normalized_text:
+                                matched_person = person
+                                break
+                        else:
+                            # For longer keywords, check both original and normalized text
+                            if keyword_lower in user_text_lower or keyword_lower in normalized_text:
+                                matched_person = person
+                                break
+                    if matched_person:
+                        break
+                
+                # Check name (partial match for queries like "who is massila")
+                name = person.get('name', '').lower()
+                # Extract significant words from name (excluding titles)
+                name_words = [w for w in name.split() if len(w) > 3 and w not in ['prof.', 'professor', 'dr.', 'doctor', 'associate', 'madya', 'datuk', 'ts.', 'encik', 'puan', 'mdm.']]
+                if any(word in user_text_lower for word in name_words):
+                    matched_person = person
+                    break
+            
+            # If specific person matched, return their details
+            if matched_person:
+                name = matched_person.get('name', '')
+                position = matched_person.get('position', '')
+                email = matched_person.get('email', '')
+                title = matched_person.get('title', '')
+                
+                answer = f"**{name}**\n\n"
+                answer += f"- **Position:** {position}\n"
+                if title:
+                    answer += f"- **Title:** {title}\n"
+                if email:
+                    answer += f"- **Email:** {email}\n"
+                return answer
+            
+            # General top management queries
+            if any(kw in user_text_lower for kw in ['top management', 'management', 'leadership', 'leaders', 'who are the leaders', 'pengurusan tertinggi']):
+                mgmt_list = []
+                for person in top_management:
+                    name = person.get('name', '')
+                    position = person.get('position', '')
+                    email = person.get('email', '')
+                    if name and position:
+                        mgmt_item = f"**{name}**\n- Position: {position}"
+                        if email:
+                            mgmt_item += f"\n- Email: {email}"
+                        mgmt_list.append(mgmt_item)
+                if mgmt_list:
+                    return f"**UTeM Top Management (Pengurusan Tertinggi Universiti):**\n\n" + "\n\n".join(mgmt_list)
+        
+        # Check for specific questions (dean, vision, mission, etc.)
+        if any(kw in user_text for kw in ['dean', 'head', 'leader']) and 'chancellor' not in user_text_lower:
+            # Only match dean if it's not a chancellor query
             dean = faculty_info.get('dean', '')
             if dean:
                 return f"The Dean of FAIX is **{dean}**."
@@ -250,23 +414,6 @@ class KnowledgeBase:
             if objectives:
                 obj_list = '\n'.join([f"- {obj}" for obj in objectives])
                 return f"**FAIX Objectives:**\n\n{obj_list}"
-        
-        # Top management queries
-        if any(kw in user_text for kw in ['top management', 'management', 'leadership', 'leaders', 'who are the leaders']):
-            top_management = self.faix_data.get('top_management', [])
-            if top_management and isinstance(top_management, list):
-                mgmt_list = []
-                for person in top_management:
-                    name = person.get('name', '')
-                    position = person.get('position', '')
-                    email = person.get('email', '')
-                    if name and position:
-                        mgmt_item = f"**{name}**\n- Position: {position}"
-                        if email:
-                            mgmt_item += f"\n- Email: {email}"
-                        mgmt_list.append(mgmt_item)
-                if mgmt_list:
-                    return f"**FAIX Top Management:**\n\n" + "\n\n".join(mgmt_list)
         
         if any(kw in user_text for kw in ['department']):
             if departments:

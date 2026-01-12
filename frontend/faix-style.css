@@ -1039,15 +1039,137 @@ body {
     }
 }
 
+/* ============================================
+   MOBILE MENU TOGGLE BUTTON
+   ============================================ */
+
+.mobile-menu-toggle {
+    display: none;
+    flex-direction: column;
+    justify-content: space-around;
+    width: 40px;
+    height: 40px;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    padding: 0;
+    z-index: 1001;
+    position: relative;
+}
+
+.mobile-menu-toggle span {
+    width: 100%;
+    height: 3px;
+    background: var(--faix-primary);
+    border-radius: 3px;
+    transition: all 0.3s ease;
+    transform-origin: center;
+}
+
+.mobile-menu-toggle.active span:nth-child(1) {
+    transform: rotate(45deg) translate(10px, 10px);
+}
+
+.mobile-menu-toggle.active span:nth-child(2) {
+    opacity: 0;
+}
+
+.mobile-menu-toggle.active span:nth-child(3) {
+    transform: rotate(-45deg) translate(7px, -7px);
+}
+
 @media (max-width: 992px) {
     .header-container {
-        flex-direction: column;
-        gap: 1rem;
+        position: relative;
+    }
+    
+    .mobile-menu-toggle {
+        display: flex;
+    }
+    
+    .main-nav {
+        position: fixed;
+        top: 0;
+        left: -100%;
+        width: 85%;
+        max-width: 400px;
+        height: 100vh;
+        background: white;
+        box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
+        transition: left 0.3s ease;
+        z-index: 999;
+        overflow-y: auto;
+        padding-top: 80px;
+    }
+    
+    .main-nav.active {
+        left: 0;
     }
     
     .nav-menu {
-        flex-wrap: wrap;
-        justify-content: center;
+        flex-direction: column;
+        width: 100%;
+        padding: 0;
+        gap: 0;
+    }
+    
+    .nav-menu > li {
+        width: 100%;
+        border-bottom: 1px solid #e2e8f0;
+    }
+    
+    .nav-menu > li > a {
+        padding: 1rem 1.5rem;
+        width: 100%;
+        font-size: 0.95rem;
+        border-bottom: none;
+    }
+    
+    .nav-menu > li > a:hover,
+    .nav-menu > li > a.active {
+        background: var(--faix-light-blue);
+        border-left: 4px solid var(--nav-active);
+        border-bottom-color: transparent;
+        padding-left: calc(1.5rem - 4px);
+    }
+    
+    .has-dropdown .dropdown-arrow {
+        float: right;
+        margin-left: auto;
+        transform: rotate(0deg);
+        transition: transform 0.3s ease;
+    }
+    
+    .has-dropdown.active .dropdown-arrow {
+        transform: rotate(180deg);
+    }
+    
+    .dropdown-menu {
+        position: static;
+        opacity: 1;
+        visibility: visible;
+        transform: none;
+        box-shadow: none;
+        border-radius: 0;
+        max-height: 0;
+        overflow: hidden;
+        transition: max-height 0.3s ease;
+        background: #f8f9fa;
+        min-width: 100%;
+    }
+    
+    .has-dropdown.active .dropdown-menu {
+        max-height: 1000px;
+    }
+    
+    .dropdown-menu li a {
+        padding-left: 2.5rem;
+        font-size: 0.9rem;
+    }
+    
+    .dropdown-header {
+        padding-left: 2.5rem;
+        font-size: 0.8rem;
     }
     
     .shield-container {
@@ -1075,12 +1197,54 @@ body {
     .social-icons {
         align-items: center;
     }
+    
+    /* Mobile menu overlay */
+    .mobile-nav-overlay {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.5);
+        z-index: 998;
+        opacity: 0;
+        transition: opacity 0.3s ease;
+    }
+    
+    .mobile-nav-overlay.active {
+        display: block;
+        opacity: 1;
+    }
 }
 
 @media (max-width: 768px) {
+    .header-container {
+        padding: 0.5rem 1rem;
+    }
+    
+    .utem-logo {
+        height: 45px;
+    }
+    
+    .faix-title {
+        font-size: 1.5rem;
+        letter-spacing: 1px;
+    }
+    
+    .faix-subtitle {
+        font-size: 0.75rem;
+    }
+    
     .hero-section {
+        margin-top: 75px;
         min-height: auto;
-        padding: 3rem 1rem;
+        padding: 0;
+    }
+    
+    .hero-banner-img {
+        min-height: 250px;
+        object-fit: cover;
     }
     
     .letter {
@@ -1106,36 +1270,112 @@ body {
         letter-spacing: 1px;
     }
     
-    .nav-menu > li > a {
-        padding: 0.75rem 0.5rem;
-        font-size: 0.8rem;
+    .tagline-section {
+        padding: 3rem 1.5rem;
     }
     
     .tagline {
-        font-size: 1.75rem;
+        font-size: 1.5rem;
+        margin-bottom: 1.5rem;
     }
     
     .cta-buttons {
         flex-direction: column;
-        align-items: center;
+        align-items: stretch;
+        gap: 1rem;
     }
     
     .cta-btn {
         width: 100%;
-        max-width: 300px;
+        max-width: none;
         text-align: center;
+        padding: 0.875rem 1.5rem;
+        font-size: 0.95rem;
+    }
+    
+    .section-title {
+        font-size: 1.75rem;
+        margin-bottom: 2rem;
+    }
+    
+    .about-section {
+        padding: 3rem 1.5rem;
+    }
+    
+    .about-text-block {
+        padding: 1.5rem;
+        font-size: 0.95rem;
+    }
+    
+    .about-text-block p {
+        margin-bottom: 1rem;
+        line-height: 1.7;
+    }
+    
+    .dean-card {
+        margin-top: 2rem;
+    }
+    
+    .programs-section {
+        padding: 3rem 1.5rem;
     }
     
     .programs-grid {
         grid-template-columns: 1fr;
+        gap: 1.5rem;
     }
     
     .program-card {
         padding: 1.5rem;
     }
     
-    .about-text-block {
+    .program-card h3 {
+        font-size: 1.25rem;
+    }
+    
+    .program-list li {
+        font-size: 0.9rem;
+        padding: 0.625rem 0;
+        padding-left: 1.25rem;
+    }
+    
+    .contact-section {
+        padding: 3rem 1.5rem;
+    }
+    
+    .contact-info h3,
+    .social-links h3 {
+        font-size: 1.1rem;
+    }
+    
+    .social-icons {
+        gap: 0.75rem;
+    }
+    
+    .social-btn {
+        padding: 0.625rem 1.25rem;
+        font-size: 0.9rem;
+    }
+    
+    .features-grid {
+        grid-template-columns: 1fr;
+        gap: 1.5rem;
+    }
+    
+    .feature-card {
         padding: 1.5rem;
+    }
+    
+    .main-footer {
+        padding: 1.5rem 1rem;
+    }
+    
+    .footer-brand {
+        font-size: 1rem;
+    }
+    
+    .footer-content p {
+        font-size: 0.85rem;
     }
 }
 
@@ -1708,22 +1948,319 @@ body {
 }
 
 /* Responsive Chatbot */
-@media (max-width: 480px) {
+@media (max-width: 768px) {
+    .chatbot-toggle {
+        width: 56px;
+        height: 56px;
+    }
+    
     .chatbot-container {
-        width: calc(100vw - 40px);
+        width: calc(100vw - 20px);
         height: calc(100vh - 100px);
-        bottom: 80px;
-        right: 20px;
-        left: 20px;
-        min-width: auto;
-        max-width: none;
-        min-height: auto;
-        max-height: none;
+        bottom: 75px;
+        right: 10px;
+        left: 10px;
+        min-width: 0 !important;
+        max-width: none !important;
+        min-height: 300px;
+        max-height: calc(100vh - 100px);
+        border-radius: 16px;
+        /* Safe area support for iOS */
+        padding-bottom: env(safe-area-inset-bottom, 0);
+        position: absolute;
     }
     
     .chatbot-widget {
-        bottom: 10px;
-        right: 10px;
+        bottom: 15px;
+        right: 15px;
+        /* Ensure chatbot stays above mobile menu */
+        z-index: 10000;
+    }
+    
+    .chatbot-header {
+        padding: 14px 16px;
+        /* Safe area support for iOS notch */
+        padding-top: calc(14px + env(safe-area-inset-top, 0));
+    }
+    
+    .chatbot-header-content h3 {
+        font-size: 1.1rem;
+    }
+    
+    .chatbot-minimize {
+        width: 36px;
+        height: 36px;
+        font-size: 18px;
+        /* Better touch target */
+        min-width: 44px;
+        min-height: 44px;
+    }
+    
+    .chatbot-messages {
+        padding: 14px 16px;
+    }
+    
+    .message {
+        max-width: 90%;
+    }
+    
+    .message-avatar {
+        width: 32px;
+        height: 32px;
+        font-size: 18px;
+        flex-shrink: 0;
+    }
+    
+    .message-content {
+        padding: 10px 14px;
+        font-size: 0.9rem;
+        word-wrap: break-word;
+        overflow-wrap: break-word;
+    }
+    
+    .chatbot-input-container {
+        padding: 12px;
+        gap: 8px;
+        /* Safe area support for iOS home indicator */
+        padding-bottom: calc(12px + env(safe-area-inset-bottom, 0));
+    }
+    
+    .chatbot-input {
+        padding: 12px 16px;
+        font-size: 0.95rem;
+        /* Better for mobile keyboards */
+        -webkit-appearance: none;
+        appearance: none;
+    }
+    
+    .chatbot-send,
+    .chatbot-mic {
+        width: 44px;
+        height: 44px;
+        min-width: 44px;
+        min-height: 44px;
+        /* Better touch targets */
+        flex-shrink: 0;
+    }
+    
+    /* Ensure feedback buttons work well on mobile */
+    .feedback-buttons {
+        padding: 12px;
+        gap: 10px;
+    }
+    
+    .feedback-buttons .feedback-btn {
+        padding: 10px 14px;
+        min-height: 44px;
+    }
+}
+
+@media (max-width: 480px) {
+    /* Full screen mode - override all desktop constraints */
+    .chatbot-container,
+    .chatbot-widget .chatbot-container {
+        position: fixed !important;
+        top: 0 !important;
+        left: 0 !important;
+        right: 0 !important;
+        bottom: 0 !important;
+        width: 100vw !important;
+        width: calc(100vw - env(safe-area-inset-left, 0) - env(safe-area-inset-right, 0)) !important;
+        height: 100vh !important;
+        height: calc(100vh - env(safe-area-inset-top, 0) - env(safe-area-inset-bottom, 0)) !important;
+        min-width: 0 !important;
+        max-width: none !important;
+        min-height: 0 !important;
+        max-height: none !important;
+        border-radius: 0 !important;
+        margin: 0 !important;
+        box-sizing: border-box !important;
+    }
+    
+    .chatbot-toggle {
+        width: 56px;
+        height: 56px;
+        /* Keep toggle visible and accessible above full-screen container */
+        z-index: 10001;
+    }
+    
+    .chatbot-widget {
+        bottom: 15px;
+        right: 15px;
+        /* Account for safe area on iOS */
+        bottom: calc(15px + env(safe-area-inset-bottom, 0));
+    }
+    
+    .message {
+        max-width: 85%;
+    }
+    
+    .message-content {
+        font-size: 0.875rem;
+        line-height: 1.5;
+    }
+    
+    .chatbot-input-container {
+        padding: 10px 12px;
+        padding-bottom: calc(10px + env(safe-area-inset-bottom, 0));
+    }
+    
+    .chatbot-input {
+        padding: 10px 14px;
+        font-size: 0.9rem;
+    }
+    
+    /* When chatbot is open on mobile, prevent body scroll */
+    body.chatbot-open {
+        overflow: hidden;
+        position: fixed;
+        width: 100%;
+    }
+}
+
+/* Very small screens (320px - 360px) */
+@media (max-width: 360px) {
+    .chatbot-toggle {
+        width: 52px;
+        height: 52px;
+    }
+    
+    .chatbot-header {
+        padding: 12px 14px;
+    }
+    
+    .chatbot-header-content h3 {
+        font-size: 1rem;
+    }
+    
+    .chatbot-status {
+        font-size: 0.8rem;
+    }
+    
+    .chatbot-messages {
+        padding: 12px 14px;
+    }
+    
+    .message-content {
+        padding: 8px 12px;
+        font-size: 0.85rem;
+    }
+    
+    .chatbot-input-container {
+        padding: 8px 10px;
+        padding-bottom: calc(8px + env(safe-area-inset-bottom, 0));
+    }
+    
+    .chatbot-input {
+        padding: 10px 12px;
+        font-size: 0.875rem;
+    }
+    
+    .chatbot-send,
+    .chatbot-mic {
+        width: 42px;
+        height: 42px;
+        min-width: 42px;
+        min-height: 42px;
+    }
+}
+
+/* ============================================
+   ADDITIONAL MOBILE ENHANCEMENTS
+   ============================================ */
+
+/* Touch-friendly targets */
+@media (max-width: 768px) {
+    /* Ensure minimum touch target size (44x44px recommended) */
+    button,
+    a.cta-btn,
+    .read-more-btn,
+    .program-link,
+    .social-btn {
+        min-height: 44px;
+        min-width: 44px;
+    }
+    
+    /* Better spacing for mobile */
+    section {
+        scroll-margin-top: 75px; /* Account for fixed header */
+    }
+    
+    /* Smooth scrolling */
+    html {
+        scroll-behavior: smooth;
+    }
+    
+    /* Prevent horizontal scroll */
+    body {
+        overflow-x: hidden;
+        position: relative;
+    }
+    
+    /* Improve text readability on mobile */
+    p, li {
+        font-size: 1rem;
+        line-height: 1.7;
+    }
+    
+    /* Better spacing for program cards */
+    .program-card {
+        margin-bottom: 1rem;
+    }
+    
+    /* Improved contact section spacing */
+    .contact-details {
+        margin-top: 1rem;
+        padding-top: 1rem;
+    }
+    
+    /* Better footer spacing */
+    .footer-links {
+        margin-top: 0.75rem;
+        padding-top: 0.75rem;
+    }
+    
+    .footer-links a {
+        display: inline-block;
+        margin: 0.25rem 0;
+    }
+}
+
+/* Very small screens (320px - 375px) */
+@media (max-width: 375px) {
+    .header-container {
+        padding: 0.5rem 0.75rem;
+    }
+    
+    .utem-logo {
+        height: 40px;
+    }
+    
+    .faix-title {
+        font-size: 1.25rem;
+    }
+    
+    .faix-subtitle {
+        font-size: 0.7rem;
+    }
+    
+    .tagline {
+        font-size: 1.25rem;
+    }
+    
+    .section-title {
+        font-size: 1.5rem;
+    }
+    
+    .about-section,
+    .programs-section,
+    .contact-section {
+        padding: 2rem 1rem;
+    }
+    
+    .about-text-block,
+    .program-card {
+        padding: 1.25rem;
     }
 }
 

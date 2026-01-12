@@ -1,6 +1,239 @@
 {
   "top_management": [
     {
+      "name": "Profesor Datuk Ts. Dr. Massila Binti Kamalrudin",
+      "position": "Naib Canselor",
+      "title": "Profesor Datuk Ts. Dr.",
+      "email": "",
+      "category": "university_leadership",
+      "keywords": [
+        "vice chancellor",
+        "naib canselor",
+        "naib cansellor",
+        "massila",
+        "vc",
+        "nc",
+        "vice chancellor",
+        "university leadership",
+        "top management",
+        "pengurusan tertinggi",
+        "university head",
+        "who is vice chancellor",
+        "who is naib canselor",
+        "who is nc",
+        "who is vc",
+        "university leader",
+        "professor datuk",
+        "chancellor"
+      ]
+    },
+    {
+      "name": "Profesor Dr. Mohd Rizal Bin Salleh",
+      "position": "Timbalan Naib Canselor Akademik Dan Antarabangsa",
+      "title": "Profesor Dr.",
+      "email": "",
+      "category": "university_leadership",
+      "keywords": [
+        "deputy vice chancellor",
+        "timbalan naib canselor",
+        "academic",
+        "international",
+        "rizal",
+        "mohd rizal",
+        "dvc academic",
+        "dvc international",
+        "academic affairs",
+        "international affairs",
+        "international relations",
+        "university leadership",
+        "top management",
+        "pengurusan tertinggi",
+        "who is deputy vice chancellor",
+        "deputy vc"
+      ]
+    },
+    {
+      "name": "Profesor Dr. Zahriladha Bin Zakaria",
+      "position": "Timbalan Naib Canselor Penyelidikan Dan Inovasi",
+      "title": "Profesor Dr.",
+      "email": "",
+      "category": "university_leadership",
+      "keywords": [
+        "deputy vice chancellor",
+        "timbalan naib canselor",
+        "research",
+        "innovation",
+        "zahriladha",
+        "dvc research",
+        "dvc innovation",
+        "research and innovation",
+        "r&d",
+        "research and development",
+        "university leadership",
+        "top management",
+        "pengurusan tertinggi",
+        "who is deputy vice chancellor",
+        "deputy vc"
+      ]
+    },
+    {
+      "name": "Profesor Madya Datuk Dr. Sabri Bin Mohamad Sharif",
+      "position": "Timbalan Naib Canselor Hal Ehwal Pelajar & Alumni",
+      "title": "Profesor Madya Datuk Dr.",
+      "email": "",
+      "category": "university_leadership",
+      "keywords": [
+        "deputy vice chancellor",
+        "timbalan naib canselor",
+        "student affairs",
+        "alumni",
+        "sabri",
+        "dvc student",
+        "dvc alumni",
+        "student affairs and alumni",
+        "hal ehwal pelajar",
+        "student services",
+        "student welfare",
+        "alumni affairs",
+        "university leadership",
+        "top management",
+        "pengurusan tertinggi",
+        "who is deputy vice chancellor",
+        "deputy vc"
+      ]
+    },
+    {
+      "name": "Profesor Madya Dr. Musthafah Bin Mohd Tahir",
+      "position": "Penolong Naib Canselor Strategik dan Kelestarian Global",
+      "title": "Profesor Madya Dr.",
+      "email": "",
+      "category": "university_leadership",
+      "keywords": [
+        "assistant vice chancellor",
+        "penolong naib canselor",
+        "strategic",
+        "global sustainability",
+        "musthafah",
+        "avc",
+        "strategic planning",
+        "sustainability",
+        "global",
+        "kelestarian",
+        "strategik",
+        "university leadership",
+        "top management",
+        "pengurusan tertinggi",
+        "who is assistant vice chancellor"
+      ]
+    },
+    {
+      "name": "Encik Masdzarif Bin Mahat",
+      "position": "Ketua Pegawai Operasi",
+      "title": "Encik",
+      "email": "",
+      "category": "university_leadership",
+      "keywords": [
+        "chief operating officer",
+        "ketua pegawai operasi",
+        "coo",
+        "masdzarif",
+        "operations",
+        "operational",
+        "university leadership",
+        "top management",
+        "pengurusan tertinggi",
+        "who is coo",
+        "operations officer"
+      ]
+    },
+    {
+      "name": "Puan Sabarina Binti Abdullah",
+      "position": "Bendahari",
+      "title": "Puan",
+      "email": "",
+      "category": "university_leadership",
+      "keywords": [
+        "treasurer",
+        "bendahari",
+        "sabarina",
+        "finance",
+        "financial",
+        "bursar",
+        "university leadership",
+        "top management",
+        "pengurusan tertinggi",
+        "who is treasurer",
+        "financial officer"
+      ]
+    },
+    {
+      "name": "Puan Siti Saluwa Binti Jamal",
+      "position": "Ketua Pustakawan",
+      "title": "Puan",
+      "email": "",
+      "category": "university_leadership",
+      "keywords": [
+        "chief librarian",
+        "ketua pustakawan",
+        "siti saluwa",
+        "librarian",
+        "library",
+        "library services",
+        "pustakawan",
+        "university leadership",
+        "top management",
+        "pengurusan tertinggi",
+        "who is librarian",
+        "head librarian"
+      ]
+    },
+    {
+      "name": "Encik Mohd Nizam Bin Pavel",
+      "position": "Penasihat Undang-Undang",
+      "title": "Encik",
+      "email": "",
+      "category": "university_leadership",
+      "keywords": [
+        "legal advisor",
+        "penasihat undang-undang",
+        "nizam",
+        "mohd nizam",
+        "legal",
+        "lawyer",
+        "legal counsel",
+        "legal affairs",
+        "undang-undang",
+        "university leadership",
+        "top management",
+        "pengurusan tertinggi",
+        "who is legal advisor"
+      ]
+    },
+    {
+      "name": "Profesor Dr. Mohd Khanapi Bin Abd Ghani",
+      "position": "Ketua Pegawai Digital",
+      "title": "Profesor Dr.",
+      "email": "",
+      "category": "university_leadership",
+      "keywords": [
+        "chief digital officer",
+        "ketua pegawai digital",
+        "cdo",
+        "khanapi",
+        "mohd khanapi",
+        "digital",
+        "ict",
+        "information technology",
+        "technology",
+        "digital transformation",
+        "university leadership",
+        "top management",
+        "pengurusan tertinggi",
+        "who is cdo",
+        "digital officer"
+      ]
+    },
+    {
       "name": "Associate Professor Ts. Dr. Muhammad Hafidz Fazli bin Md Fauadi",
       "position": "Dean",
       "title": "Associate Professor Ts. Dr.",
@@ -10,8 +243,16 @@
         "dean",
         "hafidz",
         "fazli",
-        "fauadi",
-        "muhammad"
+        "muhammad",
+        "professor",
+        "assoc prof",
+        "associate professor",
+        "leadership",
+        "faculty dean",
+        "who is the dean",
+        "who is dean",
+        "works as dean",
+        "work as dean"
       ]
     },
     {
@@ -24,8 +265,17 @@
         "deputy dean",
         "academic",
         "azirah",
-        "asmai",
-        "siti"
+        "siti",
+        "deputy dean academic",
+        "professor",
+        "assoc prof",
+        "associate professor",
+        "leadership",
+        "academics",
+        "academic affairs",
+        "who is deputy dean",
+        "deputy dean academic",
+        "works as deputy dean"
       ]
     },
     {
@@ -39,8 +289,18 @@
         "research",
         "postgraduate",
         "zuraida",
-        "abal",
-        "abas"
+        "deputy dean research",
+        "professor",
+        "assoc prof",
+        "associate professor",
+        "leadership",
+        "r&d",
+        "research and development",
+        "pg studies",
+        "graduate studies",
+        "who is deputy dean",
+        "deputy dean research",
+        "works as deputy dean"
       ]
     },
     {
@@ -55,8 +315,16 @@
         "alumni",
         "noorazlan",
         "shah",
-        "zainudin",
-        "muhammad"
+        "muhammad",
+        "deputy dean student",
+        "leadership",
+        "student affairs",
+        "student services",
+        "alumni affairs",
+        "student welfare",
+        "who is deputy dean",
+        "deputy dean student",
+        "works as deputy dean"
       ]
     },
     {
@@ -68,9 +336,14 @@
       "keywords": [
         "deputy registrar",
         "azriah",
-        "amir",
         "nur",
-        "registrar"
+        "registrar",
+        "administration",
+        "admin",
+        "registrar office",
+        "administrative",
+        "who is deputy registrar",
+        "works as registrar"
       ]
     },
     {
@@ -84,9 +357,23 @@
         "intelligent computing",
         "analytics",
         "syukor",
-        "mohamad",
         "abdul",
-        "ica"
+        "ica",
+        "hod",
+        "department head",
+        "intelligent computing and analytics",
+        "data analytics",
+        "machine learning",
+        "ai department",
+        "computing department",
+        "head department",
+        "heads department",
+        "who heads",
+        "who is head",
+        "work in head department",
+        "works in head department",
+        "heads the department",
+        "who work in head department"
       ]
     },
     {
@@ -100,8 +387,23 @@
         "cyber security",
         "cybersecurity",
         "warusia",
-        "yassin",
-        "cx"
+        "S.M. Warusia",
+        "cx",
+        "hod",
+        "department head",
+        "cyber security department",
+        "cybersecurity department",
+        "security department",
+        "mohamed",
+        "warusia mohamed",
+        "head department",
+        "heads department",
+        "who heads",
+        "who is head",
+        "work in head department",
+        "works in head department",
+        "heads the department",
+        "who work in head department"
       ]
     },
     {
@@ -114,8 +416,17 @@
         "laboratory",
         "coordinator",
         "zaki",
-        "masud",
-        "mohd"
+        "mohd",
+        "lab coordinator",
+        "lab",
+        "laboratory coordinator",
+        "labs",
+        "facilities",
+        "technical",
+        "who coordinates lab",
+        "lab coordinator",
+        "who is lab coordinator",
+        "coordinates laboratory"
       ]
     },
     {
@@ -127,8 +438,15 @@
       "keywords": [
         "senior assistant registrar",
         "hazrin",
-        "kasim",
-        "registrar"
+        "registrar",
+        "assistant registrar",
+        "administration",
+        "admin",
+        "registrar office",
+        "administrative",
+        "sar",
+        "who is assistant registrar",
+        "works as registrar"
       ]
     },
     {
@@ -143,8 +461,25 @@
         "taught course",
         "mixed mode",
         "halizah",
-        "basiron",
-        "postgraduate"
+        "postgraduate",
+        "hop",
+        "program head",
+        "master program",
+        "master degree",
+        "msc",
+        "masters program",
+        "taught",
+        "mixed",
+        "professor",
+        "assoc prof",
+        "associate professor",
+        "graduate program",
+        "head program",
+        "heads program",
+        "who heads program",
+        "who is head of program",
+        "work in head program",
+        "who work in head program"
       ]
     },
     {
@@ -159,9 +494,23 @@
         "artificial intelligence",
         "ai",
         "fazilla",
-        "yusof",
         "noor",
-        "baxi"
+        "baxi",
+        "coordinator",
+        "bachelor degree",
+        "undergraduate",
+        "ug",
+        "bcs ai",
+        "bachelor of computer science",
+        "computer science ai",
+        "cs ai",
+        "machine learning",
+        "programme coordinator",
+        "who coordinates",
+        "programme coordinator",
+        "who is coordinator",
+        "coordinates program",
+        "who coordinates program"
       ]
     },
     {
@@ -176,9 +525,24 @@
         "computer security",
         "cybersecurity",
         "fadzilah",
-        "othman",
         "nur",
-        "baxz"
+        "baxz",
+        "coordinator",
+        "bachelor degree",
+        "undergraduate",
+        "ug",
+        "bcs cs",
+        "bachelor of computer science",
+        "computer science security",
+        "cs security",
+        "cyber security",
+        "information security",
+        "infosec",
+        "programme coordinator",
+        "who coordinates",
+        "who is coordinator",
+        "coordinates program",
+        "who coordinates program"
       ]
     }
   ]

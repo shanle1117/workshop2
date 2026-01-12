@@ -1,10 +1,9 @@
 # Django
-django>=4.0
+django>=4.0,<5.0
 django-cors-headers>=4.0.0
 
 # Database
 firebase-admin>=6.0.0
-python-firebase>=1.2
 psycopg2-binary>=2.9.0  # For PostgreSQL (optional)
 
 # NLP
@@ -14,8 +13,9 @@ sentence-transformers>=2.2.0
 spacy>=3.5.0
 
 # Data Processing
-pandas
-scikit-learn
+numpy>=1.24.0
+pandas>=2.0.0
+scikit-learn>=1.3.0
 
 # Utilities
 python-dotenv>=1.0.0
