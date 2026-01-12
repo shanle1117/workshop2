@@ -803,6 +803,19 @@ class KnowledgeBase:
         staff_contacts = self.faix_data.get('staff_contacts', {})
         departments = staff_contacts.get('departments', {})
         
+        # Check for general staff/faculty queries that should return ALL staff or let LLM handle
+        general_staff_keywords = [
+            'who are working', 'who works', 'who work', 'working in faix', 'working at faix',
+            'staff in faix', 'staff at faix', 'faculty members', 'faculty in faix',
+            'people working', 'people in faix', 'who all', 'list of staff', 'list staff',
+            'all staff', 'all faculty', 'show me staff', 'show staff', 'staff members'
+        ]
+        
+        # If it's a general query, return None to let LLM handle it with full context
+        if any(kw in user_lower for kw in general_staff_keywords):
+            # For general queries, let LLM generate response with full staff list from context
+            return None
+        
         # Handle "academic staff" queries
         if any(kw in user_lower for kw in ['academic staff', 'academic', 'lecturers', 'professors']):
             academic_dept = departments.get('academic', {})
@@ -844,9 +857,31 @@ class KnowledgeBase:
                     return answer
         
         # First, try to find a specific staff member by name
-        staff_answer = self._get_staff_by_name(user_lower, user_text)
-        if staff_answer:
-            return staff_answer
+        # But only if the query looks like it's asking for a specific person
+        # Check if query contains name-like patterns or specific person indicators
+        specific_person_indicators = [
+            'who is', 'tell me about', 'contact for', 'email for', 'phone for',
+            'info for', 'information about', 'details about', 'contact info for'
+        ]
+        
+        # Only try name matching if query suggests looking for a specific person
+        # OR if query words are very short/specific (likely a name)
+        query_words = [w.strip() for w in user_lower.split() 
+                      if len(w.strip()) > 2 and w.strip() not in ['who', 'are', 'is', 'the', 'contact', 'info', 'information', 'about', 'for', 'in', 'at', 'faix']]
+        
+        is_likely_specific_query = (
+            any(indicator in user_lower for indicator in specific_person_indicators) or
+            (len(query_words) == 1 and len(query_words[0]) > 3) or  # Single word that's not too short
+            (len(query_words) == 2 and all(len(w) > 3 for w in query_words))  # Two words that look like names
+        )
+        
+        if is_likely_specific_query:
+            staff_answer = self._get_staff_by_name(user_lower, user_text)
+            if staff_answer:
+                return staff_answer
+        else:
+            # For general queries, return None to let LLM handle with full context
+            return None
         
         # No specific staff member found - return general contact information
         faculty_info = self.faix_data.get('faculty_info', {})

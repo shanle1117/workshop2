@@ -229,7 +229,7 @@ def validate_staff_response(llm_response: str, staff_docs: List[Dict]):
     # Look for patterns like "**Name**" or "* Name" or numbered lists with names
     response_lower = llm_response.lower()
     
-    # Pattern 1: **Name** or *Name* (markdown bold/italic)
+    # Pattern 1: **Name** or *Name* (markdown bold/italic) - including titles like Dr., Prof.
     bold_names = re.findall(r'\*\*([^*]+)\*\*', llm_response)
     italic_names = re.findall(r'\*([^*]+)\*', llm_response)
     
@@ -240,43 +240,88 @@ def validate_staff_response(llm_response: str, staff_docs: List[Dict]):
     # Pattern 3: After "Name:" or similar patterns
     colon_names = re.findall(r'(?:name|staff|faculty|member|professor|dr\.?|doctor)\s*:?\s*\*?\*?([A-Z][A-Za-z\s]+(?:bin|binti|binte)[A-Za-z\s]+|[A-Z][A-Za-z\s]+)', llm_response, re.IGNORECASE)
     
+    # Pattern 4: Names with titles: "Dr. Name", "Prof. Name", etc. (even outside markdown)
+    titled_names = re.findall(r'(?:Dr\.?|Professor|Prof\.?|Associate\s+Professor|Assoc\.?\s+Prof\.?)\s+([A-Z][A-Za-z\s]+(?:bin|binti|binte)[A-Za-z\s]+|[A-Z][A-Z][A-Za-z\s]+)', llm_response, re.IGNORECASE)
+    
     # Combine all found names
     found_names = set()
-    for name_list in [bold_names, italic_names, list_names, bullet_names, colon_names]:
+    for name_list in [bold_names, italic_names, list_names, bullet_names, colon_names, titled_names]:
         for name in name_list:
             name_clean = name.strip()
+            # Remove common titles from the name for validation
+            name_clean = re.sub(r'^(dr\.?|professor|prof\.?|associate\s+professor|assoc\.?\s+prof\.?)\s+', '', name_clean, flags=re.IGNORECASE).strip()
             if len(name_clean) > 5:  # Minimum length for meaningful names
                 found_names.add(name_clean.lower())
     
     # Check for hallucinated names (not in valid_names)
+    # STRICT VALIDATION: A name is only valid if it's a FULL match with a real staff name
     hallucinated = []
+    valid_full_names = set()  # Store full names separately for strict matching
+    valid_name_core_parts = {}  # Store core name parts (without titles) for each full name
+    
+    # Build set of full names (for exact matching)
+    for staff in staff_docs:
+        name = staff.get('name', '').strip()
+        if name:
+            name_lower = name.lower()
+            valid_full_names.add(name_lower)
+            
+            # Extract core name (remove all titles and honorifics)
+            # Remove titles like: Professor, Prof., Dr., Associate Professor, Ts., Gs., etc.
+            core_name = re.sub(r'^(professor|prof\.?|dr\.?|doctor|associate\s+professor|assoc\.?\s+prof\.?|ts\.?\s+dr\.?|gs\.?\s+dr\.?)\s+', '', name_lower, flags=re.IGNORECASE).strip()
+            core_name = re.sub(r'\s+(ts\.?|gs\.?)$', '', core_name, flags=re.IGNORECASE).strip()
+            
+            # Store core name parts (words that make up the actual person's name)
+            if core_name:
+                valid_full_names.add(core_name)
+                # Store the core parts for matching
+                core_parts = tuple(sorted(set(core_name.split())))  # Use tuple for hashing
+                if core_parts not in valid_name_core_parts:
+                    valid_name_core_parts[core_parts] = []
+                valid_name_core_parts[core_parts].append(name_lower)
+    
     for found_name in found_names:
-        # Check if any part of the found name matches a valid name
         found_parts = found_name.split()
         is_valid = False
         
-        # Check full match
-        if found_name in valid_names:
-            is_valid = True
-        else:
-            # Check partial match - if significant parts match
-            for valid_name in valid_names:
-                if len(valid_name) > 5:  # Only check full names, not parts
-                    if found_name in valid_name or valid_name in found_name:
-                        is_valid = True
-                        break
-                    # Check if significant words match
-                    valid_parts = valid_name.split()
-                    common_words = set(found_parts) & set(valid_parts)
-                    if len(common_words) >= 2:  # At least 2 words match
-                        is_valid = True
-                        break
+        # Remove titles from found name for matching
+        found_name_no_title = re.sub(r'^(professor|prof\.?|dr\.?|doctor|associate\s+professor|assoc\.?\s+prof\.?|ts\.?\s+dr\.?|gs\.?\s+dr\.?|asst\.?\s+prof\.?)\s+', '', found_name, flags=re.IGNORECASE).strip().lower()
+        found_name_no_title = re.sub(r'\s+(ts\.?|gs\.?)$', '', found_name_no_title, flags=re.IGNORECASE).strip()
+        found_parts_clean = [p for p in found_name_no_title.split() if len(p) > 2]  # Only meaningful parts
         
+        # STRICT CHECK 1: Full exact match (with or without titles)
+        if found_name.lower() in valid_full_names or found_name_no_title in valid_full_names:
+            is_valid = True
+        
+        # STRICT CHECK 2: Match core name parts - must match a significant portion
+        if not is_valid and len(found_parts_clean) >= 2:
+            found_core_parts_set = set(found_parts_clean)
+            
+            # Check against each valid name's core parts
+            best_match_ratio = 0.0
+            for valid_core_parts, valid_names_list in valid_name_core_parts.items():
+                valid_core_parts_set = set(valid_core_parts)
+                matching_parts = found_core_parts_set & valid_core_parts_set
+                
+                if len(matching_parts) >= 2:
+                    # Calculate match ratio (how much of the found name matches)
+                    match_ratio = len(matching_parts) / len(found_core_parts_set)
+                    # Also check how much of the valid name is covered
+                    coverage_ratio = len(matching_parts) / len(valid_core_parts_set)
+                    
+                    # Require high match ratio (at least 85%) AND good coverage (at least 60%)
+                    if match_ratio >= 0.85 and coverage_ratio >= 0.60:
+                        is_valid = True
+                        break
+                    best_match_ratio = max(best_match_ratio, match_ratio)
+        
+        # If still not valid, mark as hallucinated
         if not is_valid:
             # Additional check: ignore common words that might look like names
-            ignore_words = {'faculty', 'members', 'at', 'faix', 'staff', 'here', 'some', 'the', 'contact'}
-            meaningful_parts = [p for p in found_parts if p not in ignore_words and len(p) > 3]
+            ignore_words = {'faculty', 'members', 'at', 'faix', 'staff', 'here', 'some', 'the', 'contact', 'department'}
+            meaningful_parts = [p for p in found_parts_clean if p not in ignore_words]
             if meaningful_parts:
+                # Any name that doesn't match is hallucination
                 hallucinated.append(found_name)
     
     is_valid = len(hallucinated) == 0
@@ -1340,7 +1385,9 @@ def chat_api(request):
                 'who can i contact', 'who can i', 'who should i email', 'who should i contact',
                 'reach', 'get in touch', 'call', 'number', 'office', 'address',
                 'administration', 'admin', 'registrar', 'secretary', 'academic staff',
-                'who works', 'work in', 'works in', 'working in', 'coordinator'
+                'who works', 'work in', 'works in', 'working in', 'coordinator',
+                # Additional keywords for general staff queries
+                'working at', 'who is working', 'list of staff', 'our team'
             ]
             matched_keywords = [kw for kw in staff_keywords if kw in user_message_lower]
             
@@ -1524,10 +1571,14 @@ def chat_api(request):
                 ]
                 if any(kw in user_message_lower for kw in faix_keywords):
                     # Check if FAIX data is available
+                    # BUT: Don't override staff_contact intent to FAQ - staff queries should go to staff agent
                     from backend.chatbot.agents import check_faix_data_available
-                    if check_faix_data_available():
+                    if check_faix_data_available() and intent != 'staff_contact':
                         agent_id = 'faq'
-                        logger.info("FAQ agent routing: FAIX keywords detected")
+                        logger.info("FAQ agent routing: FAIX keywords detected (non-staff query)")
+                    elif intent == 'staff_contact':
+                        # Staff contact queries with FAIX keywords should still go to staff agent
+                        logger.info("Staff contact query detected - keeping staff agent despite FAIX keywords")
         
         # Final check: if still no agent_id and we have staff keywords, force staff agent
         # But only if it's actually a contact query (not a general info query)
@@ -1571,26 +1622,53 @@ def chat_api(request):
                 top_k=3,
             )
             
+            # CRITICAL: If intent is staff_contact but agent_id is not 'staff', we need to load staff data manually
+            if (intent == 'staff_contact' and agent_id != 'staff') and 'staff' not in agent_context:
+                logger.info(f"Intent is staff_contact but agent_id is {agent_id} - manually loading staff data")
+                staff_docs = _get_staff_documents()
+                if staff_docs:
+                    agent_context['staff'] = staff_docs
+                    logger.info(f"Loaded {len(staff_docs)} staff members for staff_contact intent")
+            
             # Log staff context if available
-            if agent_id == 'staff':
+            if agent_id == 'staff' or intent == 'staff_contact':
                 staff_docs = agent_context.get('staff', [])
                 logger.debug(f"Staff agent loaded {len(staff_docs)} members")
                 
-                # Log staff matches for context (but let LLM generate the response)
-                matched_staff = match_staff_by_name(normalized_query, staff_docs)  # Use normalized query
-                if matched_staff:
-                    logger.info(f"Staff name match detected: {len(matched_staff)} matches - prioritizing matched staff in context")
-                    # PRIORITY FIX: Put matched staff FIRST in the staff context so LLM sees them prominently
-                    # This ensures the LLM finds the matched staff even if there are many staff members
-                    matched_staff_list = matched_staff[:5]  # Limit to top 5
-                    # Remove matched staff from full list to avoid duplicates
-                    matched_names = {s.get('name', '').lower() for s in matched_staff_list}
-                    remaining_staff = [s for s in staff_docs if s.get('name', '').lower() not in matched_names]
-                    # Put matched staff first, then remaining staff
-                    agent_context['staff'] = matched_staff_list + remaining_staff[:10]  # Limit total to 15 for context
-                    # CRITICAL: Pass matched_staff separately so prompt builder can highlight them prominently
-                    agent_context['matched_staff'] = matched_staff_list
-                    logger.debug(f"Prioritized {len(matched_staff_list)} matched staff, added {len(remaining_staff[:10])} others")
+                # Determine if this is a general query (needs all staff) or specific query (can limit)
+                normalized_query_lower = normalized_query.lower()
+                is_general_query = any(kw in normalized_query_lower for kw in [
+                    'who are working', 'who works', 'who work', 'working in faix', 'staff in faix',
+                    'faculty members', 'all staff', 'list of staff', 'show staff', 'who are',
+                    'staff members', 'people working', 'people in faix',
+                    # Additional patterns for general queries
+                    'who is working', 'working at faix', 'working at', 'our team'
+                ])
+                
+                if is_general_query:
+                    # For general queries: Pass ALL staff data to LLM so it can answer based on complete data
+                    logger.info(f"General staff query detected - passing ALL {len(staff_docs)} staff members to LLM")
+                    # Keep all staff, but don't set matched_staff (so it shows all staff in context)
+                    agent_context['staff'] = staff_docs
+                    agent_context['matched_staff'] = []  # No specific matches for general queries
+                else:
+                    # For specific queries: Only pass matched staff + a few others to reduce token usage
+                    matched_staff = match_staff_by_name(normalized_query, staff_docs)  # Use normalized query
+                    if matched_staff:
+                        logger.info(f"Specific staff query detected - {len(matched_staff)} matches found")
+                        matched_staff_list = matched_staff[:5]  # Limit to top 5
+                        # Remove matched staff from full list to avoid duplicates
+                        matched_names = {s.get('name', '').lower() for s in matched_staff_list}
+                        remaining_staff = [s for s in staff_docs if s.get('name', '').lower() not in matched_names]
+                        # Put matched staff first, then remaining staff (limit total to 15 for specific queries)
+                        agent_context['staff'] = matched_staff_list + remaining_staff[:10]
+                        agent_context['matched_staff'] = matched_staff_list
+                        logger.debug(f"Prioritized {len(matched_staff_list)} matched staff, added {len(remaining_staff[:10])} others")
+                    else:
+                        # No specific match, but still a staff query - pass all staff
+                        logger.info(f"No specific staff match - passing ALL {len(staff_docs)} staff members to LLM")
+                        agent_context['staff'] = staff_docs
+                        agent_context['matched_staff'] = []
 
             # PRIORITY CHECK: For FAQ agent queries about dean, vision, mission, faculty info, etc., check knowledge base first
             # This ensures we get direct answers for simple factual queries like "who is dean", "vision", "mission"
@@ -1649,16 +1727,131 @@ def chat_api(request):
             # PRIORITY CHECK: For staff queries, check knowledge base first for direct staff member matches
             # This ensures we retrieve staff data directly from JSON when a specific staff member is queried
             if (agent_id == 'staff' or intent == 'staff_contact') and answer is None:
-                kb_staff_answer = knowledge_base.get_answer(intent, normalized_query)
-                # Check if we got a specific staff member answer (not general contact info or "couldn't find")
-                if kb_staff_answer and 'couldn\'t find' not in kb_staff_answer.lower() and 'FAIX Contact Information' not in kb_staff_answer:
-                    logger.info("Using knowledge base staff answer (direct staff member match)")
-                    answer = kb_staff_answer
-                    # Skip LLM call and use KB answer directly
-                # If it's general contact info or not found, let LLM handle it with context
+                # FIRST: Check if this is a general query - if so, generate answer from real data immediately
+                normalized_query_lower = normalized_query.lower()
+                is_general_query = any(kw in normalized_query_lower for kw in [
+                    'who are working', 'who works', 'who work', 'working in faix', 'staff in faix',
+                    'faculty members', 'all staff', 'list of staff', 'show staff', 'who are',
+                    'staff members', 'people working', 'people in faix',
+                    # Additional patterns for general queries
+                    'who is working', 'working at faix', 'working at', 'our team'
+                ])
+                
+                if is_general_query:
+                    # For general queries: Generate answer from real staff data immediately, skip KB and LLM
+                    staff_docs = agent_context.get('staff', [])
+                    
+                    # CRITICAL: If staff_docs is empty, load it directly - this is a fallback safety mechanism
+                    if not staff_docs:
+                        logger.warning(f"[GENERAL QUERY] agent_context has no staff data - loading directly from _get_staff_documents()")
+                        try:
+                            staff_docs = _get_staff_documents()
+                            logger.info(f"[GENERAL QUERY] _get_staff_documents() returned {len(staff_docs) if staff_docs else 0} staff members")
+                            if staff_docs:
+                                agent_context['staff'] = staff_docs
+                                logger.info(f"[GENERAL QUERY] Successfully loaded {len(staff_docs)} staff members directly")
+                            else:
+                                logger.error("[GENERAL QUERY] _get_staff_documents() returned empty list - staff data may not be available")
+                        except Exception as e:
+                            logger.error(f"[GENERAL QUERY] Failed to load staff documents: {e}")
+                            staff_docs = []
+                    
+                    if staff_docs:
+                        logger.info(f"[GENERAL QUERY] Detected in KB check - generating from {len(staff_docs)} real staff, skipping KB and LLM")
+                        answer_parts = ["Here are some staff members at FAIX:\n\n"]
+                        
+                        # Show up to 15 staff members
+                        for i, staff in enumerate(staff_docs[:15], 1):
+                            name = staff.get('name', '')
+                            position = staff.get('role', staff.get('position', ''))
+                            department = staff.get('department', '')
+                            if name:
+                                answer_parts.append(f"{i}. **{name}**")
+                                if position:
+                                    answer_parts.append(f"   - Position: {position}")
+                                if department:
+                                    answer_parts.append(f"   - Department: {department}")
+                                answer_parts.append("")
+                        
+                        if len(staff_docs) > 15:
+                            answer_parts.append(f"... and {len(staff_docs) - 15} more staff members.")
+                        
+                        answer_parts.append("\nWould you like contact information for any specific staff member?")
+                        answer = '\n'.join(answer_parts)
+                        logger.info(f"[GENERAL QUERY] Generated answer with {min(15, len(staff_docs))} real staff - KB and LLM SKIPPED")
+                    else:
+                        logger.warning("[GENERAL QUERY] No staff data available in agent_context")
+                else:
+                    # For specific queries: Check KB for direct matches
+                    kb_staff_answer = knowledge_base.get_answer(intent, normalized_query)
+                    if (kb_staff_answer and 
+                        'couldn\'t find' not in kb_staff_answer.lower() and 
+                        'FAIX Contact Information' not in kb_staff_answer):
+                        # Specific query - use KB answer
+                        logger.info("Using knowledge base staff answer (direct staff member match)")
+                        answer = kb_staff_answer
+            
+            # CRITICAL: Check for general staff queries BEFORE building messages or calling LLM
+            # This must happen BEFORE LLM to completely skip LLM for general queries
+            # Check both agent_id == 'staff' OR intent == 'staff_contact' to catch all staff queries
+            if (agent_id == 'staff' or intent == 'staff_contact') and answer is None:
+                staff_docs = agent_context.get('staff', [])
+                logger.info(f"[DEBUG] agent_id={agent_id}, answer is None={answer is None}, staff_docs count={len(staff_docs) if staff_docs else 0}")
+                
+                # CRITICAL FALLBACK: If staff_docs is empty, load it directly - this is a safety mechanism
+                if not staff_docs:
+                    logger.warning(f"[GENERAL QUERY FALLBACK] agent_context has no staff data - loading directly from _get_staff_documents()")
+                    try:
+                        staff_docs = _get_staff_documents()
+                        logger.info(f"[GENERAL QUERY FALLBACK] _get_staff_documents() returned {len(staff_docs) if staff_docs else 0} staff members")
+                        if staff_docs:
+                            agent_context['staff'] = staff_docs
+                            logger.info(f"[GENERAL QUERY FALLBACK] Successfully loaded {len(staff_docs)} staff members directly")
+                        else:
+                            logger.error("[GENERAL QUERY FALLBACK] _get_staff_documents() returned empty list - staff data may not be available")
+                    except Exception as e:
+                        logger.error(f"[GENERAL QUERY FALLBACK] Failed to load staff documents: {e}")
+                        staff_docs = []
+                
+                if staff_docs:
+                    normalized_query_lower = normalized_query.lower()
+                    logger.info(f"[DEBUG] Checking query: '{normalized_query_lower}' for general query keywords")
+                    is_general_query = any(kw in normalized_query_lower for kw in [
+                        'who are working', 'who works', 'who work', 'working in faix', 'staff in faix',
+                        'faculty members', 'all staff', 'list of staff', 'show staff', 'who are',
+                        'staff members', 'people working', 'people in faix',
+                        # Additional patterns for general queries
+                        'who is working', 'working at faix', 'working at', 'our team'
+                    ])
+                    logger.info(f"[DEBUG] is_general_query={is_general_query}")
+                    
+                    if is_general_query:
+                        # Skip LLM call entirely for general queries - use real data directly
+                        logger.info(f"[GENERAL QUERY DETECTED] Skipping LLM entirely, using {len(staff_docs)} real staff members")
+                        answer_parts = ["Here are some staff members at FAIX:\n\n"]
+                        
+                        # Show up to 15 staff members
+                        for i, staff in enumerate(staff_docs[:15], 1):
+                            name = staff.get('name', '')
+                            position = staff.get('role', staff.get('position', ''))
+                            department = staff.get('department', '')
+                            if name:
+                                answer_parts.append(f"{i}. **{name}**")
+                                if position:
+                                    answer_parts.append(f"   - Position: {position}")
+                                if department:
+                                    answer_parts.append(f"   - Department: {department}")
+                                answer_parts.append("")
+                        
+                        if len(staff_docs) > 15:
+                            answer_parts.append(f"... and {len(staff_docs) - 15} more staff members.")
+                        
+                        answer_parts.append("\nWould you like contact information for any specific staff member?")
+                        answer = '\n'.join(answer_parts)
+                        logger.info(f"[GENERAL QUERY] Generated staff list with {min(15, len(staff_docs))} real staff members - LLM SKIPPED")
             
             # Build LLM messages and call Llama via Ollama
-            if answer is None:  # Only build messages if we don't have a KB answer
+            if answer is None:  # Only build messages if we don't have a KB answer or general query answer
                 messages = build_messages(
                     agent=agent,
                     user_message=normalized_query,  # Use normalized query (with expanded short forms)
@@ -1733,21 +1926,76 @@ def chat_api(request):
                     llm_timeout = 15 if agent_id == 'staff' else 20  # Reduced for shorter conversations
                     
                     try:
-                        # AI-DRIVEN: Use moderate temperature for natural, conversational responses
-                        # Temperature 0.5-0.7 balances accuracy with natural language flow
-                        # Lower (0.2) was too robotic, higher (0.9) risks hallucinations
-                        temperature = 0.6 if agent_id == 'staff' else 0.5  # Slightly higher for staff (more conversational)
-                        llm_response = llm_client.chat(messages, max_tokens=max_tokens, temperature=temperature)
-                        answer = llm_response.content
+                        # Only call LLM if we don't already have an answer (from general query handling above)
+                        if answer is None:
+                            # AI-DRIVEN: Use moderate temperature for natural, conversational responses
+                            # Temperature 0.5-0.7 balances accuracy with natural language flow
+                            # Lower (0.2) was too robotic, higher (0.9) risks hallucinations
+                            # For staff queries, use lower temperature to reduce hallucinations while maintaining readability
+                            temperature = 0 if agent_id == 'staff' else 0.5  # Lower for staff to reduce hallucinations
+                            logger.info(f"Calling LLM for agent={agent_id}, temperature={temperature}")
+                            llm_response = llm_client.chat(messages, max_tokens=max_tokens, temperature=temperature)
+                            answer = llm_response.content
+                        else:
+                            logger.info(f"Skipping LLM call - answer already generated from data")
                         
                         # STAFF HALLUCINATION VALIDATION: Check if LLM invented staff names
+                        # CRITICAL: For general queries, ALWAYS use real data instead of LLM-generated response
                         if agent_id == 'staff' and answer:
                             staff_docs = agent_context.get('staff', [])
-                            if staff_docs:
+                            
+                            # Check if this is a general query FIRST
+                            normalized_query_lower = normalized_query.lower()
+                            is_general_query = any(kw in normalized_query_lower for kw in [
+                                'who are working', 'who works', 'who work', 'working in faix', 'staff in faix',
+                                'faculty members', 'all staff', 'list of staff', 'show staff', 'who are',
+                                'staff members', 'people working', 'people in faix',
+                                # Additional patterns for general queries
+                                'who is working', 'working at faix', 'working at', 'our team'
+                            ])
+                            
+                            if staff_docs and is_general_query:
+                                # FOR GENERAL QUERIES: Skip LLM validation entirely, use real data directly
+                                logger.info(f"General staff query detected - generating response from {len(staff_docs)} real staff members")
+                                
+                                # Count staff names in LLM response for logging
+                                import re
+                                staff_count_in_response = len(re.findall(r'[0-9]+\.\s*\*\*|[-•]\s*\*\*', answer))
+                                logger.info(f"LLM returned {staff_count_in_response} staff, but we have {len(staff_docs)} - using real data")
+                                
+                                # ALWAYS generate from real data for general queries
+                                answer_parts = ["Here are some staff members at FAIX:\n\n"]
+                                
+                                # Show up to 15 staff members
+                                for i, staff in enumerate(staff_docs[:15], 1):
+                                    name = staff.get('name', '')
+                                    position = staff.get('role', staff.get('position', ''))
+                                    department = staff.get('department', '')
+                                    if name:
+                                        answer_parts.append(f"{i}. **{name}**")
+                                        if position:
+                                            answer_parts.append(f"   - Position: {position}")
+                                        if department:
+                                            answer_parts.append(f"   - Department: {department}")
+                                        answer_parts.append("")
+                                
+                                if len(staff_docs) > 15:
+                                    answer_parts.append(f"... and {len(staff_docs) - 15} more staff members.")
+                                
+                                answer_parts.append("\nWould you like contact information for any specific staff member?")
+                                answer = '\n'.join(answer_parts)
+                                logger.info(f"Generated staff list with {min(15, len(staff_docs))} real staff members")
+                            elif staff_docs:
+                                # For specific queries, validate the response
+                                logger.info(f"Validating staff response against {len(staff_docs)} staff members")
                                 is_valid, hallucinated_names = validate_staff_response(answer, staff_docs)
+                                logger.info(f"Validation result: is_valid={is_valid}, hallucinated={hallucinated_names}")
+                                
                                 if not is_valid:
                                     logger.warning(f"Staff hallucination detected! LLM invented names: {hallucinated_names}")
-                                    logger.warning(f"Full response: {answer[:200]}...")
+                                    logger.warning(f"Full response: {answer[:300]}...")
+                                    
+                                    # Try knowledge base fallback for specific queries
                                     # Check for forbidden fields
                                     answer_lower = answer.lower()
                                     forbidden_fields = ['research interests', 'research areas', 'specialization']
@@ -1760,7 +2008,6 @@ def chat_api(request):
                                         answer = kb_staff_answer
                                     elif has_forbidden:
                                         # If forbidden fields detected, remove them and try to fix
-                                        import re
                                         # Remove lines containing forbidden fields
                                         lines = answer.split('\n')
                                         cleaned_lines = []

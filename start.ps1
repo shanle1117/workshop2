@@ -23,18 +23,31 @@ Write-Host ""
 
 # Function to check if Ollama is running
 function Test-OllamaRunning {
-    try {
-        $response = Invoke-WebRequest -Uri "http://localhost:11434/api/tags" -TimeoutSec 2 -UseBasicParsing -ErrorAction Stop
-        return $true
+    param(
+        [int]$TimeoutSeconds = 5,
+        [int]$Retries = 2
+    )
+    
+    for ($i = 0; $i -le $Retries; $i++) {
+        try {
+            $null = Invoke-WebRequest -Uri "http://localhost:11434/api/tags" -TimeoutSec $TimeoutSeconds -UseBasicParsing -ErrorAction Stop
+            return $true
+        }
+        catch {
+            # If this is not the last retry, wait a bit before retrying
+            if ($i -lt $Retries) {
+                Start-Sleep -Milliseconds 500
+                continue
+            }
+            return $false
+        }
     }
-    catch {
-        return $false
-    }
+    return $false
 }
 
 # Check if Ollama is already running
 Write-Host "[2/3] Checking Ollama service..." -ForegroundColor Yellow
-$ollamaRunning = Test-OllamaRunning
+$ollamaRunning = Test-OllamaRunning -TimeoutSeconds 5 -Retries 2
 
 if (-not $ollamaRunning) {
     Write-Host "Ollama is not running. Starting Ollama..." -ForegroundColor Yellow
@@ -53,22 +66,25 @@ if (-not $ollamaRunning) {
         $ollamaProcess = Start-Process -FilePath "ollama" -ArgumentList "serve" -PassThru -WindowStyle Normal
         
         # Wait for Ollama to start
-        $maxWait = 30
+        $maxWait = 15  # Increased from 30 to 45 seconds
         $waited = 0
         Write-Host "Waiting for Ollama to start" -NoNewline -ForegroundColor Yellow
         
-        while (-not (Test-OllamaRunning) -and $waited -lt $maxWait) {
+        while (-not (Test-OllamaRunning -TimeoutSeconds 5 -Retries 2) -and $waited -lt $maxWait) {
             Start-Sleep -Seconds 2
             $waited += 2
             Write-Host "." -NoNewline -ForegroundColor Yellow
         }
         Write-Host ""
         
-        if (Test-OllamaRunning) {
+        # Final check with more generous timeout and retries
+        if (Test-OllamaRunning -TimeoutSeconds 10 -Retries 3) {
             Write-Host "✓ Ollama is running" -ForegroundColor Green
         }
         else {
             Write-Host "⚠ Warning: Ollama may not have started properly" -ForegroundColor Yellow
+            Write-Host "  Note: If Ollama is already running, you can ignore this warning" -ForegroundColor Gray
+            Write-Host "  You can verify by visiting: http://localhost:11434/api/tags" -ForegroundColor Gray
         }
     }
 }

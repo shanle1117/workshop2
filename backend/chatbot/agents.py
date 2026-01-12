@@ -178,9 +178,10 @@ class AgentRegistry:
                     "- For dean information: Use FAIX Information Context (Faculty Information section)\n\n"
                     
                     "✅ WHEN USER ASKS ABOUT A SPECIFIC STAFF MEMBER BY NAME:\n"
-                    "- Example queries: 'who is dr choo', 'contact info for Ahmad', 'email for Dr. Burhanuddin', 'tell me about Professor Li'\n"
-                    "- For vague queries (e.g., 'tell me about Professor Li'): Provide basic info THEN ask follow-up:\n"
-                    "  'Professor Li specializes in [field]. Would you like to know:\n"
+                    "- Example queries: 'who is [name]', 'contact info for [name]', 'email for [name]', 'tell me about [name]'\n"
+                    "- IMPORTANT: Replace [name] with actual names from Staff Contacts Context - DO NOT use example names\n"
+                    "- For vague queries (e.g., 'tell me about [Staff Name from Context]'): Provide basic info THEN ask follow-up:\n"
+                    "  '[Staff Name from Context] specializes in [field]. Would you like to know:\n"
                     "  1. His courses this semester\n"
                     "  2. Current research projects\n"
                     "  3. Office hours and appointment booking\n"
@@ -196,13 +197,17 @@ class AgentRegistry:
                     "- If matched staff are highlighted in context, USE THEM - they match the query!\n\n"
                     
                     "✅ WHEN USER ASKS GENERAL STAFF QUESTIONS:\n"
-                    "- Example queries: 'who can I contact for AI programs', 'staff in cybersecurity department'\n"
-                    "- Suggest relevant staff members (max 5) based on:\n"
-                    "  * Department match\n"
-                    "  * Specialization/keywords match\n"
-                    "  * Position relevance\n"
-                    "- Format: **Name** - Position (Department)\n"
-                    "- Then ask: 'Would you like contact details for any of these staff members?'\n\n"
+                    "- Example queries: 'who are working in faix', 'who can I contact for AI programs', 'staff in cybersecurity department', 'list of staff'\n"
+                    "- CRITICAL: You MUST use the Staff Contacts Context provided in the messages below.\n"
+                    "- For 'who are working in faix' or 'list staff': List staff members FROM THE CONTEXT (show 8-15 members).\n"
+                    "- DO NOT make up names like 'Dr. Ahmad', 'Prof. Sarah' - these do NOT exist in the data.\n"
+                    "- DO NOT use generic names or examples - use ONLY real names from Staff Contacts Context.\n"
+                    "- For department-specific queries: Filter staff by department match from the context.\n"
+                    "- Format each staff member as: **Name** - Position (Department)\n"
+                    "- Copy the EXACT names from Staff Contacts Context - do not modify or abbreviate.\n"
+                    "- Use the EXACT full names as they appear in Staff Contacts Context - do not shorten or change them.\n"
+                    "- Then ask: 'Would you like contact details for any of these staff members?'\n"
+                    "- REMEMBER: If a name is NOT in the Staff Contacts Context, it does NOT exist - do not mention it.\n\n"
                     
                     "❌ WHEN NO MATCH FOUND:\n"
                     "- Say: 'I couldn't find a staff member matching your query in the database.'\n"
@@ -223,13 +228,14 @@ class AgentRegistry:
                     "- Do NOT skip follow-up questions for faculty queries unless user explicitly declines\n\n"
                     
                     "💡 EXAMPLE RESPONSES (USE EXACT DATA FROM CONTEXT - DO NOT INVENT):\n"
-                    "- Vague query: 'Tell me about Professor Li'\n"
-                    "  You: 'Professor Li specializes in computer vision. Would you like to know:\n"
-                    "  1. His courses this semester\n"
+                    "- Vague query: 'Tell me about [Staff Name from Context]'\n"
+                    "  You: '[Staff Name from Context] is a [Position from Context] at FAIX. Would you like to know:\n"
+                    "  1. Their courses this semester\n"
                     "  2. Current research projects\n"
                     "  3. Office hours and appointment booking'\n\n"
-                    "- General query: 'For questions about AI programs, you might want to contact:\n\n- **Dr. Ahmad** - Senior Lecturer (AI Department)\n- **Prof. Sarah** - Professor (Machine Learning)\n\nWould you like contact details for any of these staff members?'\n\n"
-                    "- No match: 'I couldn't find a staff member named \"Dr. Smith\" in the database. Could you try a different spelling or ask about their department?'\n\n"
+                    "- General query: 'For questions about AI programs, you might want to contact:\n\n- **[Exact Name from Staff Contacts Context]** - [Position from Context] ([Department from Context])\n- **[Another Exact Name from Context]** - [Position from Context] ([Department from Context])\n\nWould you like contact details for any of these staff members?'\n"
+                    "  CRITICAL: Replace all [placeholders] with EXACT values from Staff Contacts Context. DO NOT invent or modify names.\n\n"
+                    "- No match: 'I couldn't find a staff member matching your query in the database. Could you try a different spelling or ask about their department?'\n\n"
                     "⚠️ CRITICAL ANTI-HALLUCINATION RULES:\n"
                     "- ONLY use names, emails, positions, and details that appear EXACTLY in the Staff Contacts Context\n"
                     "- Use EXACT names as they appear in context - DO NOT change spelling, add middle names, or modify in any way\n"
@@ -285,8 +291,14 @@ def _load_json_file(path: Path) -> Any:
 
 
 def _get_project_data_dir() -> Path:
-    # src/agents.py -> project root is parent of src
-    return Path(__file__).resolve().parent.parent / "data"
+    # backend/chatbot/agents.py -> project root is parent.parent.parent
+    # Path structure: project_root/backend/chatbot/agents.py
+    agents_file = Path(__file__).resolve()
+    # agents_file.parent = backend/chatbot/
+    # agents_file.parent.parent = backend/
+    # agents_file.parent.parent.parent = project_root/
+    project_root = agents_file.parent.parent.parent
+    return project_root / "data"
 
 
 def _get_separated_data_dir() -> Path:
@@ -343,8 +355,12 @@ def _get_schedule_documents() -> List[Dict[str, str]]:
 
 def _get_staff_documents() -> List[Dict[str, str]]:
     """Load staff contact entries from data/separated/staff_contacts.json."""
+    import logging
+    logger = logging.getLogger(__name__)
+    
     # Try to load from separated files first
     data = _load_separated_json_file("staff_contacts")
+    logger.debug(f"[_get_staff_documents] After _load_separated_json_file: data type={type(data)}, is None={data is None}")
     
     # Fallback: try merged file or old location
     if data is None:
@@ -352,13 +368,27 @@ def _get_staff_documents() -> List[Dict[str, str]]:
         faix_data = _load_json_file(data_dir / "faix_json_data.json")
         if faix_data and isinstance(faix_data, dict) and "staff_contacts" in faix_data:
             data = faix_data["staff_contacts"]
+            logger.debug(f"[_get_staff_documents] Loaded from faix_json_data.json")
         else:
             data = _load_json_file(data_dir / "staff_contacts.json")
+            logger.debug(f"[_get_staff_documents] Loaded from staff_contacts.json")
     
     docs: List[Dict[str, str]] = []
     
-    if not data or not isinstance(data, dict):
+    if not data:
+        logger.warning("[_get_staff_documents] No data loaded - returning empty list")
         return docs
+    
+    # Handle nested structure: {"staff_contacts": {"departments": {...}}}
+    if isinstance(data, dict) and "staff_contacts" in data:
+        data = data["staff_contacts"]
+        logger.debug("[_get_staff_documents] Unwrapped staff_contacts key")
+    
+    if not isinstance(data, dict):
+        logger.warning(f"[_get_staff_documents] Data is not a dict after unwrapping: {type(data)}")
+        return docs
+    
+    logger.debug(f"[_get_staff_documents] Data keys: {list(data.keys()) if isinstance(data, dict) else 'N/A'}")
     
     # Handle nested structure with departments
     if "departments" in data and isinstance(data["departments"], dict):

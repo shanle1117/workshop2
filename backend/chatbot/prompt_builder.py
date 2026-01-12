@@ -503,7 +503,8 @@ def build_messages(
     if agent.id == "staff":
         system_parts.append(
             "STAFF QUERY HANDLING:\n"
-            "- If user asks about a SPECIFIC staff member by name (e.g., 'who is dr choo', 'contact for Ahmad'):\n"
+            "- If user asks about a SPECIFIC staff member by name (e.g., 'who is [name]', 'contact for [name]'):\n"
+            "  IMPORTANT: Replace [name] with actual names from Staff Contacts Context below\n"
             "  → Provide COMPLETE contact information immediately (name, position, department, email, phone, office)\n"
             "  → Do NOT ask follow-up questions - give all details at once\n"
             "- If user asks GENERAL questions (e.g., 'who can I contact for X', 'staff in Y department'):\n"
@@ -653,18 +654,19 @@ def build_messages(
         if "staff" in context and context.get("staff"):
             staff_count = len(context.get("staff", []))
             content_prefix = (
-                "Here is reference context you can use:\n\n"
-                "CRITICAL: For staff-related queries, you MUST ONLY use staff members "
-                "from the 'Staff Contacts Context' section below. "
-                "Do NOT invent, create, or mention any staff members outside of this list.\n"
-                f"You have access to {staff_count} staff members in the database. "
-                "Each staff member has a NAME, POSITION, and EMAIL.\n"
-                "IMPORTANT: ONLY list people whose names appear in the Staff Contacts Context. "
-                "Do NOT list generic roles (like 'Office Manager', 'Human Resources Officer') without names. "
-                "Do NOT list department names as if they were people. "
-                "Do NOT create organizational charts or invent positions.\n"
-                "When staff matching the query exist in this list, present them confidently with their actual names and positions. "
-                "Do NOT say 'I am not sure' or add disclaimers when the data is available.\n\n"
+                "You MUST answer the user's question using ONLY the staff data provided below.\n\n"
+                "🚨 CRITICAL RULES - READ CAREFULLY:\n"
+                f"- You have access to {staff_count} REAL staff members listed in the Staff Contacts Context below.\n"
+                "- You MUST list staff members using ONLY the names that appear in the Staff Contacts Context.\n"
+                "- DO NOT invent names like 'Dr. Ahmad', 'Prof. Sarah', 'Dr. Li' - these do NOT exist.\n"
+                "- DO NOT use example names or generic names - use ONLY real names from the list below.\n"
+                "- When user asks 'who are working in faix': List 8-15 staff members from the Staff Contacts Context.\n"
+                "- Copy the EXACT names from the context - do not modify, abbreviate, or create variations.\n"
+                "- Use the EXACT full names as they appear in Staff Contacts Context - do not modify, shorten, or change them.\n"
+                "- Each staff member in the context has: Name, Position, Department, Email.\n"
+                "- Use the format: **Exact Name from Context** - Position (Department)\n"
+                "- If a name is NOT listed below, that person DOES NOT EXIST - do not mention them.\n\n"
+                "The complete staff list is provided below. Use ONLY these names:\n\n"
             )
         messages.append(
             {
