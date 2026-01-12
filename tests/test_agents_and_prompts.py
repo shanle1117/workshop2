@@ -17,9 +17,9 @@ sys.path.insert(0, str(ROOT))
 # succeeds and KnowledgeBase falls back to non-Django mode.
 sys.modules["django"] = types.ModuleType("django")
 
-from src.agents import get_agent_registry, retrieve_for_agent  # noqa: E402
-from src.prompt_builder import build_messages  # noqa: E402
-from src.knowledge_base import KnowledgeBase  # noqa: E402
+from backend.chatbot.agents import get_agent_registry, retrieve_for_agent  # noqa: E402
+from backend.chatbot.prompt_builder import build_messages  # noqa: E402
+from backend.chatbot.knowledge_base import KnowledgeBase  # noqa: E402
 
 
 class DummyKnowledgeBase(KnowledgeBase):

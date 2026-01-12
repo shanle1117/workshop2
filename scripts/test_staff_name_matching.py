@@ -19,7 +19,7 @@ import django
 django.setup()
 
 from django_app.views import match_staff_by_name, format_staff_details
-from src.agents import _get_staff_documents
+from backend.chatbot.agents import _get_staff_documents
 
 
 def test_staff_name_matching():

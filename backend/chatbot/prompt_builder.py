@@ -556,6 +556,27 @@ def build_messages(
         if staff_text:
             context_lines.append("--- Staff Contacts Context (ONLY SOURCE - USE THIS LIST ONLY) ---")
             context_lines.append(f"Total staff members available: {len(staff_docs)}")
+            
+            # Extract all valid staff names and add to context for explicit validation
+            all_staff_names = []
+            for staff in staff_docs:
+                name = staff.get('name', '').strip()
+                if name:
+                    all_staff_names.append(name)
+            
+            if all_staff_names:
+                context_lines.append("")
+                context_lines.append("📋 COMPLETE LIST OF VALID STAFF NAMES (USE ONLY THESE):")
+                context_lines.append("The following are ALL the staff members that exist in the database:")
+                for i, name in enumerate(all_staff_names[:50], 1):  # Limit to 50 to avoid token bloat
+                    context_lines.append(f"{i}. {name}")
+                if len(all_staff_names) > 50:
+                    context_lines.append(f"... and {len(all_staff_names) - 50} more (see full list below)")
+                context_lines.append("")
+                context_lines.append("🚫 CRITICAL: If a name is NOT in the above list, it DOES NOT EXIST.")
+                context_lines.append("🚫 DO NOT invent, create, or mention ANY staff member not in this list.")
+                context_lines.append("")
+            
             # If we have matched staff, highlight them VERY prominently
             if matched_staff:
                 matched_names = [s.get('name', '') for s in matched_staff if s.get('name')]
@@ -586,9 +607,24 @@ def build_messages(
                 context_lines.append("⚠️ Use EXACT emails as shown - DO NOT invent or modify email addresses")
                 context_lines.append("⚠️ If phone/office shows '-', say 'Not available' - DO NOT invent phone numbers or offices")
                 context_lines.append("⚠️ Copy EXACTLY what appears above - do not paraphrase names or details")
+                context_lines.append("⚠️ FORBIDDEN FIELDS: DO NOT add 'Research Interests', 'Specialization', or any fields not shown above")
+                context_lines.append("⚠️ Available fields ONLY: Name, Position, Department, Email, Phone, Office (if available)")
                 context_lines.append("=" * 60)
                 context_lines.append("")
             context_lines.append("You MUST ONLY use staff from this list. Do NOT invent or create any staff members.")
+            context_lines.append("")
+            context_lines.append("🚫 FORBIDDEN: DO NOT add fields that don't exist in the data such as:")
+            context_lines.append("   - 'Research Interests' (this field does NOT exist in the database)")
+            context_lines.append("   - 'Specialization' (unless shown in the staff data below)")
+            context_lines.append("   - Any other fields not explicitly shown in the staff data")
+            context_lines.append("")
+            context_lines.append("✅ ALLOWED FIELDS ONLY:")
+            context_lines.append("   - Name (exact as shown)")
+            context_lines.append("   - Position (exact as shown)")
+            context_lines.append("   - Department (if shown)")
+            context_lines.append("   - Email (exact as shown)")
+            context_lines.append("   - Phone (if available, otherwise say 'Not available')")
+            context_lines.append("   - Office (if available, otherwise say 'Not available')")
             context_lines.append("")
             context_lines.append(staff_text)
 

@@ -9,7 +9,7 @@ from __future__ import annotations
 
 from typing import Dict, Tuple
 
-from src.conversation_manager import process_conversation
+from backend.chatbot.conversation_manager import process_conversation
 
 
 def run_cli() -> None:

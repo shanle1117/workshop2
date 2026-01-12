@@ -99,7 +99,7 @@ class ConfidenceTester:
     def _init_components(self):
         """Initialize query processor and intent classifier"""
         try:
-            from src.query_preprocessing import QueryProcessor
+            from backend.nlp.query_preprocessing import QueryProcessor
             self.processor = QueryProcessor(use_database=True, use_nlp=True)
             print(f"{Colors.GREEN}✓{Colors.RESET} QueryProcessor initialized")
         except Exception as e:

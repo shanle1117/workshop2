@@ -68,21 +68,35 @@ The FAIX AI Chatbot is a multi-module system that provides intelligent student a
 workshop2/
 ├── README.md                          # 📖 Project documentation
 ├── requirements.txt                   # 📦 Dependencies
+├── start.ps1                          # 🚀 PowerShell start script (Windows)
+├── start_server.py                    # 🚀 Python start script (all platforms)
+├── manage.py                          # 🐍 Django management script
 ├── .gitignore                        # 🚫 Git ignore rules
 │
-├── src/                              # 💻 Source code
-│   ├── __init__.py
-│   ├── chatbot_cli.py                # 💬 CLI interface
-│   ├── conversation_manager.py       # 💬 Conversation Management Module
-│   ├── knowledge_base.py             # 🧠 Knowledge Base Module
-│   ├── nlp_intent_classifier.py      # 🤖 Transformer-based Intent Classification
-│   ├── nlp_semantic_search.py        # 🔍 Semantic Search using Sentence Transformers
-│   ├── agents.py                     # 🤖 Conversational Agents (FAQ, Schedule, Staff)
-│   ├── prompt_builder.py             # 📝 RAG Prompt Construction
-│   ├── query_preprocessing.py        # 🔤 NLP preprocessing
-│   ├── query_preprocessing_v2.py     # 🔤 Enhanced NLP preprocessing
-│   ├── firebase_service.py           # 🔥 Firebase integration
-│   └── kbstest.py                    # 🧪 Knowledge base test
+├── backend/                          # 💻 Backend code (organized by function)
+│   ├── chatbot/                      # 🤖 Core chatbot modules
+│   │   ├── conversation_manager.py   # 💬 Conversation Management Module
+│   │   ├── knowledge_base.py         # 🧠 Knowledge Base Module
+│   │   ├── agents.py                 # 🤖 Conversational Agents (FAQ, Schedule, Staff)
+│   │   ├── prompt_builder.py         # 📝 RAG Prompt Construction
+│   │   └── kbstest.py                # 🧪 Knowledge base test
+│   ├── nlp/                          # 🔤 Natural Language Processing
+│   │   ├── nlp_intent_classifier.py  # 🤖 Transformer-based Intent Classification
+│   │   ├── nlp_semantic_search.py    # 🔍 Semantic Search using Sentence Transformers
+│   │   ├── query_preprocessing.py    # 🔤 NLP preprocessing
+│   │   └── query_preprocessing_v2.py # 🔤 Enhanced NLP preprocessing
+│   ├── llm/                          # 🧠 Large Language Model integration
+│   │   ├── llm_client.py             # 🔌 LLM client (Ollama integration)
+│   │   └── settings_llm.py           # ⚙️ LLM configuration settings
+│   ├── services/                     # 🔧 External services
+│   │   └── firebase_service.py       # 🔥 Firebase integration
+│   └── cli/                          # 💻 Command-line interface
+│       └── chatbot_cli.py            # 💬 CLI interface
+│
+├── src/                              # 📦 Legacy source (React components)
+│   └── react/                        # ⚛️ React components
+│       ├── Chatbot.jsx               # 💬 React chatbot component
+│       └── index.jsx                 # 📄 React entry point
 │
 ├── data/                             # 📊 Data files
 │   ├── course_info.json              # 📚 Course Information Data
@@ -130,16 +144,21 @@ workshop2/
 
 | File | Purpose |
 |------|---------|
-| `src/conversation_manager.py` | Manages conversation flow, context, and intent detection |
-| `src/nlp_intent_classifier.py` | Transformer-based intent classification using DistilBERT/RoBERTa |
-| `src/nlp_semantic_search.py` | Semantic search using sentence-transformers for better query matching |
-| `src/agents.py` | Conversational agent definitions (FAQ, Schedule, Staff) with RAG support |
-| `src/prompt_builder.py` | Constructs RAG prompts with context from knowledge base and FAIX data |
-| `src/knowledge_base.py` | Stores and retrieves information from JSON/CSV data files and database |
-| `src/query_preprocessing.py` | NLP preprocessing utilities |
-| `frontend/main.html` | Web interface for the chatbot |
-| `frontend/chat.js` | Chat functionality with Speech-to-Text support and enhanced formatting |
-| `frontend/style.css` | CSS styling for the web interface with line break preservation |
+| `start.ps1` | PowerShell script to start Ollama and Django server (Windows) |
+| `start_server.py` | Python script to start Ollama and Django server (cross-platform) |
+| `backend/chatbot/conversation_manager.py` | Manages conversation flow, context, and intent detection |
+| `backend/nlp/nlp_intent_classifier.py` | Transformer-based intent classification using DistilBERT/RoBERTa |
+| `backend/nlp/nlp_semantic_search.py` | Semantic search using sentence-transformers for better query matching |
+| `backend/chatbot/agents.py` | Conversational agent definitions (FAQ, Schedule, Staff) with RAG support |
+| `backend/chatbot/prompt_builder.py` | Constructs RAG prompts with context from knowledge base and FAIX data |
+| `backend/chatbot/knowledge_base.py` | Stores and retrieves information from JSON/CSV data files and database |
+| `backend/nlp/query_preprocessing.py` | NLP preprocessing utilities |
+| `backend/llm/llm_client.py` | LLM client for Ollama integration |
+| `backend/services/firebase_service.py` | Firebase integration for real-time features |
+| `backend/cli/chatbot_cli.py` | Interactive CLI for testing the chatbot |
+| `frontend/templates/main.html` | Web interface for the chatbot |
+| `frontend/static/js/chat.js` | Chat functionality with Speech-to-Text support and enhanced formatting |
+| `frontend/static/css/style.css` | CSS styling for the web interface with line break preservation |
 | `django_app/views.py` | Django API endpoints for chat, sessions, and conversations |
 | `django_app/models.py` | Database models for sessions, conversations, and messages |
 | `tests/test_chatbot.py` | Core unit tests for chatbot functionality |
@@ -187,7 +206,14 @@ python -m spacy download en_core_web_sm
 python manage.py migrate
 
 # 6. Start the server (auto-starts Ollama if installed)
+# Windows (PowerShell) - Recommended
+.\start.ps1
+
+# Windows/Linux/Mac (Python script)
 python start_server.py
+
+# Note: If PowerShell script execution is disabled, run:
+# Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
 ```
 
 The chatbot will be available at `http://127.0.0.1:8000`
@@ -258,11 +284,21 @@ The chatbot will be available at `http://127.0.0.1:8000`
 
 9. **Start the Django development server:**
    ```bash
-   # Option 1: Use the start script (auto-starts Ollama)
+   # Option 1: PowerShell script (Windows) - Recommended
+   # Auto-starts Ollama in a separate window and Django server
+   .\start.ps1
+   
+   # Option 2: Python start script (Windows/Linux/Mac)
+   # Auto-starts Ollama if installed
    python start_server.py
    
-   # Option 2: Manual start
+   # Option 3: Manual start (requires Ollama running separately)
    python manage.py runserver
+   ```
+   
+   **Note for PowerShell users**: If you get an execution policy error when running `.\start.ps1`, run:
+   ```powershell
+   Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
    ```
 
 10. **Access the chatbot:**
@@ -278,14 +314,14 @@ python tests/test_speech_to_text.py
 python tests/test_dynamic_features.py
 
 # Run CLI interface
-python -X utf8 src/chatbot_cli.py
+python -X utf8 -m backend.cli.chatbot_cli
 ```
 
 ---
 
 ## 📚 Module Documentation
 
-### 1. Conversation Manager (`src/conversation_manager.py`)
+### 1. Conversation Manager (`backend/chatbot/conversation_manager.py`)
 
 The core module that handles conversation flow and user intent detection.
 
@@ -318,7 +354,7 @@ def process_conversation(user_message: str, context: dict) -> tuple[str, dict]
 | greeting | hi, hello, hey | Welcome message |
 | unclear | (other) | Request for clarification |
 
-### 2. NLP Intent Classifier (`src/nlp_intent_classifier.py`)
+### 2. NLP Intent Classifier (`backend/nlp/nlp_intent_classifier.py`)
 
 Transformer-based intent classification using pre-trained models (DistilBERT/RoBERTa).
 
@@ -336,7 +372,7 @@ class IntentClassifier:
 - Keyword pattern matching fallback
 - Confidence scoring
 
-### 3. Semantic Search (`src/nlp_semantic_search.py`)
+### 3. Semantic Search (`backend/nlp/nlp_semantic_search.py`)
 
 Semantic search using sentence-transformers for improved query matching.
 
@@ -353,7 +389,7 @@ class SemanticSearch:
 - Caching for performance
 - Configurable model selection
 
-### 4. Conversational Agents (`src/agents.py`)
+### 4. Conversational Agents (`backend/chatbot/agents.py`)
 
 Specialized conversational agents using RAG (Retrieval-Augmented Generation) with open LLMs.
 
@@ -374,7 +410,7 @@ Specialized conversational agents using RAG (Retrieval-Augmented Generation) wit
 - Special handling for fee queries with direct link responses
 - Enhanced response formatting with line breaks and URL preservation
 
-### 5. Prompt Builder (`src/prompt_builder.py`)
+### 5. Prompt Builder (`backend/chatbot/prompt_builder.py`)
 
 Constructs RAG prompts with context from multiple sources.
 
@@ -390,7 +426,7 @@ def build_messages(agent: Agent, user_message: str, context: dict, intent: Optio
 - URL and link preservation in responses
 - Enhanced formatting instructions for structured responses
 
-### 6. Knowledge Base (`src/knowledge_base.py`)
+### 6. Knowledge Base (`backend/chatbot/knowledge_base.py`)
 
 Manages data retrieval from JSON/CSV files and database.
 
@@ -416,7 +452,7 @@ Multiple test modules for comprehensive validation:
 ### Basic Usage:
 
 ```python
-from src.conversation_manager import process_conversation
+from backend.chatbot.conversation_manager import process_conversation
 
 # Initialize context
 context = {}
@@ -452,7 +488,7 @@ for msg in messages:
 ```python
 # In Django views.py
 from django.http import JsonResponse
-from src.conversation_manager import process_conversation
+from backend.chatbot.conversation_manager import process_conversation
 
 def chat(request):
     user_message = request.POST.get('message')
@@ -486,14 +522,14 @@ def chat(request):
 └────────────────────┬────────────────────────────────────────┘
                      │
 ┌────────────────────▼────────────────────────────────────────┐
-│  Conversation Manager (src/conversation_manager.py)        │
+│  Conversation Manager (backend/chatbot/conversation_manager.py)│
 │  - Context Management                                      │
 │  - Response Routing                                        │
 └─────┬───────────────────────────────────────────────┬──────┘
       │                                               │
 ┌─────▼──────────────────────┐    ┌───────────────────▼────────┐
 │  Intent Detection Layer    │    │  Knowledge Base Module     │
-│  ┌──────────────────────┐  │    │  (src/knowledge_base.py)  │
+│  ┌──────────────────────┐  │    │  (backend/chatbot/knowledge_base.py)│
 │  │ NLP Intent Classifier│  │    │  - JSON/CSV files         │
 │  │ (Transformer-based)  │  │    │  - Database queries       │
 │  └──────────────────────┘  │    │  - Firebase (optional)    │
@@ -504,7 +540,7 @@ def chat(request):
       │
 ┌─────▼──────────────────────┐    ┌───────────────────────────┐
 │  Handler Functions        │    │  Semantic Search          │
-│  - Registration            │    │  (src/nlp_semantic_search.py)│
+│  - Registration            │    │  (backend/nlp/nlp_semantic_search.py)│
 │  - Contact                 │    │  - Sentence transformers │
 │  - Greeting/Fallback       │    │  - Vector embeddings     │
 └────────────────────────────┘    └───────────────────────────┘
@@ -757,7 +793,7 @@ def chat_api(request):
 
 ```python
 # In conversation_manager.py or views.py:
-from src.nlp_intent_classifier import IntentClassifier
+from backend.nlp.nlp_intent_classifier import IntentClassifier
 
 # Initialize classifier
 classifier = IntentClassifier(
@@ -774,7 +810,7 @@ intent, confidence = classifier.classify(user_message)
 
 ```python
 # For improved query matching:
-from src.nlp_semantic_search import SemanticSearch
+from backend.nlp.nlp_semantic_search import SemanticSearch
 
 search = SemanticSearch(model_name='all-MiniLM-L6-v2')
 results = search.search(
@@ -826,7 +862,7 @@ results = search.search(
 ### Run All Tests:
 ```bash
 # Core functionality
-python src/conversation_manager.py
+python -m backend.chatbot.conversation_manager
 
 # Speech-to-Text tests
 python tests/test_speech_to_text.py
@@ -1152,7 +1188,7 @@ LLM Available?
 
 ```python
 # Example: Using the LLM client directly
-from src.llm_client import get_llm_response
+from backend.llm.llm_client import get_llm_response
 
 response = get_llm_response(
     messages=[

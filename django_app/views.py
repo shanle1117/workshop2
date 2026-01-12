@@ -40,17 +40,17 @@ if not chat_logger.handlers:
 
 # Setup paths for imports
 BASE_DIR = Path(__file__).resolve().parent.parent
-sys.path.insert(0, str(BASE_DIR / 'src'))
+sys.path.insert(0, str(BASE_DIR))
 
 from django_app.models import (
     UserSession, Conversation, Message, FAQEntry, ResponseFeedback
 )
-from src.query_preprocessing import QueryProcessor
-from src.knowledge_base import KnowledgeBase
-from src.conversation_manager import process_conversation
-from src.llm_client import get_llm_client, LLMError
-from src.agents import get_agent, retrieve_for_agent, check_staff_data_available, check_schedule_data_available, _get_staff_documents, _get_schedule_documents
-from src.prompt_builder import build_messages
+from backend.nlp.query_preprocessing import QueryProcessor
+from backend.chatbot.knowledge_base import KnowledgeBase
+from backend.chatbot.conversation_manager import process_conversation
+from backend.llm.llm_client import get_llm_client, LLMError
+from backend.chatbot.agents import get_agent, retrieve_for_agent, check_staff_data_available, check_schedule_data_available, _get_staff_documents, _get_schedule_documents
+from backend.chatbot.prompt_builder import build_messages
 
 # Initialize global instances
 query_processor = QueryProcessor()
@@ -70,7 +70,27 @@ def print_startup_summary():
         sections = len([k for k in knowledge_base.faix_data.keys() if knowledge_base.faix_data[k]])
         print(f"✓ {sections} data sections loaded")
     if knowledge_base.use_semantic_search and knowledge_base.semantic_search:
-        print("✓ Semantic search")
+        device_info = getattr(knowledge_base.semantic_search, 'device', 'cpu')
+        print(f"✓ Semantic search (device: {device_info})")
+    
+    # Show GPU status for intent classifier
+    try:
+        if hasattr(query_processor, 'intent_classifier') and query_processor.intent_classifier:
+            device_info = getattr(query_processor.intent_classifier, 'device', 'cpu')
+            print(f"✓ Intent Classifier (device: {device_info})")
+    except:
+        pass
+    
+    # Check overall GPU availability
+    try:
+        import torch
+        if torch.cuda.is_available():
+            print(f"✓ GPU Available: {torch.cuda.get_device_name(0)}")
+        else:
+            print("⚠ GPU: Not available (using CPU)")
+    except:
+        pass
+    
     print("="*60 + "\n")
 
 # Delay summary until after Django startup completes
@@ -182,6 +202,85 @@ def match_staff_by_name(user_message: str, staff_docs: List[Dict]) -> List[Dict]
             matched_staff.append(staff)
     
     return matched_staff
+
+
+def validate_staff_response(llm_response: str, staff_docs: List[Dict]):
+    """
+    Validate that LLM response contains only real staff names from the provided staff data.
+    Returns (is_valid, list_of_hallucinated_names).
+    """
+    if not staff_docs or not llm_response:
+        return (True, [])
+    
+    # Extract all valid staff names (normalized)
+    valid_names = set()
+    for staff in staff_docs:
+        name = staff.get('name', '').strip()
+        if name:
+            # Add full name
+            valid_names.add(name.lower())
+            # Add name parts (for partial matching)
+            name_parts = name.lower().split()
+            for part in name_parts:
+                if len(part) > 3:  # Only meaningful parts
+                    valid_names.add(part)
+    
+    # Extract staff names from LLM response
+    # Look for patterns like "**Name**" or "* Name" or numbered lists with names
+    response_lower = llm_response.lower()
+    
+    # Pattern 1: **Name** or *Name* (markdown bold/italic)
+    bold_names = re.findall(r'\*\*([^*]+)\*\*', llm_response)
+    italic_names = re.findall(r'\*([^*]+)\*', llm_response)
+    
+    # Pattern 2: Numbered/bullet lists: "1. **Name**" or "- **Name**"
+    list_names = re.findall(r'[0-9]+\.\s*\*\*([^*]+)\*\*', llm_response)
+    bullet_names = re.findall(r'[-•]\s*\*\*([^*]+)\*\*', llm_response)
+    
+    # Pattern 3: After "Name:" or similar patterns
+    colon_names = re.findall(r'(?:name|staff|faculty|member|professor|dr\.?|doctor)\s*:?\s*\*?\*?([A-Z][A-Za-z\s]+(?:bin|binti|binte)[A-Za-z\s]+|[A-Z][A-Za-z\s]+)', llm_response, re.IGNORECASE)
+    
+    # Combine all found names
+    found_names = set()
+    for name_list in [bold_names, italic_names, list_names, bullet_names, colon_names]:
+        for name in name_list:
+            name_clean = name.strip()
+            if len(name_clean) > 5:  # Minimum length for meaningful names
+                found_names.add(name_clean.lower())
+    
+    # Check for hallucinated names (not in valid_names)
+    hallucinated = []
+    for found_name in found_names:
+        # Check if any part of the found name matches a valid name
+        found_parts = found_name.split()
+        is_valid = False
+        
+        # Check full match
+        if found_name in valid_names:
+            is_valid = True
+        else:
+            # Check partial match - if significant parts match
+            for valid_name in valid_names:
+                if len(valid_name) > 5:  # Only check full names, not parts
+                    if found_name in valid_name or valid_name in found_name:
+                        is_valid = True
+                        break
+                    # Check if significant words match
+                    valid_parts = valid_name.split()
+                    common_words = set(found_parts) & set(valid_parts)
+                    if len(common_words) >= 2:  # At least 2 words match
+                        is_valid = True
+                        break
+        
+        if not is_valid:
+            # Additional check: ignore common words that might look like names
+            ignore_words = {'faculty', 'members', 'at', 'faix', 'staff', 'here', 'some', 'the', 'contact'}
+            meaningful_parts = [p for p in found_parts if p not in ignore_words and len(p) > 3]
+            if meaningful_parts:
+                hallucinated.append(found_name)
+    
+    is_valid = len(hallucinated) == 0
+    return (is_valid, hallucinated)
 
 
 def format_staff_details(staff: Dict) -> str:
@@ -1425,7 +1524,7 @@ def chat_api(request):
                 ]
                 if any(kw in user_message_lower for kw in faix_keywords):
                     # Check if FAIX data is available
-                    from src.agents import check_faix_data_available
+                    from backend.chatbot.agents import check_faix_data_available
                     if check_faix_data_available():
                         agent_id = 'faq'
                         logger.info("FAQ agent routing: FAIX keywords detected")
@@ -1640,6 +1739,40 @@ def chat_api(request):
                         temperature = 0.6 if agent_id == 'staff' else 0.5  # Slightly higher for staff (more conversational)
                         llm_response = llm_client.chat(messages, max_tokens=max_tokens, temperature=temperature)
                         answer = llm_response.content
+                        
+                        # STAFF HALLUCINATION VALIDATION: Check if LLM invented staff names
+                        if agent_id == 'staff' and answer:
+                            staff_docs = agent_context.get('staff', [])
+                            if staff_docs:
+                                is_valid, hallucinated_names = validate_staff_response(answer, staff_docs)
+                                if not is_valid:
+                                    logger.warning(f"Staff hallucination detected! LLM invented names: {hallucinated_names}")
+                                    logger.warning(f"Full response: {answer[:200]}...")
+                                    # Check for forbidden fields
+                                    answer_lower = answer.lower()
+                                    forbidden_fields = ['research interests', 'research areas', 'specialization']
+                                    has_forbidden = any(field in answer_lower for field in forbidden_fields)
+                                    
+                                    # Try knowledge base fallback
+                                    kb_staff_answer = knowledge_base.get_answer(intent, normalized_query)
+                                    if kb_staff_answer and 'couldn\'t find' not in kb_staff_answer.lower():
+                                        logger.info("Using knowledge base answer after detecting hallucination")
+                                        answer = kb_staff_answer
+                                    elif has_forbidden:
+                                        # If forbidden fields detected, remove them and try to fix
+                                        import re
+                                        # Remove lines containing forbidden fields
+                                        lines = answer.split('\n')
+                                        cleaned_lines = []
+                                        for line in lines:
+                                            if not any(field in line.lower() for field in forbidden_fields):
+                                                cleaned_lines.append(line)
+                                        answer = '\n'.join(cleaned_lines).strip()
+                                        logger.info("Removed forbidden fields from response")
+                                    else:
+                                        # Fallback: return a safe message
+                                        answer = "I couldn't find matching staff members in the database. Could you try a different spelling or ask about their department?"
+                                        logger.warning("Replaced hallucinated response with safe fallback")
                         
                         # RESPONSE VALIDATION: Check if response matches intent
                         answer_lower = answer.lower()

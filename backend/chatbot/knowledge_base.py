@@ -14,11 +14,12 @@ logger = logging.getLogger("faix_chatbot")
 
 # Import semantic search
 try:
-    from .nlp_semantic_search import get_semantic_search
+    from backend.nlp.nlp_semantic_search import get_semantic_search
     SEMANTIC_SEARCH_AVAILABLE = True
 except ImportError:
     try:
-        from nlp_semantic_search import get_semantic_search
+        from backend.nlp import nlp_semantic_search
+        get_semantic_search = nlp_semantic_search.get_semantic_search
         SEMANTIC_SEARCH_AVAILABLE = True
     except ImportError:
         SEMANTIC_SEARCH_AVAILABLE = False
@@ -26,7 +27,7 @@ except ImportError:
 
 # Setup Django if not already configured
 try:
-    BASE_DIR = Path(__file__).resolve().parent.parent
+    BASE_DIR = Path(__file__).resolve().parent.parent.parent
     sys.path.insert(0, str(BASE_DIR))
     os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'django_app.settings')
     django.setup()
@@ -84,8 +85,8 @@ class KnowledgeBase:
             if csv_path:
                 self._init_csv(csv_path)
             else:
-                # Try default path
-                default_path = Path(__file__).parent.parent / 'data' / 'faix_data.csv'
+                # Try default path (go up from backend/chatbot/ to project root)
+                default_path = Path(__file__).parent.parent.parent / 'data' / 'faix_data.csv'
                 if default_path.exists():
                     self._init_csv(str(default_path))
                 else:
@@ -101,7 +102,7 @@ class KnowledgeBase:
         
         # First try: Load from separated files (preferred)
         try:
-            from src.agents import _load_faix_json_data as load_separated_data
+            from backend.chatbot.agents import _load_faix_json_data as load_separated_data
             separated_data = load_separated_data()
             if separated_data:
                 logger.debug("FAIX data loaded from separated JSON files")
@@ -109,9 +110,9 @@ class KnowledgeBase:
         except Exception as e:
             logger.debug("Could not load from separated files: %s", e)
         
-        # Fallback: Try merged file
+        # Fallback: Try merged file (go up from backend/chatbot/ to project root)
         try:
-            json_path = Path(__file__).parent.parent / 'data' / 'faix_json_data.json'
+            json_path = Path(__file__).parent.parent.parent / 'data' / 'faix_json_data.json'
             if json_path.exists():
                 with open(json_path, 'r', encoding='utf-8') as f:
                     data = json.load(f)
@@ -125,7 +126,8 @@ class KnowledgeBase:
     def _load_intent_mapping(self) -> Dict[str, List[str]]:
         """Load intent-to-data mapping from intent_config.json"""
         try:
-            config_path = Path(__file__).parent.parent / 'data' / 'intent_config.json'
+            # Go up from backend/chatbot/ to project root
+            config_path = Path(__file__).parent.parent.parent / 'data' / 'intent_config.json'
             if config_path.exists():
                 with open(config_path, 'r', encoding='utf-8') as f:
                     config = json.load(f)

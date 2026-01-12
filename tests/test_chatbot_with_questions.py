@@ -244,7 +244,7 @@ class ChatbotTester:
         # Initialize standalone components if needed
         if mode == 'standalone':
             try:
-                from src.conversation_manager import process_conversation
+                from backend.chatbot.conversation_manager import process_conversation
                 self.process_conversation = process_conversation
                 self.standalone_available = True
             except ImportError as e:

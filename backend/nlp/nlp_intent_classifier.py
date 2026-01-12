@@ -72,14 +72,14 @@ class IntentClassifier:
                         model=self.model_name,
                         device=0 if self.device == 'cuda' else -1
                     )
-                    self.logger.debug("Intent classifier ready")
+                    self.logger.debug(f"Intent classifier ready on {self.device}")
                 else:
                     # Silent loading - reduce startup noise
                     self.tokenizer = AutoTokenizer.from_pretrained(self.model_name)
                     self.model = AutoModelForSequenceClassification.from_pretrained(self.model_name)
                     self.model.to(self.device)
                     self.model.eval()
-                    self.logger.debug("Intent classifier ready")
+                    self.logger.debug(f"Intent classifier ready on {self.device}")
             except Exception as e:
                 self.logger.warning(f"Could not load transformer model: {e}")
                 self.classifier = None
@@ -91,7 +91,8 @@ class IntentClassifier:
         """Load configuration from JSON file"""
         if config_path is None:
             # Default to data/intent_config.json relative to project root
-            project_root = Path(__file__).parent.parent
+            # Go up from backend/nlp/ to project root
+            project_root = Path(__file__).parent.parent.parent
             config_path = project_root / 'data' / 'intent_config.json'
         else:
             config_path = Path(config_path)

@@ -10,7 +10,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent.parent / 'src'))
 
 # Import both versions
-from src.nlp_intent_classifier import IntentClassifier as StaticClassifier, get_intent_classifier as get_static_classifier
+from backend.nlp.nlp_intent_classifier import IntentClassifier as StaticClassifier, get_intent_classifier as get_static_classifier
 
 # For dynamic version, you'll need to implement it first
 # from nlp_intent_classifier_dynamic import IntentClassifier as DynamicClassifier, get_intent_classifier as get_dynamic_classifier

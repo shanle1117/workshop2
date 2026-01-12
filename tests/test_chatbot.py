@@ -1,4 +1,4 @@
-from src.knowledge_base import KnowledgeBase
+from backend.chatbot.knowledge_base import KnowledgeBase
 
 # Replace this with your actual CSV filename (path relative to project root)
 kb = KnowledgeBase("data/faix_data.csv")

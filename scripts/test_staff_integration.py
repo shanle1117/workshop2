@@ -16,21 +16,12 @@ os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'django_app.settings')
 
 # Import after path setup
 try:
-    from src.agents import _get_staff_documents, retrieve_for_agent
-    from src.knowledge_base import KnowledgeBase
+    from backend.chatbot.agents import _get_staff_documents, retrieve_for_agent
+    from backend.chatbot.knowledge_base import KnowledgeBase
 except ImportError:
-    # Fallback: direct import
-    import importlib.util
-    spec = importlib.util.spec_from_file_location("agents", project_root / "src" / "agents.py")
-    agents_module = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(agents_module)
-    _get_staff_documents = agents_module._get_staff_documents
-    retrieve_for_agent = agents_module.retrieve_for_agent
-    
-    spec = importlib.util.spec_from_file_location("knowledge_base", project_root / "src" / "knowledge_base.py")
-    kb_module = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(kb_module)
-    KnowledgeBase = kb_module.KnowledgeBase
+    print("[ERROR] Could not import backend modules. Please ensure the project structure is correct.")
+    print(f"Project root: {project_root}")
+    sys.exit(1)
 
 
 def test_staff_loading():
@@ -47,7 +38,7 @@ def test_staff_loading():
     
     if not staff_docs:
         print("[FAIL] No staff documents loaded!")
-        print("Check if data/staff_contacts.json exists and has valid structure.")
+        print("Check if data/separated/staff_contacts.json exists and has valid structure.")
         return False
     
     print(f"[SUCCESS] Loaded {len(staff_docs)} staff members")

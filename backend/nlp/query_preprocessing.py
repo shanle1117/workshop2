@@ -23,18 +23,18 @@ SPECIFIC_INTENT_BOOST = 2
 # Suppress warnings
 os.environ['TF_ENABLE_ONEDNN_OPTS'] = '0'
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
-os.environ['CUDA_VISIBLE_DEVICES'] = '-1'
+# GPU enabled - models will use GPU if available (CUDA)
 os.environ['HF_HUB_DISABLE_SYMLINKS_WARNING'] = '1'
 os.environ['TOKENIZERS_PARALLELISM'] = 'false'
 os.environ['PYTHONWARNINGS'] = 'ignore'
 
 # Import NLP modules
 try:
-    from .nlp_intent_classifier import get_intent_classifier
+    from backend.nlp.nlp_intent_classifier import get_intent_classifier
     NLP_AVAILABLE = True
 except ImportError:
     try:
-        from nlp_intent_classifier import get_intent_classifier
+        from .nlp_intent_classifier import get_intent_classifier
         NLP_AVAILABLE = True
     except ImportError:
         NLP_AVAILABLE = False

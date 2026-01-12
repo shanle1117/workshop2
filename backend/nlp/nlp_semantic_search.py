@@ -12,6 +12,12 @@ except ImportError:
     SENTENCE_TRANSFORMERS_AVAILABLE = False
     print("Warning: sentence-transformers not available. Install with: pip install sentence-transformers")
 
+try:
+    import torch
+    TORCH_AVAILABLE = True
+except ImportError:
+    TORCH_AVAILABLE = False
+
 
 class SemanticSearch:
     """
@@ -32,16 +38,27 @@ class SemanticSearch:
         self.model_name = model_name
         self.embeddings_cache = {}
         
+        # Determine device (GPU if available, else CPU)
+        if TORCH_AVAILABLE and torch.cuda.is_available():
+            self.device = 'cuda'
+        else:
+            self.device = 'cpu'
+        
+        # Setup logger
+        import logging
+        logger = logging.getLogger("faix_chatbot")
+        
         if SENTENCE_TRANSFORMERS_AVAILABLE:
             try:
                 # Silent loading - no verbose output
-                import logging
                 logging.getLogger("sentence_transformers").setLevel(logging.ERROR)
                 import warnings
                 warnings.filterwarnings('ignore')
-                self.model = SentenceTransformer(model_name)
+                self.model = SentenceTransformer(model_name, device=self.device)
+                logger.debug(f"Semantic search model loaded on {self.device}")
             except Exception as e:
                 self.model = None
+                logger.warning(f"Could not load semantic search model: {e}")
         else:
             # Only show warning if explicitly needed
             pass

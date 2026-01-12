@@ -29,7 +29,7 @@ import types
 if 'django' not in sys.modules:
     sys.modules["django"] = types.ModuleType("django")
 
-from src.agents import (
+from backend.chatbot.agents import (
     get_agent,
     retrieve_for_agent,
     _load_separated_json_file,
@@ -39,8 +39,8 @@ from src.agents import (
     _get_faix_data_for_schedule,
     _get_faix_data_for_staff,
 )
-from src.knowledge_base import KnowledgeBase
-from src.prompt_builder import build_messages
+from backend.chatbot.knowledge_base import KnowledgeBase
+from backend.chatbot.prompt_builder import build_messages
 
 # ANSI color codes
 class Colors:

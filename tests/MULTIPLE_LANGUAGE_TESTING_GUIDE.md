@@ -54,7 +54,7 @@ Some tests may fail due to:
 ### Test Language Detection
 
 ```python
-from src.query_preprocessing import QueryProcessor
+from backend.nlp.query_preprocessing import QueryProcessor
 
 processor = QueryProcessor()
 result = processor.process_query("What programs does FAIX offer?")
@@ -73,7 +73,7 @@ print(result['language'])  # Should show Arabic
 ### Test Intent Detection
 
 ```python
-from src.query_preprocessing import QueryProcessor
+from backend.nlp.query_preprocessing import QueryProcessor
 
 processor = QueryProcessor()
 

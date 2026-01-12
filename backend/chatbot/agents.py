@@ -236,7 +236,10 @@ class AgentRegistry:
                     "- Use EXACT emails as they appear in context - DO NOT invent or modify email addresses\n"
                     "- If phone/office shows '-' or is missing, say 'Not available' - DO NOT invent phone numbers or office locations\n"
                     "- If you see 'MATCHED STAFF' section highlighted, those are the EXACT matches - use ONLY those names and details\n"
-                    "- When in doubt, copy EXACTLY what appears in the context - do not paraphrase or modify names/details"
+                    "- When in doubt, copy EXACTLY what appears in the context - do not paraphrase or modify names/details\n"
+                    "- FORBIDDEN FIELDS: DO NOT add 'Research Interests', 'Research Areas', or any fields NOT shown in the context\n"
+                    "- ALLOWED FIELDS ONLY: Name, Position, Department, Email, Phone, Office\n"
+                    "- If a staff member is NOT in the complete list of valid staff names, they DO NOT EXIST - do not mention them"
                 ),
                 default_intent="staff_contact",
             )
