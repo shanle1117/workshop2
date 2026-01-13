@@ -1469,6 +1469,34 @@ body {
     flex-shrink: 0;
 }
 
+.chatbot-header-actions {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+.demo-mode-toggle {
+    background: rgba(255, 255, 255, 0.2);
+    border: none;
+    color: white;
+    padding: 6px 12px;
+    border-radius: 16px;
+    cursor: pointer;
+    font-size: 0.75rem;
+    font-weight: 500;
+    transition: all 0.3s;
+    white-space: nowrap;
+}
+
+.demo-mode-toggle:hover {
+    background: rgba(255, 255, 255, 0.3);
+}
+
+.demo-mode-toggle.active {
+    background: rgba(255, 255, 255, 0.9);
+    color: var(--faix-primary);
+}
+
 .chatbot-header-content h3 {
     margin: 0;
     font-size: 1.2rem;
@@ -1614,6 +1642,126 @@ body {
     margin-top: 4px;
 }
 
+/* Response Metrics (for demo showcase) */
+.response-metrics {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 8px;
+    align-items: center;
+}
+
+.response-time-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 4px 8px;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    font-weight: 500;
+    gap: 4px;
+}
+
+.response-time-badge.fast {
+    background: #d1fae5;
+    color: #065f46;
+}
+
+.response-time-badge.medium {
+    background: #fef3c7;
+    color: #92400e;
+}
+
+.response-time-badge.slow {
+    background: #fee2e2;
+    color: #991b1b;
+}
+
+.tech-badges {
+    display: flex;
+    gap: 6px;
+}
+
+.tech-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 3px 8px;
+    border-radius: 10px;
+    font-size: 0.7rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.badge-rag {
+    background: #dbeafe;
+    color: #1e40af;
+}
+
+.badge-nlp {
+    background: #e9d5ff;
+    color: #6b21a8;
+}
+
+.badge-llm {
+    background: #fce7f3;
+    color: #9f1239;
+}
+
+.confidence-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 4px 8px;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    font-weight: 500;
+}
+
+.confidence-badge.high {
+    background: #d1fae5;
+    color: #065f46;
+}
+
+.confidence-badge.medium {
+    background: #fef3c7;
+    color: #92400e;
+}
+
+.confidence-badge.low {
+    background: #fee2e2;
+    color: #991b1b;
+}
+
+/* Quick Action Buttons */
+.quick-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    padding: 12px 0;
+    margin-bottom: 8px;
+}
+
+.quick-action-btn {
+    padding: 8px 14px;
+    background: linear-gradient(135deg, var(--faix-secondary) 0%, var(--faix-primary) 100%);
+    color: white;
+    border: none;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+    box-shadow: 0 2px 4px rgba(0, 51, 102, 0.2);
+}
+
+.quick-action-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 51, 102, 0.3);
+}
+
+.quick-action-btn:active {
+    transform: translateY(0);
+}
+
 .chatbot-typing {
     padding: 10px 20px;
     background: #f7fafc;
@@ -1649,6 +1797,38 @@ body {
     30% {
         transform: translateY(-10px);
         opacity: 1;
+    }
+}
+
+/* Processing Steps (Demo Mode Only) */
+.processing-steps {
+    margin-top: 12px;
+    padding: 12px;
+    background: rgba(255, 255, 255, 0.8);
+    border-radius: 8px;
+    font-size: 0.85rem;
+}
+
+.processing-step {
+    padding: 6px 0;
+    color: #4a5568;
+    animation: fadeInStep 0.3s ease;
+    display: none;
+}
+
+.processing-step:last-child {
+    color: #10b981;
+    font-weight: 600;
+}
+
+@keyframes fadeInStep {
+    from {
+        opacity: 0;
+        transform: translateX(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
     }
 }
 

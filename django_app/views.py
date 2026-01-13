@@ -683,6 +683,93 @@ def is_inadequate_response(response: str) -> bool:
     return False
 
 
+def validate_response(response: str, intent: str) -> str:
+    """
+    Validate and clean the response based on intent and common validation rules.
+    
+    Args:
+        response: The response string to validate
+        intent: The detected intent for context-specific validation
+    
+    Returns:
+        Validated (and potentially cleaned) response string
+    """
+    if not response:
+        return response
+    
+    validated = response.strip()
+    
+    # 1. Check minimum length requirement
+    if len(validated) < 10:
+        logger.warning(f"Response too short for intent {intent}: {validated[:50]}")
+        return validated  # Return as-is, let caller handle fallback
+    
+    # 2. Remove invalid "not found" patterns that don't match intent
+    invalid_responses = [
+        'no matching staff found',
+        'no matching',
+        'not found in database',
+        'could not find',
+        'unable to find',
+        'couldn\'t find',
+        'i couldn\'t find',
+        'i cannot find',
+        'i can\'t find',
+    ]
+    
+    response_lower = validated.lower()
+    for invalid_pattern in invalid_responses:
+        if invalid_pattern in response_lower:
+            # Only flag as invalid if intent doesn't match "not found" context
+            # For staff_contact, "not found" might be valid if no staff matches
+            if intent != 'staff_contact':
+                logger.warning(f"Invalid 'not found' response detected for intent {intent}")
+                # Return cleaned version, caller can handle fallback
+                return validated
+    
+    # 3. Remove unwanted meta-commentary and disclaimers
+    # Remove patterns like "The final answer to your question is not explicitly stated..."
+    validated = re.sub(
+        r'^(The final answer to your question is not explicitly stated[^\n]*\.?\s*However,?\s*)?(According to|Based on|From) (the )?(FAQ section|provided context|the context)[^\n]*:?\s*',
+        '',
+        validated,
+        flags=re.IGNORECASE | re.MULTILINE
+    )
+    # Remove similar patterns with variations
+    validated = re.sub(
+        r'^(However,?\s*)?(According to|Based on|From) (the )?(FAQ section|provided context|the context)[^\n]*:?\s*',
+        '',
+        validated,
+        flags=re.IGNORECASE | re.MULTILINE
+    )
+    
+    # 4. Remove excessive whitespace
+    validated = re.sub(r'\s+', ' ', validated)  # Normalize whitespace
+    validated = validated.strip()
+    
+    # 5. Intent-specific validation
+    if intent == 'staff_contact':
+        # For staff queries, check for minimum meaningful content
+        # Staff responses should contain names, contact info, or helpful guidance
+        if len(validated) < 20:
+            logger.warning(f"Staff response seems too short: {validated[:50]}")
+    elif intent in ['program_info', 'course_info']:
+        # Program/course info should be substantive
+        if len(validated) < 30:
+            logger.warning(f"Program/course response seems too short for intent {intent}")
+    elif intent in ['greeting', 'farewell']:
+        # Greetings/farewells can be shorter
+        pass  # No special validation needed
+    
+    # 6. Check for inadequate responses
+    if is_inadequate_response(validated):
+        logger.warning(f"Inadequate response detected for intent {intent}")
+        # Return as-is, caller should handle fallback
+        return validated
+    
+    return validated
+
+
 MULTILANG_ERROR_FALLBACK = {
     'en': "I apologize, but I'm having trouble processing your request. Please try rephrasing your question or contact the FAIX office for assistance.",
     'ms': "Maaf, saya menghadapi masalah memproses permintaan anda. Sila cuba nyatakan semula soalan anda atau hubungi pejabat FAIX untuk bantuan.",
@@ -1115,9 +1202,13 @@ def chat_api(request):
         "conversation_id": "conversation id",
         "intent": "detected intent",
          "confidence": 0.85,
-        "timestamp": "2024-01-01T12:00:00Z"
+        "timestamp": "2024-01-01T12:00:00Z",
+        "response_time_ms": 1234
     }
     """
+    import time
+    start_time = time.time()
+    
     try:
         data = json.loads(request.body)
         user_message = data.get('message', '').strip()
@@ -1197,6 +1288,10 @@ def chat_api(request):
             session.context = context
             session.save(update_fields=['context', 'updated_at'])
             
+            # Calculate response time for early return
+            elapsed_time = (time.time() - start_time) * 1000
+            response_time_ms = int(elapsed_time)
+            
             return JsonResponse({
                 'response': answer,
                 'session_id': session.session_id,
@@ -1206,6 +1301,8 @@ def chat_api(request):
                 'entities': entities,
                 'timestamp': timezone.now().isoformat(),
                 'pdf_url': None,
+                'response_time_ms': response_time_ms,
+                'agent_id': 'faq',  # Default for greeting
             })
         
         # Check for farewells in all supported languages
@@ -1236,6 +1333,10 @@ def chat_api(request):
             session.context = context
             session.save(update_fields=['context', 'updated_at'])
             
+            # Calculate response time for early return
+            elapsed_time = (time.time() - start_time) * 1000
+            response_time_ms = int(elapsed_time)
+            
             return JsonResponse({
                 'response': answer,
                 'session_id': session.session_id,
@@ -1245,6 +1346,8 @@ def chat_api(request):
                 'entities': entities,
                 'timestamp': timezone.now().isoformat(),
                 'pdf_url': None,
+                'response_time_ms': response_time_ms,
+                'agent_id': 'faq',  # Default for farewell
             })
         
         # Check for "what can you do" / capabilities queries in all languages
@@ -1277,6 +1380,10 @@ def chat_api(request):
             
             logger.info(f"Capabilities query detected, lang={early_lang_code}")
             
+            # Calculate response time for early return
+            elapsed_time = (time.time() - start_time) * 1000
+            response_time_ms = int(elapsed_time)
+            
             return JsonResponse({
                 'response': answer,
                 'session_id': session.session_id,
@@ -1286,6 +1393,8 @@ def chat_api(request):
                 'entities': entities,
                 'timestamp': timezone.now().isoformat(),
                 'pdf_url': None,
+                'response_time_ms': response_time_ms,
+                'agent_id': 'faq',
             })
 
         # EARLY GIBBERISH DETECTION: Catch nonsensical input before expensive processing
@@ -1492,6 +1601,11 @@ def chat_api(request):
                 cached_response.get('confidence', 0.0),
                 cached_response.get('entities', {})
             )
+            # Add response time to cached response (calculate for cache hit)
+            cached_response['response_time_ms'] = int((time.time() - start_time) * 1000)
+            # Ensure agent_id is present
+            if 'agent_id' not in cached_response:
+                cached_response['agent_id'] = agent_id or 'faq'
             return JsonResponse(cached_response)
         
         # IMPROVEMENT: For about_faix with very low confidence, return helpful response
@@ -2473,9 +2587,16 @@ def chat_api(request):
         except Exception as e:
             logger.error(f"Error saving bot message: {e}")
         
-        # Build response data
+        # Validate response before caching
+        validated_response = validate_response(answer, intent)
+        
+        # Calculate response time
+        elapsed_time = (time.time() - start_time) * 1000  # Convert to milliseconds
+        response_time_ms = int(elapsed_time)
+        
+        # Build response data with validated response
         response_data = {
-            'response': answer,
+            'response': validated_response,
             'session_id': session.session_id,
             'conversation_id': conversation.id,
             'message_id': bot_message.id if bot_message else None,  # Include message ID for feedback
@@ -2484,13 +2605,15 @@ def chat_api(request):
             'entities': entities,
             'timestamp': timezone.now().isoformat(),
             'pdf_url': pdf_url,  # Add PDF URL to response
+            'response_time_ms': response_time_ms,  # Add response time for demo metrics
+            'agent_id': agent_id,  # Add agent_id for tech badges
         }
         
-        # PERFORMANCE OPTIMIZATION: Cache the response (TTL: 1 hour for general queries, 24 hours for static responses)
+        # PERFORMANCE OPTIMIZATION: Cache the response (TTL: 30 minutes for general queries, 24 hours for static responses)
         # Check if it's a fee query directly (avoiding scope issues with is_fee_query variable)
         fee_keywords = ['fee', 'fees', 'tuition', 'yuran', 'bayaran', 'diploma fee', 'degree fee', 'cost', 'payment']
         is_fee_query_check = intent == 'fees' or any(kw in user_message_lower for kw in fee_keywords)
-        cache_timeout = 86400 if (is_fee_query_check or intent in ['greeting', 'farewell', 'about_faix']) else 3600  # 24h for static, 1h for others
+        cache_timeout = 86400 if (is_fee_query_check or intent in ['greeting', 'farewell', 'about_faix']) else 1800  # 24h for static, 30min (1800s) for others
         cache.set(cache_key, response_data, timeout=cache_timeout)
         
         return JsonResponse(response_data)

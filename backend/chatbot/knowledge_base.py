@@ -239,7 +239,7 @@ class KnowledgeBase:
                 return f"The Dean of FAIX is **{dean}**."
         
         # BCSAI/BCSCS program code queries
-        if any(kw in user_lower for kw in ['bcsai', 'bcscs', 'mcsss', 'mtdsa']):
+        if any(kw in user_lower for kw in ['baxi', 'baxz', 'mcsss', 'mtdsa']):
             return self._get_program_answer(user_lower)
         
         # Map intents to FAIX JSON sections

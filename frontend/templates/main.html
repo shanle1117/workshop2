@@ -244,7 +244,10 @@
                     <h3>FAIX Assistant</h3>
                     <p class="chatbot-status" id="chatbot-status">Online</p>
                 </div>
-                <button id="chatbot-minimize" class="chatbot-minimize">−</button>
+                <div class="chatbot-header-actions">
+                    <button id="demo-mode-toggle" class="demo-mode-toggle" title="Toggle Demo Mode">🎬 Demo Mode: OFF</button>
+                    <button id="chatbot-minimize" class="chatbot-minimize">−</button>
+                </div>
             </div>
             
             <div class="chatbot-messages" id="chatbot-messages">
@@ -255,6 +258,21 @@
                         <span class="message-time" id="welcome-time"></span>
                     </div>
                 </div>
+                <!-- Quick Action Buttons (Demo Mode Only) -->
+                <div class="quick-actions" id="quick-actions" style="display: none;">
+                    <button class="quick-action-btn" data-query="What programs does FAIX offer?">
+                        📚 Programs
+                    </button>
+                    <button class="quick-action-btn" data-query="Who can I contact?">
+                        👥 Staff Contacts
+                    </button>
+                    <button class="quick-action-btn" data-query="BAXI timetable">
+                        📅 Timetable
+                    </button>
+                    <button class="quick-action-btn" data-query="What are the tuition fees?">
+                        💰 Fees
+                    </button>
+                </div>
             </div>
             
             <div class="chatbot-typing" id="chatbot-typing" style="display: none;">
@@ -262,6 +280,24 @@
                     <span></span>
                     <span></span>
                     <span></span>
+                </div>
+                <!-- Real-time Processing Indicators (Demo Mode Only) -->
+                <div class="processing-steps" id="processing-steps" style="display: none;">
+                    <div class="processing-step" id="step-analyzing" style="display: none;">
+                        🔍 Analyzing query...
+                    </div>
+                    <div class="processing-step" id="step-intent" style="display: none;">
+                        🧠 Detecting intent: <span id="detected-intent"></span> (<span id="detected-confidence"></span>%)
+                    </div>
+                    <div class="processing-step" id="step-retrieving" style="display: none;">
+                        📚 Retrieving context from knowledge base...
+                    </div>
+                    <div class="processing-step" id="step-generating" style="display: none;">
+                        🤖 Generating response with LLM...
+                    </div>
+                    <div class="processing-step" id="step-ready" style="display: none;">
+                        ✅ Response ready!
+                    </div>
                 </div>
             </div>
             

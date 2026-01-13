@@ -31,6 +31,8 @@ class Chatbot {
         this.recognition = null;
         this.speechSupported = false;
         this.scrollPosition = 0; // Store scroll position for mobile
+        this.demoMode = false; // Demo mode flag - disabled by default
+        this.processingSteps = []; // Track processing steps for demo mode
         
         this.initializeElements();
         this.initializeSpeechRecognition();
@@ -43,6 +45,9 @@ class Chatbot {
         // Handle window resize for mobile body scroll lock
         this.handleResize();
         window.addEventListener('resize', () => this.handleResize());
+        
+        // Initialize demo mode from localStorage or URL parameter
+        this.initDemoMode();
     }
     
     handleResize() {
@@ -64,8 +69,49 @@ class Chatbot {
         this.typingIndicator = document.getElementById('chatbot-typing');
         this.status = document.getElementById('chatbot-status');
         this.badge = document.getElementById('chatbot-badge');
+        this.demoModeToggle = document.getElementById('demo-mode-toggle');
         // Optional agent selector (e.g., dropdown or tabs)
         this.agentSelect = document.getElementById('chatbot-agent-select');
+    }
+    
+    initDemoMode() {
+        // Check URL parameter first (e.g., ?demo=true)
+        const urlParams = new URLSearchParams(window.location.search);
+        const urlDemo = urlParams.get('demo') === 'true';
+        
+        // Check localStorage
+        const storedDemo = localStorage.getItem('chatbot_demo_mode') === 'true';
+        
+        // Enable demo mode if either URL or localStorage says so
+        this.demoMode = urlDemo || storedDemo;
+        
+        // Update UI based on demo mode
+        this.updateDemoModeUI();
+    }
+    
+    toggleDemoMode() {
+        this.demoMode = !this.demoMode;
+        localStorage.setItem('chatbot_demo_mode', this.demoMode.toString());
+        this.updateDemoModeUI();
+        
+        // Show/hide quick actions and existing metrics
+        const quickActions = document.getElementById('quick-actions');
+        if (quickActions) {
+            quickActions.style.display = this.demoMode ? 'flex' : 'none';
+        }
+        
+        // Update existing messages' metrics visibility
+        const metricsContainers = document.querySelectorAll('.response-metrics');
+        metricsContainers.forEach(container => {
+            container.style.display = this.demoMode ? 'flex' : 'none';
+        });
+    }
+    
+    updateDemoModeUI() {
+        if (this.demoModeToggle) {
+            this.demoModeToggle.textContent = this.demoMode ? '🎬 Demo Mode: ON' : '🎬 Demo Mode: OFF';
+            this.demoModeToggle.classList.toggle('active', this.demoMode);
+        }
     }
     
     initializeSpeechRecognition() {
@@ -173,6 +219,30 @@ class Chatbot {
             });
         }
 
+        // Demo mode toggle
+        if (this.demoModeToggle) {
+            this.demoModeToggle.addEventListener('click', () => this.toggleDemoMode());
+        }
+        
+        // Quick action buttons
+        const quickActionButtons = document.querySelectorAll('.quick-action-btn');
+        quickActionButtons.forEach(button => {
+            button.addEventListener('click', (e) => {
+                const query = button.getAttribute('data-query');
+                if (query) {
+                    this.input.value = query;
+                    this.sendMessage();
+                    // Hide quick actions after clicking (only in demo mode)
+                    if (this.demoMode) {
+                        const quickActions = document.getElementById('quick-actions');
+                        if (quickActions) {
+                            quickActions.style.display = 'none';
+                        }
+                    }
+                }
+            });
+        });
+        
         // Agent selector change
         if (this.agentSelect) {
             this.agentSelect.addEventListener('change', (e) => {
@@ -274,6 +344,11 @@ class Chatbot {
         this.showTyping();
         this.setLoading(true);
         
+        // Show processing steps in demo mode
+        if (this.demoMode) {
+            this.showProcessingSteps(message);
+        }
+        
         try {
             const response = await this.apiCall('/api/chat/', {
                 method: 'POST',
@@ -306,10 +381,22 @@ class Chatbot {
                     this.conversationId = data.conversation_id;
                 }
                 
+                // Update processing steps with real data if in demo mode
+                if (this.demoMode && data.intent && data.confidence !== undefined) {
+                    this.updateProcessingSteps(data.intent, data.confidence);
+                    // Show ready step
+                    setTimeout(() => {
+                        const readyStep = document.getElementById('step-ready');
+                        if (readyStep) {
+                            readyStep.style.display = 'block';
+                        }
+                    }, 200);
+                }
+                
                 // Add bot response to UI with feedback data
                 this.hideTyping();
                 if (data.response) {
-                    this.addMessage('bot', data.response, data.pdf_url, data.message_id, data.intent, message);
+                    this.addMessage('bot', data.response, data.pdf_url, data.message_id, data.intent, message, data.response_time_ms, data.agent_id, data.confidence);
                     // Track assistant turn in history
                     this.history.push({ role: 'assistant', content: data.response });
                 } else {
@@ -359,7 +446,7 @@ class Chatbot {
         }
     }
     
-    addMessage(role, content, pdfUrl = null, messageId = null, intent = null, userMessage = null) {
+    addMessage(role, content, pdfUrl = null, messageId = null, intent = null, userMessage = null, responseTimeMs = null, agentId = null, confidence = null) {
         if (!this.messagesContainer) {
             console.error('Chatbot messages container not found');
             return;
@@ -436,6 +523,76 @@ class Chatbot {
         if (isAssistant) {
             const feedbackContainer = this.createFeedbackButtons(messageId, content, intent, userMessage);
             messageContent.appendChild(feedbackContainer);
+            
+            // Add response metrics (time, tech badges, confidence) ONLY in demo mode
+            if (this.demoMode) {
+                const metricsContainer = document.createElement('div');
+                metricsContainer.className = 'response-metrics';
+            
+            // Response time badge
+            if (responseTimeMs !== null) {
+                const timeBadge = document.createElement('span');
+                timeBadge.className = 'response-time-badge';
+                const timeSec = (responseTimeMs / 1000).toFixed(1);
+                const timeClass = responseTimeMs < 2000 ? 'fast' : responseTimeMs < 5000 ? 'medium' : 'slow';
+                timeBadge.classList.add(timeClass);
+                timeBadge.textContent = `⚡ ${timeSec}s`;
+                timeBadge.title = `Response time: ${responseTimeMs}ms`;
+                metricsContainer.appendChild(timeBadge);
+            }
+            
+            // Tech badges (RAG, NLP, LLM)
+            if (agentId) {
+                const techBadges = document.createElement('div');
+                techBadges.className = 'tech-badges';
+                
+                // Always show NLP for intent classification
+                const nlpBadge = document.createElement('span');
+                nlpBadge.className = 'tech-badge badge-nlp';
+                nlpBadge.textContent = 'NLP';
+                nlpBadge.title = 'Natural Language Processing';
+                techBadges.appendChild(nlpBadge);
+                
+                // Show RAG badge for agent-based responses
+                if (agentId !== 'none') {
+                    const ragBadge = document.createElement('span');
+                    ragBadge.className = 'tech-badge badge-rag';
+                    ragBadge.textContent = 'RAG';
+                    ragBadge.title = 'Retrieval-Augmented Generation';
+                    techBadges.appendChild(ragBadge);
+                    
+                    // Show LLM badge for agent responses
+                    const llmBadge = document.createElement('span');
+                    llmBadge.className = 'tech-badge badge-llm';
+                    llmBadge.textContent = 'LLM';
+                    llmBadge.title = 'Large Language Model (Llama 3.2)';
+                    techBadges.appendChild(llmBadge);
+                }
+                
+                metricsContainer.appendChild(techBadges);
+            }
+            
+            // Confidence score (optional, only show if confidence is provided)
+            if (confidence !== null && confidence > 0) {
+                const confidenceBadge = document.createElement('span');
+                confidenceBadge.className = 'confidence-badge';
+                const confidencePercent = Math.round(confidence * 100);
+                confidenceBadge.textContent = `${confidencePercent}%`;
+                confidenceBadge.title = `Confidence: ${confidencePercent}%`;
+                if (confidencePercent >= 80) {
+                    confidenceBadge.classList.add('high');
+                } else if (confidencePercent >= 50) {
+                    confidenceBadge.classList.add('medium');
+                } else {
+                    confidenceBadge.classList.add('low');
+                }
+                    metricsContainer.appendChild(confidenceBadge);
+                }
+                
+                if (metricsContainer.children.length > 0) {
+                    messageContent.appendChild(metricsContainer);
+                }
+            }
         }
         
         const time = document.createElement('span');
@@ -556,6 +713,81 @@ class Chatbot {
     hideTyping() {
         if (this.typingIndicator) {
             this.typingIndicator.style.display = 'none';
+        }
+        // Hide processing steps when hiding typing
+        if (this.demoMode) {
+            this.hideProcessingSteps();
+        }
+    }
+    
+    showProcessingSteps(userMessage) {
+        if (!this.demoMode) return;
+        
+        const stepsContainer = document.getElementById('processing-steps');
+        if (!stepsContainer) return;
+        
+        stepsContainer.style.display = 'block';
+        
+        // Reset all steps
+        const allSteps = stepsContainer.querySelectorAll('.processing-step');
+        allSteps.forEach(step => step.style.display = 'none');
+        
+        // Step 1: Analyzing
+        const analyzingStep = document.getElementById('step-analyzing');
+        if (analyzingStep) {
+            analyzingStep.style.display = 'block';
+        }
+        
+        // Step 2: Intent detection (simulated with delay)
+        setTimeout(() => {
+            const intentStep = document.getElementById('step-intent');
+            if (intentStep) {
+                // Simulate intent detection - we'll update with real data when available
+                const intentSpan = document.getElementById('detected-intent');
+                const confidenceSpan = document.getElementById('detected-confidence');
+                if (intentSpan) intentSpan.textContent = 'analyzing...';
+                if (confidenceSpan) confidenceSpan.textContent = '--';
+                intentStep.style.display = 'block';
+            }
+        }, 500);
+        
+        // Step 3: Retrieving context
+        setTimeout(() => {
+            const retrievingStep = document.getElementById('step-retrieving');
+            if (retrievingStep) {
+                retrievingStep.style.display = 'block';
+            }
+        }, 1000);
+        
+        // Step 4: Generating response
+        setTimeout(() => {
+            const generatingStep = document.getElementById('step-generating');
+            if (generatingStep) {
+                generatingStep.style.display = 'block';
+            }
+        }, 1500);
+    }
+    
+    updateProcessingSteps(intent, confidence) {
+        if (!this.demoMode) return;
+        
+        const intentSpan = document.getElementById('detected-intent');
+        const confidenceSpan = document.getElementById('detected-confidence');
+        
+        if (intentSpan && intent) {
+            intentSpan.textContent = intent;
+        }
+        if (confidenceSpan && confidence !== null) {
+            confidenceSpan.textContent = Math.round(confidence * 100);
+        }
+    }
+    
+    hideProcessingSteps() {
+        const stepsContainer = document.getElementById('processing-steps');
+        if (stepsContainer) {
+            stepsContainer.style.display = 'none';
+            const allSteps = stepsContainer.querySelectorAll('.processing-step');
+            allSteps.forEach(step => step.style.display = 'none');
         }
     }
     
